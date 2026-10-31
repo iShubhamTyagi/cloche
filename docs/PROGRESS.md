@@ -4,17 +4,29 @@ Read the **Current state** first; it says where the next session starts. Then ad
 
 ## Current state
 
-- **Phase:** 1.4 done; next is 1.5 (face-down bake screen with keep-awake; Duo cover-display baking and ready screens)
+- **Phase:** 1.5 done; next is 1.6 (door ajar: 15 s ring countdown on iPhone and Duo)
 - **Last green commit:** see the log entry below
 - **Blockers:** Apple Developer Program not enrolled (needed by the end of Phase 2 for TestFlight); watchOS 27 runtime not installed (needed in Phase 3)
 - **Simulators:** iPhone 17, iPhone 17e and iPhone Duo on iOS 27.2; iPhone 16 on iOS 18.2 (minimum-version check)
 - **Gate 0 facts so far:**
   - The Duo hinge reports in the simulator: unfolded is `fullyOpen`, angle `3.141593`, so the angle is in radians and flat open is π.
   - iPhones without a hinge get no hinge update at all, rather than an update with no hinge.
+  - The Duo cover display is portrait, 1398 × 2034 px (about 466 × 678 pt), not the handoff's assumed 500 × 400 landscape.
+  - XCUITest screenshots on the Duo simulator are black; use `ImageRenderer` (see DECISIONS).
   - Still open: readings during a slow close and open (needs folding by hand in DeviceHub, then `xcrun simctl spawn <Duo> log show --last 5m --predicate 'subsystem == "com.shubhamtyagi.pocketoven"'`); face-down on a real iPhone on three surfaces.
 - **Known for Phase 1:** the Duo simulator boots folded, showing the cover display (1398 × 2034 px). The system reserves a strip down the cover's right edge, so centred content sits left of centre; cover screens need the reserved-region APIs. `simctl io screenshot` needs `--display=1` on the Duo.
 
 ## Log
+
+### 2026-10-31: Phase 1.5, bake screens
+
+- **Built:**
+  - `FaceDownBakeScreen` (board 3): pure black, eyebrow, dim countdown, breathing line, burn-in drift; shows "Prêt." when Ready
+  - `CoverBakeScreen` (boards Duo 3 and Duo 4): closed oven with the timer on its display plate, rods brightening with progress, progress line; Ready shows "Prêt." in italic sand, the lift-the-lid line and a breathing glow
+  - `KeepAwakePolicy` with `IdleTimerScreenAwake` (screen stays on only while baking or ajar); `BurnInDrift` in the design system; `StarterRecipes.recipe(id:)`
+- **Verified:** on iPhone 17 and iPhone Duo, 62 of 62 unit tests (new: drift range, ends, steps and invalid input; keep-awake per phase and setting) and 4 of 4 UI tests (the flow now ends on the real bake timer). Checked against the boards: the iPhone bake screen through a UI-test screenshot, and the Duo cover baking and ready screens through `ImageRenderer` at 466 × 678.
+- **Fixed during the slice:** the Ready glow was clipped to the oven's frame, leaving a hard-edged band; it now covers the whole screen and fades out.
+- **Left over:** the Settings switch for keep-awake (2.10); whether the cover keeps rendering while shut and the app stays active is a real-device Gate 0 check.
 
 ### 2026-10-31: Phase 1.4, Prep and Preheat
 

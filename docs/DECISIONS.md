@@ -4,6 +4,13 @@ Choices made during the build that the PRD or design handoff don't settle. Newes
 
 | Date | Decision | Why |
 | --- | --- | --- |
+| 2026-10-31 | The Duo cover layout is sized from the space it gets, not fixed at 500 × 400 pt | The simulator's cover display is portrait, 1398 × 2034 px (about 466 × 678 pt), not the 500 × 400 landscape the handoff assumed. The handoff flagged its Duo sizes as unconfirmed |
+| 2026-10-31 | A bake whose door is the hinge shows the oven cover screens (Duo 3 and 4); every other source shows the black face-down screen | The door source already says where the player is looking; no display detection needed |
+| 2026-10-31 | The screen is kept awake during baking and the grace only, not while Ready | DR-3 needs detection to keep running during the bake. Once ready, normal auto-lock saves battery (2.4.2); the stored end time and the notification still deliver the result |
+| 2026-10-31 | Keep-awake uses the idle timer only; brightness is never changed | Guideline 2.5.9 (don't alter system settings). A black OLED screen is already dark |
+| 2026-10-31 | A face-down phone shows "Prêt." on the black screen when Ready | Board 3 covers baking only; this matches the Duo ready wording and is what the player sees on turning the phone over before the reveal |
+| 2026-10-31 | Burn-in drift: 16 pt over 90 s on the iPhone and 7 pt over 60 s on the cover, in whole-point steps, kept under Reduce Motion | Handoff motion table |
+| 2026-10-31 | Duo screens are checked by rendering them with `ImageRenderer` at the measured cover size in a temporary test | XCUITest screenshots on the Duo simulator come back black (they capture the inner panel even when it is dark) |
 | 2026-10-31 | Prep shows no recipe book or settings icons, recipe circles or work label yet | Guideline 2.1: no dead buttons. Each arrives with its feature (2.1, 2.6, 2.10, 3.4); Gate 0 is one hard-coded cupcake |
 | 2026-10-31 | Preheat leaves out "Close the door another way" for now | It opens the honor door (DR-10, P1), which isn't built yet |
 | 2026-10-31 | The session is saved as JSON in Application Support after every event | Force-quit recovery (BK-1). A file keeps the privacy manifest free of extra required-reason APIs; file protection is "until first unlock" so a bake can finish while the phone is locked |

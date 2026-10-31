@@ -11,4 +11,10 @@ enum StarterRecipes {
         idealTemperature: .medium,
         isFree: true
     )
+
+    static let all = [vanillaCupcakes]
+
+    static func recipe(id: String) -> Recipe {
+        all.first { $0.id == id } ?? vanillaCupcakes
+    }
 }

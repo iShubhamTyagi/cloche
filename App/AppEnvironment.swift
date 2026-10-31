@@ -10,6 +10,7 @@ import Services
 final class AppEnvironment {
     let doorSensor: AdaptiveDoorSensor
     let session: SessionController
+    let screenAwake: any ScreenAwakeControlling = IdleTimerScreenAwake()
     let debug: DebugOptions
 
     init() {

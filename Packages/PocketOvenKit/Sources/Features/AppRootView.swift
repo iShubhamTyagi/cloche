@@ -1,5 +1,6 @@
 import DesignSystem
 import DoorSensing
+import Services
 import SwiftUI
 
 /// Debug-only switches, passed in by the composition root from launch arguments.
@@ -19,11 +20,13 @@ public struct AppRootView: View {
 
     private let session: SessionController
     private let doorSensor: AdaptiveDoorSensor
+    private let screenAwake: any ScreenAwakeControlling
     private let debug: DebugOptions
 
-    public init(session: SessionController, doorSensor: AdaptiveDoorSensor, debug: DebugOptions = DebugOptions()) {
+    public init(session: SessionController, doorSensor: AdaptiveDoorSensor, screenAwake: any ScreenAwakeControlling, debug: DebugOptions = DebugOptions()) {
         self.session = session
         self.doorSensor = doorSensor
+        self.screenAwake = screenAwake
         self.debug = debug
     }
 
@@ -49,10 +52,10 @@ public struct AppRootView: View {
         if debug.showsComponentGallery {
             ComponentGallery()
         } else {
-            SessionRootView(session: session)
+            SessionRootView(session: session, screenAwake: screenAwake)
         }
         #else
-        SessionRootView(session: session)
+        SessionRootView(session: session, screenAwake: screenAwake)
         #endif
     }
 }

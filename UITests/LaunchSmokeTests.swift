@@ -26,9 +26,10 @@ final class LaunchSmokeTests: XCTestCase {
 
         app.buttons["doorDebug.toggle"].tap()
         app.buttons["doorDebug.override.closed"].tap()
-        let phase = app.staticTexts["interim.phase"]
-        XCTAssertTrue(phase.waitForExistence(timeout: 5))
-        XCTAssertEqual(phase.label.lowercased(), "baking")
+        app.buttons["doorDebug.toggle"].tap()
+        let timer = app.descendants(matching: .any)["bake.timer"]
+        XCTAssertTrue(timer.waitForExistence(timeout: 5))
+        attachScreenshot(of: app, named: "baking")
     }
 
     @MainActor

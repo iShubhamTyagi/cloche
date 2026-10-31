@@ -49,6 +49,14 @@ struct TemperaturePicker: View {
         .accessibilityIdentifier("temperature.\(temperature.rawValue)")
     }
 
+    static func nameString(_ temperature: Temperature) -> String {
+        switch temperature {
+        case .low: String(localized: "Low", bundle: .module)
+        case .medium: String(localized: "Medium", bundle: .module)
+        case .high: String(localized: "High", bundle: .module)
+        }
+    }
+
     static func name(_ temperature: Temperature) -> Text {
         switch temperature {
         case .low: Text("Low", bundle: .module)

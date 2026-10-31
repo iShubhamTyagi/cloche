@@ -4,6 +4,13 @@ Choices made during the build that the PRD or design handoff don't settle. Newes
 
 | Date | Decision | Why |
 | --- | --- | --- |
+| 2026-10-31 | Fonts are bundled in the `DesignSystem` package and registered with CoreText the first time a text style is used, not listed in the app's Info.plist | Previews and package tests get the real fonts too, and no launch-time call can be forgotten. If a font is missing, text falls back to system sans or New York instead of crashing |
+| 2026-10-31 | The Instrument Sans italic file is not bundled | The design never uses sans italic; it would add about 200 KB |
+| 2026-10-31 | Dynamic Type is capped at `xxxLarge` at the app root | The handoff asks for about 130%; `xxxLarge` is the nearest step (about 135%). Numerals, hero lines and headlines use fixed sizes and don't scale at all |
+| 2026-10-31 | Line heights are approximated: the extra line spacing is the design line height minus 1.2 × the font size | SwiftUI has no direct line-height setting; single-line text is unaffected, and multi-line body text matches the 15/22 spec closely |
+| 2026-10-31 | Empty stars are drawn as `color-subtle` outlines | The handoff says "empty outline" without a colour; subtle keeps 4.9:1 or better contrast, and filled versus outline means the state never relies on colour alone |
+| 2026-10-31 | `RingClock` was built in slice 1.1 instead of 1.6 | It is a shared component (break clock and ajar countdown); doing it with the rest of the design system keeps 1.6 small |
+| 2026-10-31 | The component gallery is compiled only into debug builds and opened with the `-componentGallery` launch argument | Gives a quick on-device check against the canvas without shipping a hidden feature (Guideline 2.5.19) |
 | 2026-10-31 | CLI derived data lives in `~/Library/Developer/Xcode/DerivedData/PocketOven-cli`, outside the repo | Xcode 27.2 can't load hostless package test bundles from a path containing a space ("My Dev"); verified by running the same tests from a path without spaces |
 | 2026-10-31 | `test.sh` runs the package's unit tests through the `PocketOvenKit` scheme, then the app's UI tests | Package testables added to the app scheme were silently skipped |
 | 2026-10-31 | Scripts open `DeviceHub.app` | Xcode 27 replaced Simulator.app with DeviceHub |

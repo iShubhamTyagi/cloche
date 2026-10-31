@@ -19,3 +19,8 @@ public enum HitTarget {
     /// Minimum height and width for every control.
     public static let minimum: CGFloat = 44
 }
+
+public enum ButtonMetrics {
+    public static let primaryHeight: CGFloat = 58
+    public static let outlineHeight: CGFloat = 54
+}

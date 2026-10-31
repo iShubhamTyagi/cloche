@@ -20,7 +20,7 @@ let package = Package(
         .target(name: "Persistence", dependencies: ["Domain"], swiftSettings: settings),
         .target(name: "Services", dependencies: ["Domain"], swiftSettings: settings),
         // SwiftUI only; no domain knowledge.
-        .target(name: "DesignSystem", swiftSettings: settings),
+        .target(name: "DesignSystem", resources: [.process("Resources")], swiftSettings: settings),
         .target(
             name: "Features",
             dependencies: ["Domain", "DoorSensing", "Persistence", "Services", "DesignSystem"],

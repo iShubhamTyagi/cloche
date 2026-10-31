@@ -40,7 +40,7 @@ Goal: film the close-and-reveal moment and settle four technical facts.
 
 | # | Slice | PRD / handoff refs |
 | --- | --- | --- |
-| 1.1 | DesignSystem: tokens (colour, type, spacing, radius), bundled fonts, grain overlay, PrimaryButton, OutlineButton, EyebrowLabel, Stars | Handoff "Design tokens" |
+| 1.1 ✅ | DesignSystem: tokens (colour, type, spacing, radius), bundled fonts, grain overlay, PrimaryButton, OutlineButton, EyebrowLabel, Stars | Handoff "Design tokens" |
 | 1.2 | Domain: `Recipe`, `Temperature`, `BakeSession`, `SessionEngine` (timestamp-based), `GradeCalculator`, `TimeProviding`. Full unit tests for grace, keep-warm, half-baked, stars and relaunch recovery | PRD §5, §9; BK-1, BK-4, BK-5, BK-6 |
 | 1.3 | DoorSensing: protocol, face-down, hinge (gated), scripted mock, plus a debug overlay showing hinge status, angle and gravity | PL-1, BK-2, DR-1, DR-2 |
 | 1.4 | Prep screen (hard-coded cupcake) → Preheat ("Waiting for a flat, face-down phone") | Boards 1 Prep, 2 Preheat |

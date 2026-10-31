@@ -1,5 +1,5 @@
 /// The one question the bake asks: is the oven door shut?
-public enum DoorState: Sendable, Equatable {
+public enum DoorState: String, Sendable, Equatable, Codable {
     case closed
     /// Partly open: a half-folded Duo, or a phone lifted off its face. Starts the 15 s grace.
     case ajar

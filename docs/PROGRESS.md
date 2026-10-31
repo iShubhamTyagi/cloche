@@ -4,13 +4,31 @@ Read the **Current state** first; it says where the next session starts. Then ad
 
 ## Current state
 
-- **Phase:** 1.1 done; next is 1.2 (Domain: session engine, grading, the time protocol, with unit tests)
+- **Phase:** 1.2 done; next is 1.3 (door sensing: face-down, hinge, debug overlay)
 - **Last green commit:** see the log entry below
 - **Blockers:** Apple Developer Program not enrolled (needed by the end of Phase 2 for TestFlight); watchOS 27 runtime not installed (needed in Phase 3)
 - **Simulators:** iPhone 17, iPhone 17e and iPhone Duo on iOS 27.2; iPhone 16 on iOS 18.2 (minimum-version check)
 - **Known for Phase 1:** the Duo simulator boots folded, showing the cover display (1398 × 2034 px). The system reserves a strip down the cover's right edge, so centred content sits left of centre; cover screens need the reserved-region APIs. `simctl io screenshot` needs `--display=1` on the Duo.
 
 ## Log
+
+### 2026-10-31: Phase 1.2, domain
+
+- **Built:**
+  - `Recipe`, `Temperature`, `BakeRequest`, `Bake`, `BakeOutcome`, `Grade`, `Browning`, `GradeCalculator`
+  - `SessionEngine`, the state machine: idle → armed → baking ⇄ ajar → ready → graded → decorating → served. It takes `now` with each event, returns effects (notifications, cues), and exposes `nextDeadline`
+  - `DoorState` is now `Codable`
+- **Verified:** on iPhone 17 and iPhone Duo, 39 of 39 unit tests (25 new domain tests) and 2 of 2 UI tests. The tests cover:
+  - Keep-warm, with hours of overtime
+  - The 15 s grace: resume, expiry, ajar counted as open, timer running out during the grace
+  - Half-baked doneness, measured at the moment the door opened
+  - Relaunch long after an expired grace
+  - Break auto-serve after time away, Serve now, Serve plain
+  - Decorating unreachable without a bake
+  - Encode and decode for force-quit recovery
+  - Demo bake with no stars
+  - Star and browning rules, and break lengths
+- **Left over:** none. Wiring the engine to the app comes with the screens in 1.4 to 1.8.
 
 ### 2026-10-31: Phase 1.1, design system
 

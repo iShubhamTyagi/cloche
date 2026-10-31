@@ -4,6 +4,13 @@ Choices made during the build that the PRD or design handoff don't settle. Newes
 
 | Date | Decision | Why |
 | --- | --- | --- |
+| 2026-10-31 | The bake timer keeps running during the 15 s grace; if the grace expires, doneness is measured at the moment the door opened | The PRD says a short open changes nothing and a long one ends the bake half-baked "at time baked"; counting the open seconds as baking makes the first true and the second fair |
+| 2026-10-31 | If the timer runs out during the grace, the bake counts as fully baked | No guilt: the player didn't cut the bake short, the clock simply finished |
+| 2026-10-31 | A half-baked dish always shows Pale browning | Matches the handoff's S2 8 board ("Pale" at 62%); temperature browning only applies to finished bakes |
+| 2026-10-31 | A finished bake is revealed only when the door is fully open; a Duo opened partway stays in Ready | Handoff Duo 4: "Lift the lid to open the door". Prevents a reveal from a slight wobble of the hinge |
+| 2026-10-31 | Demo bake: 15 s bake, 60 s break, no stars | The PRD fixes 15 s and no stars but not the break; 60 s lets a reviewer see the decorating flow end by itself |
+| 2026-10-31 | The engine uses stored wall-clock dates; the handoff's proposed monotonic-clock check is deferred | Keeps 1.2 pure and fully testable. Revisit before TestFlight; it needs `systemUptime`, which means adding reason 35F9.1 to the privacy manifest |
+| 2026-10-31 | `SessionEngine` is a pure value type: callers pass `now`, and it returns effects (notifications, cues) instead of doing I/O | Single responsibility and full testability without devices or waiting. Its state is `Codable`, so force-quit recovery is just save and restore |
 | 2026-10-31 | Fonts are bundled in the `DesignSystem` package and registered with CoreText the first time a text style is used, not listed in the app's Info.plist | Previews and package tests get the real fonts too, and no launch-time call can be forgotten. If a font is missing, text falls back to system sans or New York instead of crashing |
 | 2026-10-31 | The Instrument Sans italic file is not bundled | The design never uses sans italic; it would add about 200 KB |
 | 2026-10-31 | Dynamic Type is capped at `xxxLarge` at the app root | The handoff asks for about 130%; `xxxLarge` is the nearest step (about 135%). Numerals, hero lines and headlines use fixed sizes and don't scale at all |

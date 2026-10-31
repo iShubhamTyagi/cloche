@@ -4,7 +4,7 @@ Read the **Current state** first; it says where the next session starts. Then ad
 
 ## Current state
 
-- **Phase:** 1.3 done; next is 1.4 (Prep screen with a hard-coded cupcake, then Preheat)
+- **Phase:** 1.4 done; next is 1.5 (face-down bake screen with keep-awake; Duo cover-display baking and ready screens)
 - **Last green commit:** see the log entry below
 - **Blockers:** Apple Developer Program not enrolled (needed by the end of Phase 2 for TestFlight); watchOS 27 runtime not installed (needed in Phase 3)
 - **Simulators:** iPhone 17, iPhone 17e and iPhone Duo on iOS 27.2; iPhone 16 on iOS 18.2 (minimum-version check)
@@ -15,6 +15,21 @@ Read the **Current state** first; it says where the next session starts. Then ad
 - **Known for Phase 1:** the Duo simulator boots folded, showing the cover display (1398 × 2034 px). The system reserves a strip down the cover's right edge, so centred content sits left of centre; cover screens need the reserved-region APIs. `simctl io screenshot` needs `--display=1` on the Duo.
 
 ## Log
+
+### 2026-10-31: Phase 1.4, Prep and Preheat
+
+- **Built:**
+  - `PrepScreen` (hard-coded cupcake on a plate, temperature picker, Preheat with door-aware note) and `PreheatScreen` (oven with "Ready", headline, helper, status pill, summary cells)
+  - `SessionController`: drives the engine with the door, the clock and app lifecycle; saves after every event; wakes at the next deadline
+  - `SessionRootView` routes each phase to its screen; a temporary stand-in covers phases without screens
+  - `FileSessionSnapshotStore` and `InMemorySessionSnapshotStore`, `SessionEffectRouter` (logs effects until 1.7 and 1.8)
+  - Code-drawn `CupcakeView` and `OvenView` (first pass), `StatusPill`
+- **Verified:** on iPhone 17 and iPhone Duo, 56 of 56 unit tests (new: controller start, save, restore with catch-up, back, door source; file store round trip) and 4 of 4 UI tests (new: Prep → Preheat → door closed → baking; back from Preheat). Screenshots from the UI test checked against boards 1 Prep and 2 Preheat; colours sampled exactly.
+- **Fixed during the slice:**
+  - The debug panel's identifier hid its buttons' identifiers, and the panel covered the Preheat button; it is now a collapsible chip.
+  - VoiceOver read "Preheat, · 25 min"; it now reads "Preheat, 25 minutes".
+  - The plate was clipped; the dish now scales so the plate fits.
+- **Left over:** the Duo inner-display layout for armed (board Duo 1) comes with the Duo screens.
 
 ### 2026-10-31: Phase 1.3, door sensing
 

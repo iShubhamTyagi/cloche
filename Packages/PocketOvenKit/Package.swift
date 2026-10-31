@@ -29,6 +29,8 @@ let package = Package(
         ),
         .testTarget(name: "DomainTests", dependencies: ["Domain"], swiftSettings: settings),
         .testTarget(name: "DoorSensingTests", dependencies: ["DoorSensing", "Domain"], swiftSettings: settings),
+        .testTarget(name: "PersistenceTests", dependencies: ["Persistence", "Domain"], swiftSettings: settings),
+        .testTarget(name: "FeaturesTests", dependencies: ["Features", "Domain", "DoorSensing", "Persistence"], swiftSettings: settings),
         .testTarget(name: "DesignSystemTests", dependencies: ["DesignSystem"], swiftSettings: settings),
     ]
 )

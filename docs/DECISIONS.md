@@ -4,6 +4,14 @@ Choices made during the build that the PRD or design handoff don't settle. Newes
 
 | Date | Decision | Why |
 | --- | --- | --- |
+| 2026-10-31 | Prep shows no recipe book or settings icons, recipe circles or work label yet | Guideline 2.1: no dead buttons. Each arrives with its feature (2.1, 2.6, 2.10, 3.4); Gate 0 is one hard-coded cupcake |
+| 2026-10-31 | Preheat leaves out "Close the door another way" for now | It opens the honor door (DR-10, P1), which isn't built yet |
+| 2026-10-31 | The session is saved as JSON in Application Support after every event | Force-quit recovery (BK-1). A file keeps the privacy manifest free of extra required-reason APIs; file protection is "until first unlock" so a bake can finish while the phone is locked |
+| 2026-10-31 | `SessionController` runs a single timer task to the engine's next deadline and catches up on returning to the foreground | No ticking counter: the engine's dates are the truth, and the timer only wakes it |
+| 2026-10-31 | Phases without screens yet (baking to served) show a plain stand-in with the right actions | Lets the whole loop be walked through in the simulator now; each is replaced in 1.5 to 1.7 and 2.3, before TestFlight |
+| 2026-10-31 | Copy depends on the door source: "Then close the phone" and "Waiting for the fold" on a Duo; face-down wording elsewhere | Matches the Duo boards and DR-1 without a second screen |
+| 2026-10-31 | The debug door readout collapses to a chip in the top-right corner | When always open it covered the Preheat button, which a UI test caught |
+| 2026-10-31 | UI tests launch with `-freshSession` (in-memory store) | Saved sessions would otherwise carry over between test runs |
 | 2026-10-31 | The hinge is read with UIKit's `UIHingeInteraction` on an invisible anchor view, not with a SwiftUI modifier | The iOS 27.2 SDK headers show `UIHingeInteraction` (status plus angle, hinge nil without one). No SwiftUI hinge API was found in the SwiftUI interface, so the UIKit API is the one verified to exist |
 | 2026-10-31 | `FoldStateService` is `@MainActor` | Both real sensors (UIKit and Core Motion) deliver on the main thread, and the session coordinator lives there too; this avoids unsafe crossings between actors |
 | 2026-10-31 | Face-down closes at gravity z ≥ 0.92 (within about 23° of flat) held for 0.8 s, and opens below 0.80 | Requires a flat surface as the PRD asks, ignores small wobbles while closed (hysteresis), and rejects tilted books and sofas. Tune on a real iPhone at Gate 0 |

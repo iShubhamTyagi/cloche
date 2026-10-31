@@ -13,12 +13,16 @@ public struct DebugOptions: Sendable {
     }
 }
 
-/// Entry screen. Replaced by the Prep screen in Phase 1.4.
+/// The app's root: hosts the hinge sensor and the session screens.
 public struct AppRootView: View {
+    @Environment(\.scenePhase) private var scenePhase
+
+    private let session: SessionController
     private let doorSensor: AdaptiveDoorSensor
     private let debug: DebugOptions
 
-    public init(doorSensor: AdaptiveDoorSensor, debug: DebugOptions = DebugOptions()) {
+    public init(session: SessionController, doorSensor: AdaptiveDoorSensor, debug: DebugOptions = DebugOptions()) {
+        self.session = session
         self.doorSensor = doorSensor
         self.debug = debug
     }
@@ -26,8 +30,12 @@ public struct AppRootView: View {
     public var body: some View {
         content
             .background(HingeSensorAnchor(sensor: doorSensor).accessibilityHidden(true))
+            .onChange(of: scenePhase) { _, phase in
+                // Catch up on deadlines that passed while the app was in the background.
+                if phase == .active { session.send(.tick) }
+            }
             #if DEBUG
-            .overlay(alignment: .bottom) {
+            .overlay(alignment: .topTrailing) {
                 if debug.showsDoorReadout {
                     DoorDebugOverlay(sensor: doorSensor)
                 }
@@ -41,29 +49,10 @@ public struct AppRootView: View {
         if debug.showsComponentGallery {
             ComponentGallery()
         } else {
-            placeholder
+            SessionRootView(session: session)
         }
         #else
-        placeholder
+        SessionRootView(session: session)
         #endif
     }
-
-    private var placeholder: some View {
-        VStack(spacing: Spacing.s3) {
-            Text("Pocket Oven", bundle: .module)
-                .textStyle(.title)
-                .foregroundStyle(Palette.text)
-                .accessibilityIdentifier("root.title")
-            Text("Closed to commit, open to create.", bundle: .module)
-                .textStyle(.voice(22))
-                .foregroundStyle(Palette.sand)
-        }
-        .padding(.horizontal, Spacing.margin)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .pocketScreenBackground()
-    }
-}
-
-#Preview {
-    AppRootView(doorSensor: AdaptiveDoorSensor(), debug: DebugOptions(showsDoorReadout: true))
 }

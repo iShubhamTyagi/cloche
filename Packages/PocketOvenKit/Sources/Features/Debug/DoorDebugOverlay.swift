@@ -8,8 +8,33 @@ import SwiftUI
 /// The Closed / Ajar / Open buttons stand in for sensors in the simulator. Debug builds only.
 struct DoorDebugOverlay: View {
     @Bindable var sensor: AdaptiveDoorSensor
+    /// Collapsed to a small chip so it never covers the screen's own controls.
+    @State private var isExpanded = false
 
     var body: some View {
+        VStack(alignment: .trailing, spacing: Spacing.s2) {
+            Button {
+                isExpanded.toggle()
+            } label: {
+                Text(verbatim: "\(sensor.source.rawValue) · \(sensor.state.rawValue) \(isExpanded ? "▴" : "▾")")
+                    .font(.system(size: 12, design: .monospaced))
+                    .padding(.horizontal, Spacing.s3)
+                    .frame(minHeight: HitTarget.minimum)
+                    .background(.black.opacity(0.75), in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(Palette.text)
+            .accessibilityIdentifier("doorDebug.toggle")
+
+            if isExpanded {
+                panel
+            }
+        }
+        .padding(.horizontal, Spacing.s3)
+        .accessibilityElement(children: .contain)
+    }
+
+    private var panel: some View {
         VStack(alignment: .leading, spacing: Spacing.s2) {
             row("Source", sensor.source.rawValue)
             row("Door", sensor.state.rawValue)
@@ -36,9 +61,8 @@ struct DoorDebugOverlay: View {
         .font(.system(size: 12, design: .monospaced))
         .foregroundStyle(Palette.text)
         .padding(Spacing.s3)
-        .background(.black.opacity(0.75), in: RoundedRectangle(cornerRadius: Radius.chip))
-        .padding(Spacing.s3)
-        .accessibilityIdentifier("doorDebug")
+        .background(.black.opacity(0.85), in: RoundedRectangle(cornerRadius: Radius.chip))
+        .accessibilityElement(children: .contain)
     }
 
     private var hingeText: String {

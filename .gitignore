@@ -1,0 +1,16 @@
+# Xcode
+.build/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+.swiftpm/
+Packages/PocketOvenKit/.build/
+
+# macOS
+.DS_Store

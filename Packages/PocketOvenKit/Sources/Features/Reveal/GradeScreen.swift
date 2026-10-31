@@ -13,7 +13,7 @@ struct GradeScreen: View {
     var body: some View {
         // Stars show what the dish earns if decorated and served; serving plain gives up only the serve star.
         let grade = GradeCalculator.grade(outcome, served: true)
-        let copy = GradeCopy(grade: grade)
+        let copy = GradeCopy(grade: grade, isDemo: outcome.bake.isDemo)
 
         VStack(spacing: 0) {
             EyebrowLabel(copy.eyebrow)

@@ -8,9 +8,7 @@ import Services
 /// Composition root: the only place concrete services are created and wired together.
 @MainActor
 final class AppEnvironment {
-    let doorSensor: AdaptiveDoorSensor
-    let session: SessionController
-    let screenAwake: any ScreenAwakeControlling = IdleTimerScreenAwake()
+    let dependencies: FeatureDependencies
     let debug: DebugOptions
 
     init() {
@@ -18,19 +16,40 @@ final class AppEnvironment {
             showsComponentGallery: LaunchArguments.contains("-componentGallery"),
             showsDoorReadout: LaunchArguments.contains("-doorDebug")
         )
-        doorSensor = AdaptiveDoorSensor()
 
+        let isFresh = LaunchArguments.contains("-freshSession")
         let store: any SessionSnapshotStoring
-        if LaunchArguments.contains("-freshSession") {
-            // UI tests start from a clean Prep screen.
+        let settings: AppSettings
+        if isFresh {
+            // UI tests start from a clean Prep screen with default settings. The notification
+            // pre-prompt is skipped unless a test asks for it with -notificationPrompt.
             store = InMemorySessionSnapshotStore()
-        } else if let file = try? FileSessionSnapshotStore.standard() {
-            store = file
+            let defaults = UserDefaults(suiteName: "ui-test-\(UUID().uuidString)") ?? .standard
+            settings = AppSettings(defaults: defaults)
+            settings.hasAskedForNotifications = !LaunchArguments.contains("-notificationPrompt")
         } else {
-            store = InMemorySessionSnapshotStore()
+            store = (try? FileSessionSnapshotStore.standard()) ?? InMemorySessionSnapshotStore()
+            settings = AppSettings()
         }
 
-        session = SessionController(door: doorSensor, time: SystemTimeProvider(), store: store, effects: SessionEffectRouter(haptics: UIKitHaptics(), announcer: VoiceOverAnnouncer()))
+        let doorSensor = AdaptiveDoorSensor()
+        let notifications = UserNotificationScheduler()
+        let router = SessionEffectRouter(
+            haptics: UIKitHaptics(),
+            announcer: VoiceOverAnnouncer(),
+            sounds: AVSoundPlayer(),
+            notifications: notifications,
+            soundsEnabled: { [settings] in settings.soundsOn }
+        )
+        let session = SessionController(door: doorSensor, time: SystemTimeProvider(), store: store, effects: router)
+
+        dependencies = FeatureDependencies(
+            session: session,
+            doorSensor: doorSensor,
+            settings: settings,
+            screenAwake: IdleTimerScreenAwake(),
+            notifications: notifications
+        )
     }
 }
 

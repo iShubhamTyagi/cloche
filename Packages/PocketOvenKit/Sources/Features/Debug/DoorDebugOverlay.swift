@@ -12,7 +12,7 @@ struct DoorDebugOverlay: View {
     @State private var isExpanded = false
 
     var body: some View {
-        VStack(alignment: .trailing, spacing: Spacing.s2) {
+        VStack(alignment: .center, spacing: Spacing.s2) {
             Button {
                 isExpanded.toggle()
             } label: {

@@ -6,7 +6,7 @@ import SwiftUI
 /// There is no start button; the door is the only control.
 struct PreheatScreen: View {
     let recipe: Recipe
-    let temperature: Temperature
+    let bake: Bake
     let doorCopy: DoorCopy
     let onBack: () -> Void
 
@@ -22,7 +22,7 @@ struct PreheatScreen: View {
                 .foregroundStyle(Palette.text)
                 .accessibilityLabel(Text("Back", bundle: .module))
                 .accessibilityIdentifier("preheat.back")
-                EyebrowLabel(Text("Preheating", bundle: .module))
+                EyebrowLabel(bake.isDemo ? Text("Demo bake · no stars", bundle: .module) : Text("Preheating", bundle: .module))
                 Spacer()
             }
             .padding(.leading, -Spacing.s3)
@@ -71,9 +71,9 @@ struct PreheatScreen: View {
         HStack(spacing: 0) {
             cell(Text("Recipe", bundle: .module), Text(recipe.name))
             divider
-            cell(Text("Oven", bundle: .module), TemperaturePicker.name(temperature))
+            cell(Text("Oven", bundle: .module), TemperaturePicker.name(bake.temperature))
             divider
-            cell(Text("Bake", bundle: .module), Text("\(recipe.bakeMinutes) min", bundle: .module))
+            cell(Text("Bake", bundle: .module), bake.isDemo ? Text("15 sec", bundle: .module) : Text("\(recipe.bakeMinutes) min", bundle: .module))
         }
         .padding(.vertical, Spacing.s3)
         .overlay(alignment: .top) { Rectangle().fill(Palette.line1).frame(height: 1) }
@@ -99,5 +99,5 @@ struct PreheatScreen: View {
 }
 
 #Preview {
-    PreheatScreen(recipe: StarterRecipes.vanillaCupcakes, temperature: .medium, doorCopy: DoorCopy(source: .faceDown)) {}
+    PreheatScreen(recipe: StarterRecipes.vanillaCupcakes, bake: Bake(BakeRequest(recipe: StarterRecipes.vanillaCupcakes, temperature: .medium, source: .faceDown, isDemo: true)), doorCopy: DoorCopy(source: .faceDown)) {}
 }

@@ -4,7 +4,7 @@ Read the **Current state** first; it says where the next session starts. Then ad
 
 ## Current state
 
-- **Phase:** 1.7 done; next is 1.8 (ready notification, end chime, 15 s demo bake) — the last Gate 0 slice
+- **Phase:** Phase 1 (Gate 0 prototype) complete. Next is Phase 2.1 (Recipes.json with five dishes, recipe picker with locked state, temperature hint)
 - **Last green commit:** see the log entry below
 - **Blockers:** Apple Developer Program not enrolled (needed by the end of Phase 2 for TestFlight); watchOS 27 runtime not installed (needed in Phase 3)
 - **Simulators:** iPhone 17, iPhone 17e and iPhone Duo on iOS 27.2; iPhone 16 on iOS 18.2 (minimum-version check)
@@ -18,6 +18,18 @@ Read the **Current state** first; it says where the next session starts. Then ad
 - **Known for Phase 1:** the Duo simulator boots folded, showing the cover display (1398 × 2034 px). The system reserves a strip down the cover's right edge, so centred content sits left of centre; cover screens need the reserved-region APIs. `simctl io screenshot` needs `--display=1` on the Duo.
 
 ## Log
+
+### 2026-10-31: Phase 1.8, notification, chime and demo bake (Gate 0 complete)
+
+- **Built:**
+  - `UserNotificationScheduler` (local only; generic text; Notification Centre only while in the foreground), `NotificationContent`
+  - `AVSoundPlayer` (`.ambient`) and the synthesized `ready-chime.wav`; `FeedbackPlan` gains sounds; `SessionEffectRouter` now schedules and cancels notifications and plays the chime when Sounds is on
+  - `AppSettings` (keep-awake, sounds, door mode, asked-for-notifications); a minimal `SettingsScreen` with the 15 s demo bake; the `NotificationPrePrompt` on the first Preheat
+  - Demo labels on Preheat, the bake screen and the grade; door mode from Settings drives the sensor; keep-awake follows the setting
+  - `FeatureDependencies` bundles what the screens need; `AppEnvironment` builds it
+- **Verified:** on iPhone 17 and iPhone Duo, 81 of 81 unit tests (new: router notifications and the sound switch, notification text, settings defaults and persistence) and 8 of 8 UI tests. New UI tests: the whole loop through a real 15 s demo bake (Settings → demo → preheat → close → ready → open → reveal → 0 stars → serve), and the pre-prompt's "Not now" still preheating. Settings, pre-prompt and reveal screenshots checked.
+- **Gate 0 status:** the close-and-reveal loop runs end to end in the simulator on iPhone and Duo. Still to settle on real devices: face-down on three surfaces, the cover screen staying live while shut, timer correctness through lock, call and force-quit, haptics and the chime.
+- **Left over:** filming the Gate 0 clips (needs a device or a simulator recording); the dropped oven door is a little wider than the oven body (refine with the art in 2.2).
 
 ### 2026-10-31: Phase 1.7, reveal and grade
 

@@ -7,7 +7,7 @@ struct PocketOvenApp: App {
 
     var body: some Scene {
         WindowGroup {
-            AppRootView(session: environment.session, doorSensor: environment.doorSensor, screenAwake: environment.screenAwake, debug: environment.debug)
+            AppRootView(dependencies: environment.dependencies, debug: environment.debug)
                 .preferredColorScheme(.dark)
                 // Handoff: helper text, tabs, chips and buttons scale to about 130%.
                 .dynamicTypeSize(...DynamicTypeSize.xxxLarge)

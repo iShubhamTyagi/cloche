@@ -18,29 +18,28 @@ public struct DebugOptions: Sendable {
 public struct AppRootView: View {
     @Environment(\.scenePhase) private var scenePhase
 
-    private let session: SessionController
-    private let doorSensor: AdaptiveDoorSensor
-    private let screenAwake: any ScreenAwakeControlling
+    private let dependencies: FeatureDependencies
     private let debug: DebugOptions
 
-    public init(session: SessionController, doorSensor: AdaptiveDoorSensor, screenAwake: any ScreenAwakeControlling, debug: DebugOptions = DebugOptions()) {
-        self.session = session
-        self.doorSensor = doorSensor
-        self.screenAwake = screenAwake
+    public init(dependencies: FeatureDependencies, debug: DebugOptions = DebugOptions()) {
+        self.dependencies = dependencies
         self.debug = debug
     }
 
     public var body: some View {
         content
-            .background(HingeSensorAnchor(sensor: doorSensor).accessibilityHidden(true))
+            .background(HingeSensorAnchor(sensor: dependencies.doorSensor).accessibilityHidden(true))
             .onChange(of: scenePhase) { _, phase in
                 // Catch up on deadlines that passed while the app was in the background.
-                if phase == .active { session.send(.tick) }
+                if phase == .active { dependencies.session.send(.tick) }
+            }
+            .onChange(of: dependencies.settings.doorMode, initial: true) { _, mode in
+                dependencies.doorSensor.preference = mode
             }
             #if DEBUG
-            .overlay(alignment: .topTrailing) {
+            .overlay(alignment: .top) {
                 if debug.showsDoorReadout {
-                    DoorDebugOverlay(sensor: doorSensor)
+                    DoorDebugOverlay(sensor: dependencies.doorSensor)
                 }
             }
             #endif
@@ -52,10 +51,10 @@ public struct AppRootView: View {
         if debug.showsComponentGallery {
             ComponentGallery()
         } else {
-            SessionRootView(session: session, doorSensor: doorSensor, screenAwake: screenAwake)
+            SessionRootView(dependencies: dependencies)
         }
         #else
-        SessionRootView(session: session, doorSensor: doorSensor, screenAwake: screenAwake)
+        SessionRootView(dependencies: dependencies)
         #endif
     }
 }

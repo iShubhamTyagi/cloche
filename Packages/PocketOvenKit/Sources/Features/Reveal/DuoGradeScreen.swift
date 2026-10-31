@@ -13,7 +13,7 @@ struct DuoGradeScreen: View {
 
     var body: some View {
         let grade = GradeCalculator.grade(outcome, served: true)
-        let copy = GradeCopy(grade: grade)
+        let copy = GradeCopy(grade: grade, isDemo: outcome.bake.isDemo)
 
         GeometryReader { proxy in
             let half = proxy.size.height / 2

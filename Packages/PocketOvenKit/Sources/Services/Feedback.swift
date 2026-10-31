@@ -26,10 +26,12 @@ public protocol Announcing: AnyObject {
 public struct FeedbackPlan: Equatable, Sendable {
     public let haptic: Haptic?
     public let announcement: String?
+    public let sound: Sound?
 
-    public init(haptic: Haptic?, announcement: String?) {
+    public init(haptic: Haptic?, announcement: String?, sound: Sound? = nil) {
         self.haptic = haptic
         self.announcement = announcement
+        self.sound = sound
     }
 
     public static func plan(for cue: SessionCue) -> FeedbackPlan {
@@ -41,7 +43,7 @@ public struct FeedbackPlan: Equatable, Sendable {
         case .bakeResumed:
             FeedbackPlan(haptic: .doorLatch, announcement: String(localized: "Door shut, still baking", bundle: .module))
         case .bakeReady:
-            FeedbackPlan(haptic: nil, announcement: String(localized: "Bake ready", bundle: .module))
+            FeedbackPlan(haptic: nil, announcement: String(localized: "Bake ready", bundle: .module), sound: .readyChime)
         case .bakeEndedEarly:
             FeedbackPlan(haptic: nil, announcement: String(localized: "Bake ended early. It still goes in your recipe book.", bundle: .module))
         case .doorOpened:

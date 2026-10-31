@@ -5,12 +5,14 @@ import Services
 import SwiftUI
 
 /// Shows the screen for the current session phase. The door, not navigation, moves the player
-/// between phases.
+/// between phases; the only sheets are Settings and the one-time notification pre-prompt.
 struct SessionRootView: View {
-    let session: SessionController
-    let doorSensor: AdaptiveDoorSensor
-    let screenAwake: any ScreenAwakeControlling
+    let dependencies: FeatureDependencies
 
+    @State private var showsSettings = false
+    @State private var pendingPreheat: PendingPreheat?
+
+    private var session: SessionController { dependencies.session }
     private var recipe: Recipe { StarterRecipes.vanillaCupcakes }
 
     var body: some View {
@@ -18,12 +20,12 @@ struct SessionRootView: View {
         Group {
             switch session.phase {
             case .idle:
-                PrepScreen(recipe: recipe, doorCopy: copy) { temperature in
-                    session.preheat(recipe, temperature: temperature)
+                PrepScreen(recipe: recipe, doorCopy: copy, onSettings: { showsSettings = true }) { temperature in
+                    preheat(PendingPreheat(temperature: temperature, isDemo: false))
                 }
                 .transition(.opacity)
             case let .armed(bake):
-                PreheatScreen(recipe: recipe, temperature: bake.temperature, doorCopy: DoorCopy(source: bake.source)) {
+                PreheatScreen(recipe: recipe, bake: bake, doorCopy: DoorCopy(source: bake.source)) {
                     session.send(.cancelPreheat)
                 }
                 .transition(.opacity)
@@ -34,7 +36,7 @@ struct SessionRootView: View {
             case let .ajar(bake, _, graceEndsAt):
                 Group {
                     if bake.source == .hinge {
-                        DuoAjarScreen(bake: bake, graceEndsAt: graceEndsAt, hingeAngle: doorSensor.hingeReading?.angle)
+                        DuoAjarScreen(bake: bake, graceEndsAt: graceEndsAt, hingeAngle: dependencies.doorSensor.hingeReading?.angle)
                     } else {
                         AjarScreen(bake: bake, graceEndsAt: graceEndsAt)
                     }
@@ -43,7 +45,7 @@ struct SessionRootView: View {
             case let .graded(outcome):
                 Group {
                     if outcome.bake.source == .hinge {
-                        DuoGradeScreen(recipe: StarterRecipes.recipe(id: outcome.bake.recipeID), outcome: outcome, hingeAngle: doorSensor.hingeReading?.angle, send: session.send)
+                        DuoGradeScreen(recipe: StarterRecipes.recipe(id: outcome.bake.recipeID), outcome: outcome, hingeAngle: dependencies.doorSensor.hingeReading?.angle, send: session.send)
                     } else {
                         GradedFlow(recipe: StarterRecipes.recipe(id: outcome.bake.recipeID), outcome: outcome, send: session.send)
                     }
@@ -55,9 +57,51 @@ struct SessionRootView: View {
             }
         }
         .animation(.easeInOut(duration: 0.25), value: phaseKey)
-        .onChange(of: phaseKey, initial: true) {
-            screenAwake.keepsScreenAwake = KeepAwakePolicy.keepsAwake(session.phase)
+        .onChange(of: phaseKey, initial: true) { updateKeepAwake() }
+        .onChange(of: dependencies.settings.keepsScreenAwake) { updateKeepAwake() }
+        .sheet(isPresented: $showsSettings) {
+            SettingsScreen(settings: dependencies.settings, hingePresent: dependencies.doorSensor.hingePresent, onDemoBake: {
+                showsSettings = false
+                preheat(PendingPreheat(temperature: recipe.idealTemperature, isDemo: true))
+            }, onClose: { showsSettings = false })
         }
+        .sheet(item: $pendingPreheat) { pending in
+            NotificationPrePrompt(onAllow: {
+                Task {
+                    _ = await dependencies.notifications.requestPermission()
+                    finishPreheat(pending)
+                }
+            }, onNotNow: {
+                finishPreheat(pending)
+            })
+            .interactiveDismissDisabled()
+        }
+    }
+
+    /// Asks about notifications once, in context, before the first bake (Guideline 4.5.4).
+    private func preheat(_ request: PendingPreheat) {
+        guard !dependencies.settings.hasAskedForNotifications else {
+            session.preheat(recipe, temperature: request.temperature, isDemo: request.isDemo)
+            return
+        }
+        Task {
+            if await dependencies.notifications.permission() == .notDetermined {
+                pendingPreheat = request
+            } else {
+                dependencies.settings.hasAskedForNotifications = true
+                session.preheat(recipe, temperature: request.temperature, isDemo: request.isDemo)
+            }
+        }
+    }
+
+    private func finishPreheat(_ request: PendingPreheat) {
+        dependencies.settings.hasAskedForNotifications = true
+        pendingPreheat = nil
+        session.preheat(recipe, temperature: request.temperature, isDemo: request.isDemo)
+    }
+
+    private func updateKeepAwake() {
+        dependencies.screenAwake.keepsScreenAwake = KeepAwakePolicy.keepsAwake(session.phase, setting: dependencies.settings.keepsScreenAwake)
     }
 
     /// A Duo closed by its hinge shows the bake on its outer screen; everywhere else the
@@ -87,4 +131,11 @@ struct SessionRootView: View {
         case .served: "served"
         }
     }
+}
+
+/// A Preheat waiting on the notification pre-prompt.
+private struct PendingPreheat: Identifiable {
+    let id = UUID()
+    let temperature: Temperature
+    let isDemo: Bool
 }

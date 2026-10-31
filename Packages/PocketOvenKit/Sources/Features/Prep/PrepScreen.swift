@@ -3,10 +3,11 @@ import Domain
 import SwiftUI
 
 /// Board "1 Prep": pick a temperature and preheat. Gate 0 has one hard-coded dish; the recipe
-/// circles, recipe book, settings and work label arrive with their features (2.1, 2.6, 2.10, 3.4).
+/// circles, recipe book and work label arrive with their features (2.1, 2.6, 3.4).
 struct PrepScreen: View {
     let recipe: Recipe
     let doorCopy: DoorCopy
+    let onSettings: () -> Void
     let onPreheat: (Temperature) -> Void
 
     @State private var temperature: Temperature = .medium
@@ -71,6 +72,16 @@ struct PrepScreen: View {
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("prep.title")
             Spacer()
+            Button(action: onSettings) {
+                Image(systemName: "slider.horizontal.3")
+                    .font(.system(size: 18, weight: .light))
+                    .frame(width: HitTarget.minimum, height: HitTarget.minimum)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(Palette.text)
+            .accessibilityLabel(Text("Settings", bundle: .module))
+            .accessibilityIdentifier("prep.settings")
+            .padding(.trailing, -Spacing.s3)
         }
         .frame(minHeight: HitTarget.minimum)
     }
@@ -85,5 +96,5 @@ struct PrepScreen: View {
 }
 
 #Preview {
-    PrepScreen(recipe: StarterRecipes.vanillaCupcakes, doorCopy: DoorCopy(source: .faceDown)) { _ in }
+    PrepScreen(recipe: StarterRecipes.vanillaCupcakes, doorCopy: DoorCopy(source: .faceDown), onSettings: {}) { _ in }
 }

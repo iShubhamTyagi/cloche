@@ -4,6 +4,15 @@ Choices made during the build that the PRD or design handoff don't settle. Newes
 
 | Date | Decision | Why |
 | --- | --- | --- |
+| 2026-10-31 | A minimal Settings sheet ships now (door mode, keep-awake, sounds, demo bake), opened from a sliders icon on Prep | The PRD puts the demo bake in Settings, and DR-3 and DR-8 need a home; the full Settings (privacy policy, restore purchases) is 2.10 and 3.1 |
+| 2026-10-31 | Settings live in UserDefaults | Already declared in the privacy manifest (CA92.1); tiny, synchronous, no migration needed |
+| 2026-10-31 | The notification pre-prompt appears once, on the first Preheat, only if the system hasn't asked yet; both answers continue to Preheat | Guideline 4.5.4 and the in-context ask in CLAUDE.md; the app never depends on notifications |
+| 2026-10-31 | Notification text is generic ("Your bake is ready") and never includes the dish or the work label | The lock screen can be seen by others; the work label "stays on this phone" |
+| 2026-10-31 | In the foreground, notifications go to Notification Centre only (no banner or sound) | The app's own screen and chime already say it; a banner over the reveal would cover the moment |
+| 2026-10-31 | The ready chime is synthesized for the project and played through the `.ambient` audio session | No licensing (PRD §10); `.ambient` respects the silent switch and mixes with other audio (2.5.9, BK-7) |
+| 2026-10-31 | Demo bakes are labelled on Preheat ("Demo bake · no stars"), the bake screen ("Demo · …") and the grade ("A demo bake. Real bakes earn the stars.") | DR-6: labelled and star-free, so a reviewer or tester is never confused about the zero stars |
+| 2026-10-31 | The debug door chip sits at the top centre | It covered the Settings button at the top right |
+| 2026-10-31 | `-freshSession` also uses throwaway settings with the pre-prompt marked as asked; `-notificationPrompt` brings it back for the one test that covers it | Keeps UI tests independent of each other and of earlier runs |
 | 2026-10-31 | A full bake shows the Reveal first, then the grade; a bake that ended early goes straight to the half-baked grade | Board 4 is the "Prêt." moment for a finished bake; S2 8 and Duo 6 show the early case directly |
 | 2026-10-31 | On the Duo, reveal and grade are one screen (Duo 5 and Duo 6) | Matches the boards: the door swinging open with the hinge is the reveal |
 | 2026-10-31 | The grade card's stars include the serve star in advance | Board 5 shows three stars before decorating; Serve plain gives up only the serve star (PRD §9), shown at Served |

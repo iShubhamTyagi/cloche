@@ -12,7 +12,9 @@ struct FaceDownBakeScreen: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
             VStack(spacing: Spacing.margin) {
-                EyebrowLabel(Text("\(recipe.name) · \(TemperaturePicker.nameString(bake.temperature))", bundle: .module))
+                EyebrowLabel(bake.isDemo
+                    ? Text("Demo · \(recipe.name)", bundle: .module)
+                    : Text("\(recipe.name) · \(TemperaturePicker.nameString(bake.temperature))", bundle: .module))
                 if isReady {
                     Text("Prêt.", bundle: .module)
                         .textStyle(.hero)

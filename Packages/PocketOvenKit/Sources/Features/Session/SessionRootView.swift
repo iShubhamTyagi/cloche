@@ -40,6 +40,15 @@ struct SessionRootView: View {
                     }
                 }
                 .transition(.opacity)
+            case let .graded(outcome):
+                Group {
+                    if outcome.bake.source == .hinge {
+                        DuoGradeScreen(recipe: StarterRecipes.recipe(id: outcome.bake.recipeID), outcome: outcome, hingeAngle: doorSensor.hingeReading?.angle, send: session.send)
+                    } else {
+                        GradedFlow(recipe: StarterRecipes.recipe(id: outcome.bake.recipeID), outcome: outcome, send: session.send)
+                    }
+                }
+                .transition(.opacity)
             default:
                 InterimPhaseView(phase: session.phase, send: session.send)
                     .transition(.opacity)

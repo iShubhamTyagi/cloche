@@ -32,7 +32,8 @@ struct OvenView: View {
 
                 door(width: w, window: window)
                     .frame(width: window.width, height: window.height)
-                    .rotation3DEffect(.degrees(-82 * min(max(doorOpen, 0), 1)), axis: (x: 1, y: 0, z: 0), anchor: .bottom, perspective: 0.45)
+                    // Past 90° so the dropped door lies below the hinge, widening toward the viewer.
+                    .rotation3DEffect(.degrees(-100 * min(max(doorOpen, 0), 1)), axis: (x: 1, y: 0, z: 0), anchor: .bottom, perspective: 0.45)
                     .offset(x: window.minX, y: window.minY)
 
                 controls(width: w, height: h)

@@ -4,6 +4,13 @@ Choices made during the build that the PRD or design handoff don't settle. Newes
 
 | Date | Decision | Why |
 | --- | --- | --- |
+| 2026-10-31 | A full bake shows the Reveal first, then the grade; a bake that ended early goes straight to the half-baked grade | Board 4 is the "Prêt." moment for a finished bake; S2 8 and Duo 6 show the early case directly |
+| 2026-10-31 | On the Duo, reveal and grade are one screen (Duo 5 and Duo 6) | Matches the boards: the door swinging open with the hinge is the reveal |
+| 2026-10-31 | The grade card's stars include the serve star in advance | Board 5 shows three stars before decorating; Serve plain gives up only the serve star (PRD §9), shown at Served |
+| 2026-10-31 | Grade voice lines: "Golden all over. Just right." / "A little pale. A hotter oven next time." / "A touch dark. A cooler oven next time." / half-baked: "Nothing is lost. It still goes in your recipe book." | The handoff gives only the half-baked line; the others teach the temperature (skill is knowledge) without scolding |
+| 2026-10-31 | Haptics use UIKit impact generators (rigid latch on bake start and resume, heavy thunk on reveal, soft thud on serve) rather than custom Core Haptics patterns | Same feel with far less code; Core Haptics can replace them after the real-device pass if they feel flat |
+| 2026-10-31 | VoiceOver announcements are wired now (bake started, door ajar, bake ready, ended early, served with stars), and only spoken when VoiceOver is running | Listed in the handoff's accessibility section; cheap to do with the effect router in place |
+| 2026-10-31 | The dropped oven door rotates 100°, past vertical | So it lies below the hinge and widens toward the viewer; at 82° it read as a band above the hinge |
 | 2026-10-31 | Preheating while the door is already closed (e.g. a folded Duo used on its outer screen) starts the bake immediately | "Closed to commit": the door is the only control, and the engine already behaves this way. Found when UI tests ran on a folded Duo |
 | 2026-10-31 | UI tests set the door open through the debug override before preheating | They must not depend on the simulator's posture; a folded Duo reports the door closed |
 | 2026-10-31 | Duo door tilt is 180° minus the hinge angle (radians converted), and 34° when no hinge reading exists | UIKit reports π flat and 0 shut; the handoff draws the ajar door at 34° |

@@ -14,6 +14,14 @@ public struct Grade: Codable, Equatable, Sendable {
     public let temperatureStar: Bool
     public let serveStar: Bool
 
+    public init(doneness: Double, browning: Browning, bakeStar: Bool, temperatureStar: Bool, serveStar: Bool) {
+        self.doneness = doneness
+        self.browning = browning
+        self.bakeStar = bakeStar
+        self.temperatureStar = temperatureStar
+        self.serveStar = serveStar
+    }
+
     public var stars: Int {
         [bakeStar, temperatureStar, serveStar].filter { $0 }.count
     }

@@ -18,7 +18,7 @@ let package = Package(
         .target(name: "Domain", swiftSettings: settings),
         .target(name: "DoorSensing", dependencies: ["Domain"], swiftSettings: settings),
         .target(name: "Persistence", dependencies: ["Domain"], swiftSettings: settings),
-        .target(name: "Services", dependencies: ["Domain"], swiftSettings: settings),
+        .target(name: "Services", dependencies: ["Domain"], resources: [.process("Resources")], swiftSettings: settings),
         // SwiftUI only; no domain knowledge.
         .target(name: "DesignSystem", resources: [.process("Resources")], swiftSettings: settings),
         .target(
@@ -29,6 +29,7 @@ let package = Package(
         ),
         .testTarget(name: "DomainTests", dependencies: ["Domain"], swiftSettings: settings),
         .testTarget(name: "DoorSensingTests", dependencies: ["DoorSensing", "Domain"], swiftSettings: settings),
+        .testTarget(name: "ServicesTests", dependencies: ["Services", "Domain"], swiftSettings: settings),
         .testTarget(name: "PersistenceTests", dependencies: ["Persistence", "Domain"], swiftSettings: settings),
         .testTarget(name: "FeaturesTests", dependencies: ["Features", "Domain", "DoorSensing", "Persistence"], swiftSettings: settings),
         .testTarget(name: "DesignSystemTests", dependencies: ["DesignSystem"], swiftSettings: settings),

@@ -20,6 +20,7 @@ struct DuoAjarScreen: View {
                         .frame(height: half)
                     DuoDoorPanel(liftDegrees: hingeAngle.map(DoorGeometry.liftDegrees(hingeAngle:)) ?? DoorGeometry.defaultAjarLift)
                         .frame(height: half)
+                        .accessibilityHidden(true)
                 }
                 .overlay { HingeCrease().position(x: proxy.size.width / 2, y: half) }
             }
@@ -48,28 +49,37 @@ struct DuoAjarScreen: View {
     }
 }
 
-/// The open oven door lying on the bottom half. Rotates about its top edge, which is the hinge.
-struct DuoDoorPanel: View {
+/// The open oven door lying on the bottom half, with optional content shown through its glass.
+/// Rotates about its top edge, which is the hinge.
+struct DuoDoorPanel<Content: View>: View {
     let liftDegrees: Double
+    @ViewBuilder var content: () -> Content
+
+    init(liftDegrees: Double, @ViewBuilder content: @escaping () -> Content = { EmptyView() }) {
+        self.liftDegrees = liftDegrees
+        self.content = content
+    }
 
     var body: some View {
         GeometryReader { proxy in
-            let width = min(proxy.size.width - Spacing.s4 * 2, 502)
+            let width = min(proxy.size.width - Spacing.s4 * 2, 560)
             RoundedRectangle(cornerRadius: 18)
                 .fill(LinearGradient(colors: [Color(white: 0.22), Color(white: 0.13)], startPoint: .top, endPoint: .bottom))
                 .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(Palette.line2, lineWidth: 1))
                 .overlay {
-                    // Glass window.
+                    // Glass window, with whatever the door shows behind it.
                     RoundedRectangle(cornerRadius: 12)
                         .fill(Color(white: 0.05))
                         .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(.white.opacity(0.08), lineWidth: 1))
-                        .padding(.horizontal, width * 0.09)
-                        .padding(.top, proxy.size.height * 0.1)
-                        .padding(.bottom, proxy.size.height * 0.16)
+                        .overlay { content().padding(Spacing.s3) }
+                        .padding(.horizontal, width * 0.06)
+                        .padding(.top, proxy.size.height * 0.06)
+                        .padding(.bottom, proxy.size.height * 0.12)
                 }
                 .overlay(alignment: .bottom) {
                     // Chrome handle at the far edge.
-                    Capsule().fill(Color(white: 0.6)).frame(width: width * 0.75, height: 12).padding(.bottom, 18)
+                    Capsule().fill(Color(white: 0.6)).frame(width: width * 0.75, height: 12).padding(.bottom, 16)
+                        .accessibilityHidden(true)
                 }
                 .frame(width: width, height: proxy.size.height - 10)
                 .shadow(color: .black.opacity(0.6), radius: 14, y: 10)
@@ -79,7 +89,6 @@ struct DuoDoorPanel: View {
         }
         // The door never draws outside its half.
         .clipped()
-        .accessibilityHidden(true)
     }
 }
 

@@ -46,7 +46,7 @@ Goal: film the close-and-reveal moment and settle four technical facts.
 | 1.4 ✅ | Prep screen (hard-coded cupcake) → Preheat ("Waiting for a flat, face-down phone") | Boards 1 Prep, 2 Preheat |
 | 1.5 ✅ | Bake face-down screen (black, glow line, drift) with keep-awake; Duo cover-display baking and ready screens | Boards 3, Duo 3, Duo 4; DR-3 |
 | 1.6 ✅ | Door ajar with a 15 s ring countdown, on iPhone and Duo | S2 7, Duo 2 |
-| 1.7 | Reveal (door drop, steam, haptic) → Grade card, plus the half-baked grade | 4 Reveal, 5 Grade, S2 8, Duo 5, Duo 6 |
+| 1.7 ✅ | Reveal (door drop, steam, haptic) → Grade card, plus the half-baked grade | 4 Reveal, 5 Grade, S2 8, Duo 5, Duo 6 |
 | 1.8 | Ready local notification and end chime; a 15 s demo bake | BK-6, DR-4, DR-6 |
 
 **Facts to settle and write down in `docs/DECISIONS.md`:**

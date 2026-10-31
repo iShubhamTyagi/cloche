@@ -30,7 +30,7 @@ final class AppEnvironment {
             store = InMemorySessionSnapshotStore()
         }
 
-        session = SessionController(door: doorSensor, time: SystemTimeProvider(), store: store, effects: SessionEffectRouter())
+        session = SessionController(door: doorSensor, time: SystemTimeProvider(), store: store, effects: SessionEffectRouter(haptics: UIKitHaptics(), announcer: VoiceOverAnnouncer()))
     }
 }
 

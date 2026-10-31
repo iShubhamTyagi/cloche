@@ -4,7 +4,7 @@ Read the **Current state** first; it says where the next session starts. Then ad
 
 ## Current state
 
-- **Phase:** 1.6 done; next is 1.7 (reveal: door drop, steam and haptic → grade card; half-baked grade)
+- **Phase:** 1.7 done; next is 1.8 (ready notification, end chime, 15 s demo bake) — the last Gate 0 slice
 - **Last green commit:** see the log entry below
 - **Blockers:** Apple Developer Program not enrolled (needed by the end of Phase 2 for TestFlight); watchOS 27 runtime not installed (needed in Phase 3)
 - **Simulators:** iPhone 17, iPhone 17e and iPhone Duo on iOS 27.2; iPhone 16 on iOS 18.2 (minimum-version check)
@@ -18,6 +18,21 @@ Read the **Current state** first; it says where the next session starts. Then ad
 - **Known for Phase 1:** the Duo simulator boots folded, showing the cover display (1398 × 2034 px). The system reserves a strip down the cover's right edge, so centred content sits left of centre; cover screens need the reserved-region APIs. `simctl io screenshot` needs `--display=1` on the Duo.
 
 ## Log
+
+### 2026-10-31: Phase 1.7, reveal and grade
+
+- **Built:**
+  - `RevealScreen` (board 4): "Prêt.", the oven door dropping open (700 ms; a cross-fade under Reduce Motion), steam over the dish, "See how it turned out"
+  - `GradeScreen` (boards 5 and S2 8): eyebrow, dish on plate, stars, voice line, doneness and browning bars, "Decorate · 5 min" and "Serve plain"
+  - `DuoGradeScreen` (boards Duo 5 and Duo 6): cavity with steam on top; the grade inside the door's glass on the bottom half
+  - `GradedFlow`, `SteamView`, `GradeCopy`, `DonenessBar`, `BrowningBar`; `DuoDoorPanel` now hosts content
+  - Feedback: `FeedbackPlan` (cue → haptic and announcement), `UIKitHaptics`, `VoiceOverAnnouncer`, wired through `SessionEffectRouter`
+- **Verified:** on iPhone 17 and iPhone Duo, 75 of 75 unit tests (new: feedback plan per cue, router; grade percent rounding and browning marker) and 6 of 6 UI tests. The half-baked UI test now checks "Opened early", "1 of 3 stars" and Serve plain moving on. Reveal, grade and both Duo grades were checked through `ImageRenderer`; the half-baked iPhone grade through a UI-test screenshot.
+- **Fixed during the slice:**
+  - Steam floated below the oven and stretched the layout; it now overlays the cavity.
+  - The dropped door rendered as a band above the hinge; it now swings past vertical and lies below it.
+  - `Grade` and `FeedbackPlan` needed public initializers for tests.
+- **Left over:** a UI test of the full reveal needs the 15 s demo bake (1.8). Haptics need the real-device pass.
 
 ### 2026-10-31: Phase 1.6, door ajar
 

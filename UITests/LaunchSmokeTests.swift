@@ -49,10 +49,15 @@ final class LaunchSmokeTests: XCTestCase {
         setDoor(app, "open")
         XCTAssertTrue(app.staticTexts["ajar.title"].waitForExistence(timeout: 5))
 
-        let phase = app.staticTexts["interim.phase"]
-        XCTAssertTrue(phase.waitForExistence(timeout: 20))
-        XCTAssertTrue(phase.label.lowercased().contains("baked"), "Got \(phase.label)")
-        XCTAssertFalse(phase.label.lowercased().contains("fully"))
+        // After the 15 s grace: the half-baked grade, one star at most, and nothing lost.
+        let eyebrow = app.descendants(matching: .any)["grade.eyebrow"]
+        XCTAssertTrue(eyebrow.waitForExistence(timeout: 20))
+        XCTAssertEqual(eyebrow.label.lowercased(), "opened early")
+        XCTAssertEqual(app.descendants(matching: .any)["grade.stars"].label, "1 of 3 stars")
+        attachScreenshot(of: app, named: "half-baked")
+
+        app.buttons["grade.servePlain"].tap()
+        XCTAssertTrue(app.staticTexts["interim.phase"].waitForExistence(timeout: 5))
     }
 
     @MainActor

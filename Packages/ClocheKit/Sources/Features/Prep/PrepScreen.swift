@@ -66,7 +66,7 @@ struct PrepScreen: View {
 
     private var header: some View {
         HStack {
-            Text("Pocket Oven", bundle: .module)
+            Text("Cloche", bundle: .module)
                 .textStyle(.voice(22))
                 .foregroundStyle(Palette.text)
                 .accessibilityAddTraits(.isHeader)

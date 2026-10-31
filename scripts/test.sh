@@ -11,10 +11,10 @@ for SIM in "${SIMS[@]}"; do
     continue
   fi
 
-  echo "▶︎ Unit tests (PocketOvenKit) on $SIM"
+  echo "▶︎ Unit tests (ClocheKit) on $SIM"
   # Package tests run from the package directory; the app scheme can't host them.
-  (cd "$ROOT/Packages/PocketOvenKit" && xcodebuild test \
-    -scheme PocketOvenKit \
+  (cd "$ROOT/Packages/ClocheKit" && xcodebuild test \
+    -scheme ClocheKit \
     -destination "$(destination "$SIM")" \
     -derivedDataPath "$DERIVED-kit" \
     -quiet)
@@ -32,7 +32,7 @@ for SIM in "${SIMS[@]}"; do
   if [[ "$SKIPPED" != "0" ]]; then
     echo "⚠️  $SKIPPED UI test(s) skipped on $SIM (see the skip reason in the result bundle; a folded Duo is the usual cause)"
   fi
-  # XCUITest installs a helper "PocketOvenUITests-Runner" app; remove it so only Pocket Oven is left.
+  # XCUITest installs a helper "ClocheUITests-Runner" app; remove it so only Cloche is left.
   xcrun simctl uninstall "$SIM" "$BUNDLE_ID.uitests.xctrunner" 2>/dev/null || true
   echo "✅ All tests passed on $SIM"
 done

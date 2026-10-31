@@ -1,12 +1,12 @@
-# Pocket Oven — Product Requirements Document
+# Cloche — Product Requirements Document
 
 Oct 31, 2026 · @Shubham
 
 ## 1. Summary
 
-Pocket Oven is a free-to-start iPhone focus timer where the phone is the oven: prep a bake with the phone open, close it and work while it bakes, then open it to a 5–10 minute decorating break that produces a shareable dish. The fold is the premium experience; a face-down mode makes it work on every iPhone.
+Cloche is a free-to-start iPhone focus timer where the phone is the oven: prep a bake with the phone open, close it and work while it bakes, then open it to a 5–10 minute decorating break that produces a shareable dish. The fold is the premium experience; a face-down mode makes it work on every iPhone.
 
-**Three ways to play, one app.** Pocket Oven ships as one universal app with three surfaces: the fold edition on the iPhone Duo (the hinge closes the door), the regular-iPhone edition (no hinge needed: place the phone face down), and an Apple Watch companion that shows the bake timer in real time with nothing to tap. Players never pick an edition; the app detects the device, and a Duo owner can still choose face-down play.
+**Three ways to play, one app.** Cloche ships as one universal app with three surfaces: the fold edition on the iPhone Duo (the hinge closes the door), the regular-iPhone edition (no hinge needed: place the phone face down), and an Apple Watch companion that shows the bake timer in real time with nothing to tap. Players never pick an edition; the app detects the device, and a Duo owner can still choose face-down play.
 
 **The bet.** Foldable iPhone owners will pay for fold-native apps, and a focus app whose reward is a creative break (not coins) can out-retain the crowded gamified-timer category. Toastie has already shown the close-to-cook mechanic sells; nobody has combined it with a focus loop and a deep collection system.
 
@@ -53,7 +53,7 @@ The Duo installed base is small (about 6 million units estimated for 2026, from 
 
 ## 3. Market and competition
 
-The fold-native category is weeks old and thin; the focus-timer category is crowded and shallow. Pocket Oven sits where they overlap, and the gap is content depth plus a reward that is a creation, not a counter.
+The fold-native category is weeks old and thin; the focus-timer category is crowded and shallow. Cloche sits where they overlap, and the gap is content depth plus a reward that is a creation, not a counter.
 
 | Product | What it is | Price | Fold use | What it lacks |
 | --- | --- | --- | --- | --- |
@@ -65,7 +65,7 @@ The fold-native category is weeks old and thin; the focus-timer category is crow
 
 **Price anchors from other fold-native apps:** [Deck-Man](https://appshunter.io/blog/best-iphone-duo-games.md) at $4.99, Tiny Computers at about $4, ArcFlush at $2.99. No fold-native game yet sells above $5 once, and Fold Focus is priced like software, at $29.99 a year. Both facts matter for section 12.
 
-**Positioning.** For people who want to put the phone down, Pocket Oven turns every focus block into a bake and every break into a short decorating game, so the reward is something you made and can share.
+**Positioning.** For people who want to put the phone down, Cloche turns every focus block into a bake and every break into a short decorating game, so the reward is something you made and can share.
 
 **Defensibility.** The close-to-cook mechanic is easy to copy, and Toastie could add a timer in one update. The durable edges are recipe depth, regional content (Indian dishes first), the decorating game's quality, a collection people want to complete, and a distinct look and sound. Mechanics are not a moat; content and craft are.
 
@@ -561,11 +561,11 @@ The biggest risks are a small fold audience and a copyable mechanic. Both are an
 - The Bakery Study Timer details, the descriptions of Forest, Flora, Focus Friend and Study Bunny, and the 6-million Duo estimate come from your brief; I did not verify them.
 - The 15% Apple commission applies (the small-business rate).
 - The schedule starts on November 2, 2026 and you can give the project roughly one focused week for Gate 0.
-- The app name "Pocket Oven" is a working title; I have not checked App Store or trademark availability.
+- The app name "Cloche" is a working title; I have not checked App Store or trademark availability.
 
 **Open questions that remain**
 
-- [ ] Is Pocket Oven available as an app name and as a domain for the waitlist page?
+- [ ] Is Cloche available as an app name and as a domain for the waitlist page?
 - [ ] Productivity or Games as the primary App Store category? Worth testing the listing both ways if time allows.
 - [ ] Should finishing a break automatically chain into the next bake, or always return to a calm home screen? This PRD chooses the calm home screen.
 - [ ] When should Hindi and other localizations ship, given the Indian-dish positioning?

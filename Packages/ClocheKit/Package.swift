@@ -4,12 +4,12 @@ import PackageDescription
 let settings: [SwiftSetting] = [.treatAllWarnings(as: .error)]
 
 let package = Package(
-    name: "PocketOvenKit",
+    name: "ClocheKit",
     defaultLocalization: "en",
     platforms: [.iOS(.v18)],
     products: [
         .library(
-            name: "PocketOvenKit",
+            name: "ClocheKit",
             targets: ["Domain", "DoorSensing", "Persistence", "Services", "DesignSystem", "Features"]
         ),
     ],

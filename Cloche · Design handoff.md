@@ -1,10 +1,10 @@
-# Pocket Oven · Design handoff
+# Cloche · Design handoff
 
 Oct 31, 2026 · @Shubham
 
 ## Overview
 
-The oven door opens from a bottom hinge on every device: the iPhone flips up, the Duo folds shut like a lid. This spec covers Stage 1 (prep to grade) and Stage 2 (decorate, serve, early open) for the iPhone and for the iPhone Duo held in portrait. Every screen is on the [Pocket Oven design canvas](https://claude.ai/artifact/MDSEN2XYYDQnRpU4vM3tsK); board names below match the canvas titles.
+The oven door opens from a bottom hinge on every device: the iPhone flips up, the Duo folds shut like a lid. This spec covers Stage 1 (prep to grade) and Stage 2 (decorate, serve, early open) for the iPhone and for the iPhone Duo held in portrait. Every screen is on the [Cloche design canvas](https://claude.ai/artifact/MDSEN2XYYDQnRpU4vM3tsK); board names below match the canvas titles.
 
 | Area | Canvas boards | Status |
 | --- | --- | --- |
@@ -115,7 +115,7 @@ Five screens, 390 by 844 pt, all on `color-ground` with `grain`. Safe area: cont
 
 | Screen | Layout, top to bottom | Controls and behaviour |
 | --- | --- | --- |
-| 1 Prep | Header: "Pocket Oven" in `type-voice` 22 left, Recipe book and Settings icon buttons (44 by 44) right. Hero dish on plate, 236 pt. Dish name `type-name` 34/38. Eyebrow with minutes and region. Five recipe circles (58 pt, 10 pt gap). Temperature segments (Low, Medium, High). Optional label field. Primary button. | Recipe circle: tap selects (1.5 pt `color-sand` border and soft glow). Locked dishes are greyscale at 60% brightness with a lock badge; selecting one swaps the button to "Part of the Full Kitchen" (outline, `color-sand`) with the note "Cupcakes and naan are always free". Temperature segments: 48 high, radius 14, three bars show heat level, selected has `color-surface` fill and 0.6 `color-sand` border; a `type-voice` 14 hint sits right of the label ("Golden at Medium last time"). Label field: 44 high, italic serif 18, hint "Stays on this phone". Primary "Preheat" goes to Preheat with the note "Then place the phone face down". |
+| 1 Prep | Header: "Cloche" in `type-voice` 22 left, Recipe book and Settings icon buttons (44 by 44) right. Hero dish on plate, 236 pt. Dish name `type-name` 34/38. Eyebrow with minutes and region. Five recipe circles (58 pt, 10 pt gap). Temperature segments (Low, Medium, High). Optional label field. Primary button. | Recipe circle: tap selects (1.5 pt `color-sand` border and soft glow). Locked dishes are greyscale at 60% brightness with a lock badge; selecting one swaps the button to "Part of the Full Kitchen" (outline, `color-sand`) with the note "Cupcakes and naan are always free". Temperature segments: 48 high, radius 14, three bars show heat level, selected has `color-surface` fill and 0.6 `color-sand` border; a `type-voice` 14 hint sits right of the label ("Golden at Medium last time"). Label field: 44 high, italic serif 18, hint "Stays on this phone". Primary "Preheat" goes to Preheat with the note "Then place the phone face down". |
 | 2 Preheat | Back arrow (44 by 44) and eyebrow "Preheating". Wide oven closed, 342 pt wide, display plate reads "Ready". Headline "The oven is ready." `type-title`. Helper paragraph. Status pill "Waiting for a flat, face-down phone" with a pulsing dot. Three-cell summary (Recipe, Oven, Bake). Text button "Close the door another way". | Starting the bake is the player placing the phone face down; there is no start button. The pill dot pulses 2.4 s. Footer note: "The screen stays dark with a faint glowing line". |
 | 3 Bake, face-down | Pure black (#000) screen, centred stack: eyebrow "Vanilla cupcakes · Medium", remaining time `type-numeral` 76 in `color-subtle`, a 220 by 1 pt `color-accent` glow line that breathes. | Burn-in guard: the stack drifts 16 pt vertically over 90 s. No other UI. Keeps the screen awake while baking (setting, default on). A stored end timestamp drives the timer so a suspended app still ends the bake correctly. |
 | 4 Reveal | Eyebrow with dish name, "Prêt." in `type-hero`, wide oven with the door dropped open and steam over the cupcakes, primary button "See how it turned out". | Plays when the phone is flipped up after a finished bake. Door drop animation: see Interactions. Steam: three blurred ellipses rise 14 pt and fade, 5 to 6 s loops, staggered. |

@@ -1,4 +1,4 @@
-# CLAUDE.md — Pocket Oven
+# CLAUDE.md — Cloche
 
 Rules for every change in this repo. Read this before writing code. If a rule here conflicts with a request, say so before proceeding.
 
@@ -6,8 +6,8 @@ Rules for every change in this repo. Read this before writing code. If a rule he
 
 | What | Where |
 | --- | --- |
-| Product requirements (scope, priorities P0/P1/P2, rules) | `Pocket Oven — Product Requirements Document.md` |
-| Visual + interaction spec (tokens, layouts, motion, a11y) | `Pocket Oven · Design handoff.md` |
+| Product requirements (scope, priorities P0/P1/P2, rules) | `Cloche — Product Requirements Document.md` |
+| Visual + interaction spec (tokens, layouts, motion, a11y) | `Cloche · Design handoff.md` |
 | Design canvas (look, spacing, behaviour — do not port its HTML) | https://claude.ai/artifact/MDSEN2XYYDQnRpU4vM3tsK |
 | Phased build plan + App Store compliance checklist | `docs/PLAN.md` |
 | Where we are: current state + log of completed slices | `docs/PROGRESS.md` |
@@ -28,10 +28,10 @@ Build only what the PRD marks for the current phase. Boards marked "Reference on
 ## Architecture
 
 ```
-PocketOven/
-├── PocketOven.xcodeproj
+Cloche/
+├── Cloche.xcodeproj
 ├── App/                    # iOS app target: @main, composition root ONLY (wires concrete types)
-├── Packages/PocketOvenKit/ # local Swift package, all real code lives here
+├── Packages/ClocheKit/ # local Swift package, all real code lives here
 │   ├── Domain/             # pure Swift: models, SessionEngine, GradeCalculator. No SwiftUI, no UIKit.
 │   ├── DoorSensing/        # FoldStateService protocol + Hinge / FaceDown / Proximity / Honor / Scripted
 │   ├── Persistence/        # SwiftData recipe book, session snapshot store (behind protocols)

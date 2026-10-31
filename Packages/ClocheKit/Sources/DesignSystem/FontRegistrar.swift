@@ -9,7 +9,7 @@ enum FontRegistrar {
     static let serifFamily = "Newsreader"
 
     private static let files = ["InstrumentSans", "Newsreader", "Newsreader-Italic"]
-    private static let logger = Logger(subsystem: "com.shubhamtyagi.pocketoven", category: "Fonts")
+    private static let logger = Logger(subsystem: "com.shubhamtyagi.cloche", category: "Fonts")
 
     /// Which families resolved. Evaluating this the first time performs the registration.
     static let availability: Availability = {

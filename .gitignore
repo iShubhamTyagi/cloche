@@ -10,7 +10,7 @@ xcuserdata/
 *.dSYM.zip
 *.dSYM
 .swiftpm/
-Packages/PocketOvenKit/.build/
+Packages/ClocheKit/.build/
 
 # macOS
 .DS_Store

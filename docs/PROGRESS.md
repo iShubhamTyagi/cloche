@@ -14,7 +14,7 @@ Read the **Current state** first; it says where the next session starts. Then ad
   - The Duo cover display is portrait, 1398 × 2034 px (about 466 × 678 pt), not the handoff's assumed 500 × 400 landscape.
   - XCUITest screenshots on the Duo simulator are black; use `ImageRenderer` (see DECISIONS).
   - Slow close in the simulator: `fullyOpen` (π) → one `partiallyOpen` reading at 2.82 rad (about 162°) → `closed` (0). A real Duo will likely report more steps; partly open always maps to ajar, never closed.
-  - Still open: readings during a slow close and open on a real Duo (needs folding by hand in DeviceHub, then `xcrun simctl spawn <Duo> log show --last 5m --predicate 'subsystem == "com.shubhamtyagi.pocketoven"'`); face-down on a real iPhone on three surfaces.
+  - Still open: readings during a slow close and open on a real Duo (needs folding by hand in DeviceHub, then `xcrun simctl spawn <Duo> log show --last 5m --predicate 'subsystem == "com.shubhamtyagi.cloche"'`); face-down on a real iPhone on three surfaces.
 - **Known for Phase 1:** the Duo simulator boots folded, showing the cover display (1398 × 2034 px). The system reserves a strip down the cover's right edge, so centred content sits left of centre; cover screens need the reserved-region APIs. `simctl io screenshot` needs `--display=1` on the Duo.
 
 ## Log
@@ -135,7 +135,7 @@ Read the **Current state** first; it says where the next session starts. Then ad
 ### 2026-10-31: Phase 0, project setup
 
 - **Built:**
-  - Xcode project (app and UI-test targets, folders that sync automatically) and the local `PocketOvenKit` package with six modules
+  - Xcode project (app and UI-test targets, folders that sync automatically) and the local `ClocheKit` package with six modules
   - Starting code: `DoorState`, `FoldStateService` with a scripted test version, colour, spacing and type tokens, a placeholder start screen
   - Privacy manifest, export-compliance key, string catalogs
   - Scripts: `build.sh`, `test.sh`, `run.sh`, `setup-simulators.sh`

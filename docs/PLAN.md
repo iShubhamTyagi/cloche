@@ -1,4 +1,4 @@
-# Pocket Oven: development plan
+# Cloche: development plan
 
 Oct 31, 2026. Covers the work from an empty folder to App Store submission. Inputs: the PRD, the design handoff, and the design canvas. Rules for each change are in `CLAUDE.md`.
 
@@ -16,7 +16,7 @@ Oct 31, 2026. Covers the work from an empty folder to App Store submission. Inpu
 ## 2. Architecture summary
 
 - **One Xcode project.** `App` (iOS), `Widgets` (Live Activity, Phase 3) and, after launch, `WatchApp`.
-- **One local Swift package, `PocketOvenKit`,** holds all the logic in layers: `Domain → DoorSensing / Persistence / Services → DesignSystem → Features`. The app target is only a composition root. The package layout makes the dependency rules enforceable, keeps builds fast, and lets the domain be tested without the UI.
+- **One local Swift package, `ClocheKit`,** holds all the logic in layers: `Domain → DoorSensing / Persistence / Services → DesignSystem → Features`. The app target is only a composition root. The package layout makes the dependency rules enforceable, keeps builds fast, and lets the domain be tested without the UI.
 - **Core seams (protocols):** `FoldStateService` (door), `TimeProviding` (time; not `Clock`, which clashes with the Swift standard library), `NotificationScheduling`, `SoundPlaying`, `HapticPlaying`, `RecipeBookStoring`, `SessionSnapshotStoring`, `EntitlementProviding`, `EventLogging`, `LiveActivityControlling`.
 - **`SessionEngine`** is a pure state machine: `idle → preheat → baking ⇄ ajar(grace) → ready | halfBaked → reveal → grade → decorating → served → saved`. It takes door events and clock ticks as input and emits phase plus side-effect commands (schedule notification, play sound, start Live Activity). Services carry the commands out, so the engine can be tested end to end without a device.
 - **Door adapters:** `HingeFoldStateService` (`onHingeChange`, behind `#available(iOS 27.1, *)`), `FaceDownFoldStateService` (Core Motion gravity z > 0.9 for ≥ 1 s, with a flatness tolerance and a flicker counter), `ProximityFoldStateService` (P1, only if Gate 0 proves it works), `HonorDoorService` (drag to close, P1), and `ScriptedFoldStateService` (tests and a debug menu). `DoorModeResolver` picks one: hinge if one is present, otherwise face-down, unless the player overrides it in Settings.
@@ -29,7 +29,7 @@ Every slice ends with `build.sh` and `test.sh` passing, the app running in the i
 
 1. Install Xcode 27.1+, the iOS 27.1 and watchOS runtimes, and create the simulators: iPhone 17, iPhone 17e (small screen), iPhone Duo, and Apple Watch Series (45 mm).
 2. `git init` in this folder, add `.gitignore` for Xcode, and push to a private remote if you want one.
-3. Create `PocketOven.xcodeproj` (App target, iOS 18 minimum, Swift 6, iPhone only) and the local `PocketOvenKit` package, then wire them together.
+3. Create `Cloche.xcodeproj` (App target, iOS 18 minimum, Swift 6, iPhone only) and the local `ClocheKit` package, then wire them together.
 4. Write `scripts/build.sh`, `test.sh` and `run.sh` (xcodebuild plus `simctl boot`, `install` and `launch`, with Simulator.app opened).
 5. Add `PrivacyInfo.xcprivacy`, set `ITSAppUsesNonExemptEncryption` to NO in Info.plist, and add `LICENSES.md` (fonts: OFL), `docs/DECISIONS.md` and `Localizable.xcstrings`.
 6. Smoke test: an empty app launches in both simulators.
@@ -103,7 +103,7 @@ A native watchOS app and complication, iCloud sync of the recipe book, custom se
 
 Checked against Apple's App Review Guidelines (developer.apple.com/app-store/review/guidelines). Apple revised them again on Oct 16, 2026, so re-read the live page at Phase 3.7.
 
-| Guideline | Risk for Pocket Oven | What we do |
+| Guideline | Risk for Cloche | What we do |
 | --- | --- | --- |
 | **4.3(b) Spam: "simple timers" are saturated** | **Highest risk.** A reviewer may see "another focus timer". | Lead with the game in the name, subtitle, screenshots and description: baking, decorating, the recipe book. **Decided: Games › Casual** primary, Productivity secondary. The review notes describe the fold and flip mechanic and the decorating game. |
 | 2.1 App completeness | The reviewer can't wait 25 minutes and has no Duo | Settings → **Demo bake (15 s)**. The review notes give exact steps for face-down and say the hinge is optional. No placeholders and no dead buttons. |
@@ -125,7 +125,7 @@ Checked against Apple's App Review Guidelines (developer.apple.com/app-store/rev
 | Age rating | Questionnaire | Answer the questionnaire; expect 4+. No user-generated sharing *inside* the app (the share sheet only). |
 | Accessibility Nutrition Labels | — | Declare VoiceOver, Larger Text, Reduced Motion and Sufficient Contrast once they are verified. |
 | SDK minimums | — | Build with Xcode 27.1 or later. This also meets the April 2027 requirement for the iOS 27 SDK. |
-| Name | "Pocket Oven" not checked | Check App Store Connect name availability (30 characters max) before the store assets are made. |
+| Name | "Cloche" not checked | Check App Store Connect name availability (30 characters max) before the store assets are made. |
 
 **Review notes template (fill in at 3.7):** what the app is (a baking and decorating game where the bake runs while you focus); how to test without a Duo (Settings → Demo bake, then place the phone face down for 15 s and flip it up); what the hinge does on a Duo; where the IAP is and how to restore it; and that no account, network or data collection is involved.
 
@@ -135,4 +135,4 @@ Checked against Apple's App Review Guidelines (developer.apple.com/app-store/rev
 2. Should the demo bake stay in the shipped app? The PRD says yes. App Review needs it, so keep it.
 3. Last-30-seconds colour: honey as drawn, or ivory only? The plan builds it as drawn.
 4. Which plates, backdrops and toppers are free? Proposal: 3 of each are free.
-5. Name and domain availability for "Pocket Oven".
+5. Name and domain availability for "Cloche".

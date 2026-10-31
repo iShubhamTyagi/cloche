@@ -4,6 +4,7 @@ Choices made during the build that the PRD or design handoff don't settle. Newes
 
 | Date | Decision | Why |
 | --- | --- | --- |
+| 2026-10-31 | The game is named **Cloche** (was the working title "Pocket Oven"). Renamed everywhere: display name and wordmark, Xcode project, targets and scheme (`Cloche`, `ClocheUITests`), Swift package (`ClocheKit`), bundle ID `com.shubhamtyagi.cloche`, logging subsystem, data folder, scripts and docs, including the PRD and handoff file names | Decided by the owner. The local folder is still `Desktop/My Dev/PocketBakery`; the remote is github.com/iShubhamTyagi/cloche |
 | 2026-10-31 | A minimal Settings sheet ships now (door mode, keep-awake, sounds, demo bake), opened from a sliders icon on Prep | The PRD puts the demo bake in Settings, and DR-3 and DR-8 need a home; the full Settings (privacy policy, restore purchases) is 2.10 and 3.1 |
 | 2026-10-31 | Settings live in UserDefaults | Already declared in the privacy manifest (CA92.1); tiny, synchronous, no migration needed |
 | 2026-10-31 | The notification pre-prompt appears once, on the first Preheat, only if the system hasn't asked yet; both answers continue to Preheat | Guideline 4.5.4 and the in-context ask in CLAUDE.md; the app never depends on notifications |
@@ -62,11 +63,11 @@ Choices made during the build that the PRD or design handoff don't settle. Newes
 | 2026-10-31 | Empty stars are drawn as `color-subtle` outlines | The handoff says "empty outline" without a colour; subtle keeps 4.9:1 or better contrast, and filled versus outline means the state never relies on colour alone |
 | 2026-10-31 | `RingClock` was built in slice 1.1 instead of 1.6 | It is a shared component (break clock and ajar countdown); doing it with the rest of the design system keeps 1.6 small |
 | 2026-10-31 | The component gallery is compiled only into debug builds and opened with the `-componentGallery` launch argument | Gives a quick on-device check against the canvas without shipping a hidden feature (Guideline 2.5.19) |
-| 2026-10-31 | CLI derived data lives in `~/Library/Developer/Xcode/DerivedData/PocketOven-cli`, outside the repo | Xcode 27.2 can't load hostless package test bundles from a path containing a space ("My Dev"); verified by running the same tests from a path without spaces |
-| 2026-10-31 | `test.sh` runs the package's unit tests through the `PocketOvenKit` scheme, then the app's UI tests | Package testables added to the app scheme were silently skipped |
+| 2026-10-31 | CLI derived data lives in `~/Library/Developer/Xcode/DerivedData/Cloche-cli`, outside the repo | Xcode 27.2 can't load hostless package test bundles from a path containing a space ("My Dev"); verified by running the same tests from a path without spaces |
+| 2026-10-31 | `test.sh` runs the package's unit tests through the `ClocheKit` scheme, then the app's UI tests | Package testables added to the app scheme were silently skipped |
 | 2026-10-31 | Scripts open `DeviceHub.app` | Xcode 27 replaced Simulator.app with DeviceHub |
 | 2026-10-31 | Primary App Store category is **Games › Casual**; Productivity is secondary | Lowers the risk of a Guideline 4.3(b) "simple timer" rejection; the decorating game and collection are the product |
-| 2026-10-31 | Bundle ID `com.shubhamtyagi.pocketoven` | Placeholder until the App Store Connect record exists; change before the first archive if needed |
+| 2026-10-31 | Bundle ID `com.shubhamtyagi.cloche` | Placeholder until the App Store Connect record exists; change before the first archive if needed |
 | 2026-10-31 | The time protocol is `TimeProviding`, not `Clock` | `Clock` clashes with the Swift standard library |
 | 2026-10-31 | Portrait only on iPhone | The design covers portrait only; Duo landscape is reference-only |
-| 2026-10-31 | Xcode project uses folder-synchronized groups; all logic lives in the local `PocketOvenKit` package | New files need no project edits; module boundaries enforce the dependency rules in CLAUDE.md |
+| 2026-10-31 | Xcode project uses folder-synchronized groups; all logic lives in the local `ClocheKit` package | New files need no project edits; module boundaries enforce the dependency rules in CLAUDE.md |

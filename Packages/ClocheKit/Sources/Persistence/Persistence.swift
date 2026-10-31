@@ -11,10 +11,10 @@ public struct FileSessionSnapshotStore: SessionSnapshotStoring {
         url = directory.appendingPathComponent("session.json")
     }
 
-    /// `Application Support/PocketOven/session.json`.
+    /// `Application Support/Cloche/session.json`.
     public static func standard() throws -> FileSessionSnapshotStore {
         let base = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-        let directory = base.appendingPathComponent("PocketOven", isDirectory: true)
+        let directory = base.appendingPathComponent("Cloche", isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         return FileSessionSnapshotStore(directory: directory)
     }

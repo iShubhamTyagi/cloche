@@ -9,7 +9,7 @@ public final class SessionEffectRouter: SessionEffectPerforming {
     private let sounds: any SoundPlaying
     private let notifications: any NotificationScheduling
     private let soundsEnabled: () -> Bool
-    private let logger = Logger(subsystem: "com.shubhamtyagi.pocketoven", category: "Session")
+    private let logger = Logger(subsystem: "com.shubhamtyagi.cloche", category: "Session")
 
     /// - Parameter soundsEnabled: the player's Sounds setting, read when each sound would play.
     public init(haptics: any HapticPlaying, announcer: any Announcing, sounds: any SoundPlaying, notifications: any NotificationScheduling, soundsEnabled: @escaping () -> Bool) {

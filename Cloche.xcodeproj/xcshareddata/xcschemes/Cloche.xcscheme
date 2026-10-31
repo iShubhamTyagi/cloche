@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "AA0000000000000000000020"
-               BuildableName = "PocketOven.app"
-               BlueprintName = "PocketOven"
-               ReferencedContainer = "container:PocketOven.xcodeproj">
+               BuildableName = "Cloche.app"
+               BlueprintName = "Cloche"
+               ReferencedContainer = "container:Cloche.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -34,9 +34,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "AA0000000000000000000030"
-               BuildableName = "PocketOvenUITests.xctest"
-               BlueprintName = "PocketOvenUITests"
-               ReferencedContainer = "container:PocketOven.xcodeproj">
+               BuildableName = "ClocheUITests.xctest"
+               BlueprintName = "ClocheUITests"
+               ReferencedContainer = "container:Cloche.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -56,9 +56,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AA0000000000000000000020"
-            BuildableName = "PocketOven.app"
-            BlueprintName = "PocketOven"
-            ReferencedContainer = "container:PocketOven.xcodeproj">
+            BuildableName = "Cloche.app"
+            BlueprintName = "Cloche"
+            ReferencedContainer = "container:Cloche.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -73,9 +73,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AA0000000000000000000020"
-            BuildableName = "PocketOven.app"
-            BlueprintName = "PocketOven"
-            ReferencedContainer = "container:PocketOven.xcodeproj">
+            BuildableName = "Cloche.app"
+            BlueprintName = "Cloche"
+            ReferencedContainer = "container:Cloche.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

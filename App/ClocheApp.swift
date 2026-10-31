@@ -2,7 +2,7 @@ import Features
 import SwiftUI
 
 @main
-struct PocketOvenApp: App {
+struct ClocheApp: App {
     @State private var environment = AppEnvironment()
 
     var body: some Scene {

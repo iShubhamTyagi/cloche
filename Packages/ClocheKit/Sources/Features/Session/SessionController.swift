@@ -20,7 +20,7 @@ public final class SessionController {
     @ObservationIgnored private let effects: any SessionEffectPerforming
     @ObservationIgnored private var doorTask: Task<Void, Never>?
     @ObservationIgnored private var deadlineTask: Task<Void, Never>?
-    @ObservationIgnored private let logger = Logger(subsystem: "com.shubhamtyagi.pocketoven", category: "Session")
+    @ObservationIgnored private let logger = Logger(subsystem: "com.shubhamtyagi.cloche", category: "Session")
 
     public init(door: any FoldStateService, time: any TimeProviding, store: any SessionSnapshotStoring, effects: any SessionEffectPerforming) {
         self.door = door

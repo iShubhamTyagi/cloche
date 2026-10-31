@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AA0000000000000000000026 /* PocketOvenKit in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000025 /* PocketOvenKit */; };
+		AA0000000000000000000026 /* ClocheKit in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000000000000000000025 /* ClocheKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -16,22 +16,22 @@
 			containerPortal = AA0000000000000000000001 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = AA0000000000000000000020;
-			remoteInfo = PocketOven;
+			remoteInfo = Cloche;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		AA0000000000000000000021 /* PocketOven.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PocketOven.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		AA0000000000000000000031 /* PocketOvenUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PocketOvenUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA0000000000000000000021 /* Cloche.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Cloche.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA0000000000000000000031 /* ClocheUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClocheUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		AA0000000000000000000012 /* Exceptions for "App" folder in "PocketOven" target */ = {
+		AA0000000000000000000012 /* Exceptions for "App" folder in "Cloche" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = AA0000000000000000000020 /* PocketOven */;
+			target = AA0000000000000000000020 /* Cloche */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -39,7 +39,7 @@
 		AA0000000000000000000010 /* App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				AA0000000000000000000012 /* Exceptions for "App" folder in "PocketOven" target */,
+				AA0000000000000000000012 /* Exceptions for "App" folder in "Cloche" target */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -56,7 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AA0000000000000000000026 /* PocketOvenKit in Frameworks */,
+				AA0000000000000000000026 /* ClocheKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -82,8 +82,8 @@
 		AA0000000000000000000003 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AA0000000000000000000021 /* PocketOven.app */,
-				AA0000000000000000000031 /* PocketOvenUITests.xctest */,
+				AA0000000000000000000021 /* Cloche.app */,
+				AA0000000000000000000031 /* ClocheUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -91,9 +91,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		AA0000000000000000000020 /* PocketOven */ = {
+		AA0000000000000000000020 /* Cloche */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = AA0000000000000000000043 /* Build configuration list for PBXNativeTarget "PocketOven" */;
+			buildConfigurationList = AA0000000000000000000043 /* Build configuration list for PBXNativeTarget "Cloche" */;
 			buildPhases = (
 				AA0000000000000000000022 /* Sources */,
 				AA0000000000000000000023 /* Frameworks */,
@@ -106,17 +106,17 @@
 			fileSystemSynchronizedGroups = (
 				AA0000000000000000000010 /* App */,
 			);
-			name = PocketOven;
+			name = Cloche;
 			packageProductDependencies = (
-				AA0000000000000000000025 /* PocketOvenKit */,
+				AA0000000000000000000025 /* ClocheKit */,
 			);
-			productName = PocketOven;
-			productReference = AA0000000000000000000021 /* PocketOven.app */;
+			productName = Cloche;
+			productReference = AA0000000000000000000021 /* Cloche.app */;
 			productType = "com.apple.product-type.application";
 		};
-		AA0000000000000000000030 /* PocketOvenUITests */ = {
+		AA0000000000000000000030 /* ClocheUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = AA0000000000000000000046 /* Build configuration list for PBXNativeTarget "PocketOvenUITests" */;
+			buildConfigurationList = AA0000000000000000000046 /* Build configuration list for PBXNativeTarget "ClocheUITests" */;
 			buildPhases = (
 				AA0000000000000000000032 /* Sources */,
 				AA0000000000000000000033 /* Frameworks */,
@@ -130,9 +130,9 @@
 			fileSystemSynchronizedGroups = (
 				AA0000000000000000000011 /* UITests */,
 			);
-			name = PocketOvenUITests;
-			productName = PocketOvenUITests;
-			productReference = AA0000000000000000000031 /* PocketOvenUITests.xctest */;
+			name = ClocheUITests;
+			productName = ClocheUITests;
+			productReference = AA0000000000000000000031 /* ClocheUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -154,7 +154,7 @@
 					};
 				};
 			};
-			buildConfigurationList = AA0000000000000000000040 /* Build configuration list for PBXProject "PocketOven" */;
+			buildConfigurationList = AA0000000000000000000040 /* Build configuration list for PBXProject "Cloche" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -164,15 +164,15 @@
 			mainGroup = AA0000000000000000000002;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				AA0000000000000000000027 /* XCLocalSwiftPackageReference "Packages/PocketOvenKit" */,
+				AA0000000000000000000027 /* XCLocalSwiftPackageReference "Packages/ClocheKit" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = AA0000000000000000000003 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				AA0000000000000000000020 /* PocketOven */,
-				AA0000000000000000000030 /* PocketOvenUITests */,
+				AA0000000000000000000020 /* Cloche */,
+				AA0000000000000000000030 /* ClocheUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -214,7 +214,7 @@
 /* Begin PBXTargetDependency section */
 		AA0000000000000000000035 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = AA0000000000000000000020 /* PocketOven */;
+			target = AA0000000000000000000020 /* Cloche */;
 			targetProxy = AA0000000000000000000036 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -284,7 +284,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = App/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Pocket Oven";
+				INFOPLIST_KEY_CFBundleDisplayName = "Cloche";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.casual-games";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -294,7 +294,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.shubhamtyagi.pocketoven;
+				PRODUCT_BUNDLE_IDENTIFIER = com.shubhamtyagi.cloche;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -314,7 +314,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = App/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Pocket Oven";
+				INFOPLIST_KEY_CFBundleDisplayName = "Cloche";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.casual-games";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -324,7 +324,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.shubhamtyagi.pocketoven;
+				PRODUCT_BUNDLE_IDENTIFIER = com.shubhamtyagi.cloche;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -341,11 +341,11 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.shubhamtyagi.pocketoven.uitests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.shubhamtyagi.cloche.uitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				TARGETED_DEVICE_FAMILY = 1;
-				TEST_TARGET_NAME = PocketOven;
+				TEST_TARGET_NAME = Cloche;
 			};
 			name = Debug;
 		};
@@ -356,18 +356,18 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.shubhamtyagi.pocketoven.uitests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.shubhamtyagi.cloche.uitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				TARGETED_DEVICE_FAMILY = 1;
-				TEST_TARGET_NAME = PocketOven;
+				TEST_TARGET_NAME = Cloche;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		AA0000000000000000000040 /* Build configuration list for PBXProject "PocketOven" */ = {
+		AA0000000000000000000040 /* Build configuration list for PBXProject "Cloche" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AA0000000000000000000041 /* Debug */,
@@ -376,7 +376,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		AA0000000000000000000043 /* Build configuration list for PBXNativeTarget "PocketOven" */ = {
+		AA0000000000000000000043 /* Build configuration list for PBXNativeTarget "Cloche" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AA0000000000000000000044 /* Debug */,
@@ -385,7 +385,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		AA0000000000000000000046 /* Build configuration list for PBXNativeTarget "PocketOvenUITests" */ = {
+		AA0000000000000000000046 /* Build configuration list for PBXNativeTarget "ClocheUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AA0000000000000000000047 /* Debug */,
@@ -397,16 +397,16 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		AA0000000000000000000027 /* XCLocalSwiftPackageReference "Packages/PocketOvenKit" */ = {
+		AA0000000000000000000027 /* XCLocalSwiftPackageReference "Packages/ClocheKit" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = Packages/PocketOvenKit;
+			relativePath = Packages/ClocheKit;
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		AA0000000000000000000025 /* PocketOvenKit */ = {
+		AA0000000000000000000025 /* ClocheKit */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = PocketOvenKit;
+			productName = ClocheKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

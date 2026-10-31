@@ -20,7 +20,7 @@ import os
 public final class AVSoundPlayer: SoundPlaying {
     private var players: [Sound: AVAudioPlayer] = [:]
     private var isSessionConfigured = false
-    private let logger = Logger(subsystem: "com.shubhamtyagi.pocketoven", category: "Sound")
+    private let logger = Logger(subsystem: "com.shubhamtyagi.cloche", category: "Sound")
 
     public init() {}
 

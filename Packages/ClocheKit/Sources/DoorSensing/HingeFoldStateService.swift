@@ -26,7 +26,7 @@ final class HingeFoldStateService: HingeSensing {
     @ObservationIgnored private let broadcaster = DoorStateBroadcaster()
     @ObservationIgnored private var interaction: UIHingeInteraction?
     /// Gate 0: records what the hinge reports during slow opens and closes.
-    @ObservationIgnored private let logger = Logger(subsystem: "com.shubhamtyagi.pocketoven", category: "Hinge")
+    @ObservationIgnored private let logger = Logger(subsystem: "com.shubhamtyagi.cloche", category: "Hinge")
 
     init() {
         interaction = UIHingeInteraction { [weak self] _, update in

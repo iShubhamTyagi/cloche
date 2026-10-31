@@ -19,7 +19,7 @@ xcrun simctl boot "$UDID" 2>/dev/null || true
 open -a "$(xcode-select -p)/../Applications/DeviceHub.app"
 xcrun simctl bootstatus "$UDID" -b >/dev/null
 
-APP="$DERIVED/Build/Products/Debug-iphonesimulator/PocketOven.app"
+APP="$DERIVED/Build/Products/Debug-iphonesimulator/Cloche.app"
 xcrun simctl install "$UDID" "$APP"
 xcrun simctl launch --terminate-running-process "$UDID" "$BUNDLE_ID" "$@"
 echo "🚀 Launched on $SIM"

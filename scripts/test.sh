@@ -26,5 +26,7 @@ for SIM in "${SIMS[@]}"; do
     -destination "$(destination "$SIM")" \
     -derivedDataPath "$DERIVED" \
     -quiet
+  # XCUITest installs a helper "PocketOvenUITests-Runner" app; remove it so only Pocket Oven is left.
+  xcrun simctl uninstall "$SIM" "$BUNDLE_ID.uitests.xctrunner" 2>/dev/null || true
   echo "✅ All tests passed on $SIM"
 done

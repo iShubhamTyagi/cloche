@@ -10,6 +10,10 @@ Rules for every change in this repo. Read this before writing code. If a rule he
 | Visual + interaction spec (tokens, layouts, motion, a11y) | `Pocket Oven · Design handoff.md` |
 | Design canvas (look, spacing, behaviour — do not port its HTML) | https://claude.ai/artifact/MDSEN2XYYDQnRpU4vM3tsK |
 | Phased build plan + App Store compliance checklist | `docs/PLAN.md` |
+| Where we are: current state + log of completed slices | `docs/PROGRESS.md` |
+| Decisions and the reasoning behind them | `docs/DECISIONS.md` |
+
+**At the start of every session, read `docs/PROGRESS.md` → Current state.** When a slice is finished, in the same commit: add a log entry to `PROGRESS.md` (built, verified with test counts, commit, anything left over), update Current state, and add a dated row to `DECISIONS.md` for every choice the PRD or handoff didn't make. Never rewrite past entries; a later decision supersedes an earlier one by referring to it.
 
 Build only what the PRD marks for the current phase. Boards marked "Reference only, do not build" (Duo landscape, palettes A–D) stay unbuilt. If the spec is silent, pick the calmest option, note it in the PR/commit, and add it to `docs/DECISIONS.md`.
 

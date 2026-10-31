@@ -26,7 +26,7 @@ IOS="$(latest_runtime 'iOS ')"
 WATCH="$(latest_runtime 'watchOS ')"
 
 ensure "iPhone 17" "iPhone 17" "$IOS"
-ensure "iPhone 16e" "iPhone 16e" "$IOS"
+ensure "iPhone 17e" "iPhone 17e" "$IOS"
 ensure "iPhone Duo" "iPhone Duo" "$IOS"
 if [[ -n "$WATCH" ]]; then
   ensure "Apple Watch Series 11 (46mm)" "Apple Watch Series 11 (46mm)" "$WATCH"

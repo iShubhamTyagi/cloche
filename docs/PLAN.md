@@ -27,7 +27,7 @@ Every slice ends with `build.sh` and `test.sh` passing, the app running in the i
 
 ### Phase 0: setup (day 0 to 1)
 
-1. Install Xcode 27.1+, the iOS 27.1 and watchOS runtimes, and create the simulators: iPhone 17, iPhone 16e (small screen), iPhone Duo, and Apple Watch Series (45 mm).
+1. Install Xcode 27.1+, the iOS 27.1 and watchOS runtimes, and create the simulators: iPhone 17, iPhone 17e (small screen), iPhone Duo, and Apple Watch Series (45 mm).
 2. `git init` in this folder, add `.gitignore` for Xcode, and push to a private remote if you want one.
 3. Create `PocketOven.xcodeproj` (App target, iOS 18 minimum, Swift 6, iPhone only) and the local `PocketOvenKit` package, then wire them together.
 4. Write `scripts/build.sh`, `test.sh` and `run.sh` (xcodebuild plus `simctl boot`, `install` and `launch`, with Simulator.app opened).
@@ -84,7 +84,7 @@ Retention for Gate 1: use App Store Connect / TestFlight analytics, which need n
 | 3.3 | Honor door; covered mode only if Gate 0 proved it | DR-9, DR-10 |
 | 3.4 | Work label, variants, completion percentage per pack | PR-4, CL-3, CL-4 |
 | 3.5 | Clip export (time-lapse replay of the operation list) | SH-3 |
-| 3.6 | Run Xcode's resizable-layout agent skill; test on iPad compatibility mode, iPhone 16e and the Duo | PRD §11 |
+| 3.6 | Run Xcode's resizable-layout agent skill; test on iPad compatibility mode, iPhone 17e and the Duo | PRD §11 |
 | 3.7 | Store assets: screenshots (standard iPhone, Duo inner and cover), privacy policy and support pages, review notes, age rating, IAP metadata | §5 below |
 | 3.8 | Real-device pass for haptics, sound, heat and battery over a 90-minute soak; fix; submit with a limited-territory release | Gate 2 |
 
@@ -97,7 +97,7 @@ A native watchOS app and complication, iCloud sync of the recipe book, custom se
 - **Unit tests (Swift Testing)** for the domain and services, with `TestTimeProvider` and `ScriptedFoldStateService`. Target: every rule in CLAUDE.md, and close to 100% of `SessionEngine`.
 - **Snapshot-style previews** for every screen on the iPhone and the Duo, checked by eye against the canvas boards.
 - **UI smoke tests (XCUITest)** for the full loop, driven by the launch argument `-doorScript closed,15s,open` and a 15 s demo recipe.
-- **Device matrix before each TestFlight:** iPhone 16e, iPhone 17, iPhone Duo (simulator), iPad (compatibility mode), the Watch simulator, and one real iPhone.
+- **Device matrix before each TestFlight:** iPhone 17e, iPhone 17, iPhone Duo (simulator), iPad (compatibility mode), the Watch simulator, and one real iPhone.
 
 ## 5. App Store approval checklist (first-time approval)
 

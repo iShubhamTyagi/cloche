@@ -2,7 +2,7 @@ import Domain
 
 /// Plays back a fixed sequence of door states. Used by tests and the debug menu,
 /// because the simulator's Duo posture is switched by hand and can't be scripted.
-public struct ScriptedFoldStateService: FoldStateService {
+public final class ScriptedFoldStateService: FoldStateService {
     public struct Step: Sendable, Equatable {
         public let state: DoorState
         public let delay: Duration

@@ -1,18 +1,44 @@
 import DesignSystem
+import DoorSensing
 import SwiftUI
+
+/// Debug-only switches, passed in by the composition root from launch arguments.
+public struct DebugOptions: Sendable {
+    public var showsComponentGallery = false
+    public var showsDoorReadout = false
+
+    public init(showsComponentGallery: Bool = false, showsDoorReadout: Bool = false) {
+        self.showsComponentGallery = showsComponentGallery
+        self.showsDoorReadout = showsDoorReadout
+    }
+}
 
 /// Entry screen. Replaced by the Prep screen in Phase 1.4.
 public struct AppRootView: View {
-    private let showsComponentGallery: Bool
+    private let doorSensor: AdaptiveDoorSensor
+    private let debug: DebugOptions
 
-    /// - Parameter showsComponentGallery: debug-only design check; ignored in release builds.
-    public init(showsComponentGallery: Bool = false) {
-        self.showsComponentGallery = showsComponentGallery
+    public init(doorSensor: AdaptiveDoorSensor, debug: DebugOptions = DebugOptions()) {
+        self.doorSensor = doorSensor
+        self.debug = debug
     }
 
     public var body: some View {
+        content
+            .background(HingeSensorAnchor(sensor: doorSensor).accessibilityHidden(true))
+            #if DEBUG
+            .overlay(alignment: .bottom) {
+                if debug.showsDoorReadout {
+                    DoorDebugOverlay(sensor: doorSensor)
+                }
+            }
+            #endif
+    }
+
+    @ViewBuilder
+    private var content: some View {
         #if DEBUG
-        if showsComponentGallery {
+        if debug.showsComponentGallery {
             ComponentGallery()
         } else {
             placeholder
@@ -39,5 +65,5 @@ public struct AppRootView: View {
 }
 
 #Preview {
-    AppRootView()
+    AppRootView(doorSensor: AdaptiveDoorSensor(), debug: DebugOptions(showsDoorReadout: true))
 }

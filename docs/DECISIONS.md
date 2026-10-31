@@ -4,6 +4,13 @@ Choices made during the build that the PRD or design handoff don't settle. Newes
 
 | Date | Decision | Why |
 | --- | --- | --- |
+| 2026-10-31 | The hinge is read with UIKit's `UIHingeInteraction` on an invisible anchor view, not with a SwiftUI modifier | The iOS 27.2 SDK headers show `UIHingeInteraction` (status plus angle, hinge nil without one). No SwiftUI hinge API was found in the SwiftUI interface, so the UIKit API is the one verified to exist |
+| 2026-10-31 | `FoldStateService` is `@MainActor` | Both real sensors (UIKit and Core Motion) deliver on the main thread, and the session coordinator lives there too; this avoids unsafe crossings between actors |
+| 2026-10-31 | Face-down closes at gravity z ≥ 0.92 (within about 23° of flat) held for 0.8 s, and opens below 0.80 | Requires a flat surface as the PRD asks, ignores small wobbles while closed (hysteresis), and rejects tilted books and sofas. Tune on a real iPhone at Gate 0 |
+| 2026-10-31 | Face-down uses Core Motion device motion (gravity), which needs no permission prompt or usage string | Only motion activity, pedometer and altimeter APIs need permission; keeps first launch free of prompts |
+| 2026-10-31 | Motion sensors run only while face-down is the active door source | Battery (Guideline 2.4.2) |
+| 2026-10-31 | Door mode preference has two values for now: Automatic and Face-down | DR-8 only needs Duo owners to choose face-down; covered and honor door join in P1 |
+| 2026-10-31 | Debug builds have a door readout (`-doorDebug`) with manual Closed/Ajar/Open buttons, and the hinge sensor logs each reading at notice level | The simulator has no motion sensors and the Duo posture can't be scripted; this is how Gate 0 records what the hinge reports |
 | 2026-10-31 | The bake timer keeps running during the 15 s grace; if the grace expires, doneness is measured at the moment the door opened | The PRD says a short open changes nothing and a long one ends the bake half-baked "at time baked"; counting the open seconds as baking makes the first true and the second fair |
 | 2026-10-31 | If the timer runs out during the grace, the bake counts as fully baked | No guilt: the player didn't cut the bake short, the clock simply finished |
 | 2026-10-31 | A half-baked dish always shows Pale browning | Matches the handoff's S2 8 board ("Pale" at 62%); temperature browning only applies to finished bakes |

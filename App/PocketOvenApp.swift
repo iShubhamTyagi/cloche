@@ -3,19 +3,14 @@ import SwiftUI
 
 @main
 struct PocketOvenApp: App {
+    @State private var environment = AppEnvironment()
+
     var body: some Scene {
         WindowGroup {
-            AppRootView(showsComponentGallery: LaunchOptions.showsComponentGallery)
+            AppRootView(doorSensor: environment.doorSensor, debug: environment.debug)
                 .preferredColorScheme(.dark)
                 // Handoff: helper text, tabs, chips and buttons scale to about 130%.
                 .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
         }
-    }
-}
-
-/// Debug switches passed as launch arguments by scripts/run.sh and UI tests.
-private enum LaunchOptions {
-    static var showsComponentGallery: Bool {
-        ProcessInfo.processInfo.arguments.contains("-componentGallery")
     }
 }

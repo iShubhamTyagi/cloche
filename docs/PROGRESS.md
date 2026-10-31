@@ -4,13 +4,29 @@ Read the **Current state** first; it says where the next session starts. Then ad
 
 ## Current state
 
-- **Phase:** 1.2 done; next is 1.3 (door sensing: face-down, hinge, debug overlay)
+- **Phase:** 1.3 done; next is 1.4 (Prep screen with a hard-coded cupcake, then Preheat)
 - **Last green commit:** see the log entry below
 - **Blockers:** Apple Developer Program not enrolled (needed by the end of Phase 2 for TestFlight); watchOS 27 runtime not installed (needed in Phase 3)
 - **Simulators:** iPhone 17, iPhone 17e and iPhone Duo on iOS 27.2; iPhone 16 on iOS 18.2 (minimum-version check)
+- **Gate 0 facts so far:**
+  - The Duo hinge reports in the simulator: unfolded is `fullyOpen`, angle `3.141593`, so the angle is in radians and flat open is π.
+  - iPhones without a hinge get no hinge update at all, rather than an update with no hinge.
+  - Still open: readings during a slow close and open (needs folding by hand in DeviceHub, then `xcrun simctl spawn <Duo> log show --last 5m --predicate 'subsystem == "com.shubhamtyagi.pocketoven"'`); face-down on a real iPhone on three surfaces.
 - **Known for Phase 1:** the Duo simulator boots folded, showing the cover display (1398 × 2034 px). The system reserves a strip down the cover's right edge, so centred content sits left of centre; cover screens need the reserved-region APIs. `simctl io screenshot` needs `--display=1` on the Duo.
 
 ## Log
+
+### 2026-10-31: Phase 1.3, door sensing
+
+- **Built:**
+  - `FoldStateService` (now `@MainActor`) and a shared state broadcaster
+  - `HingeFoldStateService` (`UIHingeInteraction`, behind `#available(iOS 27.1, *)`), `HingeReading` with the status-to-door mapping
+  - `FaceDownDetector` (pure, with hysteresis and settle time) and `FaceDownFoldStateService` (Core Motion)
+  - `DoorModeResolver`, `AdaptiveDoorSensor` (picks hinge or face-down and forwards one signal), `HingeSensorAnchor`
+  - Debug door readout (`-doorDebug`); `AppEnvironment` composition root in the app target
+- **Verified:** on iPhone 17 and iPhone Duo, 50 of 50 unit tests (11 new: face-down settle, tilt, wobble, hysteresis, flip-up; hinge mapping; resolver; adaptive sensor streams and de-duplication) and 2 of 2 UI tests. On the Duo the hinge logs `fullyOpen` at π; on the iPhone 17 the readout shows face-down, no hinge, no motion sensor.
+- **Fixed during the slice:** a test checked the settle time at exactly 0.8 s, which floating point puts just under the threshold; the check is now at 1.5 s.
+- **Left over:** the Gate 0 slow-close readings and the real-device face-down test (see Current state).
 
 ### 2026-10-31: Phase 1.2, domain
 

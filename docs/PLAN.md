@@ -42,7 +42,7 @@ Goal: film the close-and-reveal moment and settle four technical facts.
 | --- | --- | --- |
 | 1.1 ✅ | DesignSystem: tokens (colour, type, spacing, radius), bundled fonts, grain overlay, PrimaryButton, OutlineButton, EyebrowLabel, Stars | Handoff "Design tokens" |
 | 1.2 ✅ | Domain: `Recipe`, `Temperature`, `BakeSession`, `SessionEngine` (timestamp-based), `GradeCalculator`, `TimeProviding`. Full unit tests for grace, keep-warm, half-baked, stars and relaunch recovery | PRD §5, §9; BK-1, BK-4, BK-5, BK-6 |
-| 1.3 | DoorSensing: protocol, face-down, hinge (gated), scripted mock, plus a debug overlay showing hinge status, angle and gravity | PL-1, BK-2, DR-1, DR-2 |
+| 1.3 ✅ | DoorSensing: protocol, face-down, hinge (gated), scripted mock, plus a debug overlay showing hinge status, angle and gravity | PL-1, BK-2, DR-1, DR-2 |
 | 1.4 | Prep screen (hard-coded cupcake) → Preheat ("Waiting for a flat, face-down phone") | Boards 1 Prep, 2 Preheat |
 | 1.5 | Bake face-down screen (black, glow line, drift) with keep-awake; Duo cover-display baking and ready screens | Boards 3, Duo 3, Duo 4; DR-3 |
 | 1.6 | Door ajar with a 15 s ring countdown, on iPhone and Duo | S2 7, Duo 2 |

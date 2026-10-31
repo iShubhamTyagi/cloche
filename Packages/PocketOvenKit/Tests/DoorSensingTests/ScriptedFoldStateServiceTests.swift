@@ -2,6 +2,7 @@ import Domain
 import DoorSensing
 import Testing
 
+@MainActor
 struct ScriptedFoldStateServiceTests {
     @Test func emitsScriptedStatesInOrderThenFinishes() async {
         let service = ScriptedFoldStateService(steps: [.init(.closed), .init(.ajar), .init(.open)])

@@ -106,7 +106,7 @@ Full checklist with guideline numbers lives in `docs/PLAN.md §5`. The rules tha
 - Never move CLI derived data back inside the repo: the space in "My Dev" breaks package test loading (see `docs/DECISIONS.md`).
 - Tests use `ScriptedFoldStateService` and a `TestTimeProvider`. Never `sleep` in tests.
 - Every domain rule in this file gets a unit test (grace expiry, keep-warm, half-baked doneness, star math, break auto-serve, relaunch recovery).
-- Commit after each green slice with a clear message. Branch per phase (`phase-1-gate0`, …); never force-push `main`.
+- Commit after each green slice with a clear message, then push to `origin` (github.com/iShubhamTyagi/cloche). Branch per phase (`phase-1-gate0`, …); never force-push `main`.
 - Signing: automatic, team set in Xcode. If a signing/entitlement error appears, show it verbatim to the user.
 - All user-facing strings in `Localizable.xcstrings` (Hindi ships later). No string literals in views except via `LocalizedStringKey`.
 - Real-device pass required before submission for haptics, sound, face-down, proximity and heat (simulator cannot test these).

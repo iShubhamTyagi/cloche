@@ -5,7 +5,7 @@ Read the **Current state** first; it says where the next session starts. Then ad
 ## Current state
 
 - **Phase:** Phase 1 (Gate 0 prototype) complete. Next is Phase 2.1 (Recipes.json with five dishes, recipe picker with locked state, temperature hint)
-- **Last green commit:** see the log entry below
+- **Last green commit:** see the newest log entry; `main` is pushed to github.com/iShubhamTyagi/cloche
 - **Blockers:** Apple Developer Program not enrolled (needed by the end of Phase 2 for TestFlight); watchOS 27 runtime not installed (needed in Phase 3)
 - **Simulators:** iPhone 17, iPhone 17e and iPhone Duo on iOS 27.2; iPhone 16 on iOS 18.2 (minimum-version check)
 - **Gate 0 facts so far:**
@@ -18,6 +18,12 @@ Read the **Current state** first; it says where the next session starts. Then ad
 - **Known for Phase 1:** the Duo simulator boots folded, showing the cover display (1398 × 2034 px). The system reserves a strip down the cover's right edge, so centred content sits left of centre; cover screens need the reserved-region APIs. `simctl io screenshot` needs `--display=1` on the Duo.
 
 ## Log
+
+### 2026-10-31: Renamed to Cloche; pushed to GitHub
+
+- **Built:** the game is now Cloche everywhere: display name and wordmark, Xcode project, targets and scheme, `ClocheKit` package, bundle ID `com.shubhamtyagi.cloche`, logging subsystem, scripts, docs and the PRD and handoff file names. `origin` is github.com/iShubhamTyagi/cloche and `main` is pushed.
+- **Verified:** on iPhone 17 and iPhone Duo, 81 of 81 unit tests and 8 of 8 UI tests; the Prep screen shows "Cloche".
+- **Left over:** the local folder is still `Desktop/My Dev/PocketBakery`.
 
 ### 2026-10-31: Phase 1.8, notification, chime and demo bake (Gate 0 complete)
 

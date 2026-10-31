@@ -4,7 +4,7 @@ Read the **Current state** first; it says where the next session starts. Then ad
 
 ## Current state
 
-- **Phase:** 1.5 done; next is 1.6 (door ajar: 15 s ring countdown on iPhone and Duo)
+- **Phase:** 1.6 done; next is 1.7 (reveal: door drop, steam and haptic → grade card; half-baked grade)
 - **Last green commit:** see the log entry below
 - **Blockers:** Apple Developer Program not enrolled (needed by the end of Phase 2 for TestFlight); watchOS 27 runtime not installed (needed in Phase 3)
 - **Simulators:** iPhone 17, iPhone 17e and iPhone Duo on iOS 27.2; iPhone 16 on iOS 18.2 (minimum-version check)
@@ -13,10 +13,24 @@ Read the **Current state** first; it says where the next session starts. Then ad
   - iPhones without a hinge get no hinge update at all, rather than an update with no hinge.
   - The Duo cover display is portrait, 1398 × 2034 px (about 466 × 678 pt), not the handoff's assumed 500 × 400 landscape.
   - XCUITest screenshots on the Duo simulator are black; use `ImageRenderer` (see DECISIONS).
-  - Still open: readings during a slow close and open (needs folding by hand in DeviceHub, then `xcrun simctl spawn <Duo> log show --last 5m --predicate 'subsystem == "com.shubhamtyagi.pocketoven"'`); face-down on a real iPhone on three surfaces.
+  - Slow close in the simulator: `fullyOpen` (π) → one `partiallyOpen` reading at 2.82 rad (about 162°) → `closed` (0). A real Duo will likely report more steps; partly open always maps to ajar, never closed.
+  - Still open: readings during a slow close and open on a real Duo (needs folding by hand in DeviceHub, then `xcrun simctl spawn <Duo> log show --last 5m --predicate 'subsystem == "com.shubhamtyagi.pocketoven"'`); face-down on a real iPhone on three surfaces.
 - **Known for Phase 1:** the Duo simulator boots folded, showing the cover display (1398 × 2034 px). The system reserves a strip down the cover's right edge, so centred content sits left of centre; cover screens need the reserved-region APIs. `simctl io screenshot` needs `--display=1` on the Duo.
 
 ## Log
+
+### 2026-10-31: Phase 1.6, door ajar
+
+- **Built:**
+  - `AjarScreen` (board S2 7): open oven at 38% behind a dark gradient, "Door ajar" pill, 190 pt ring counting 15 to 0, "Shut the door.", helper
+  - `DuoAjarScreen` (board Duo 2): dimmed oven cavity with the countdown on the top half; the door on the bottom half tilts with the real hinge angle; crease and fixed hinge barrels
+  - `OvenView` now has a door hinged on its bottom edge and a dish in the cavity (reused by the reveal in 1.7); `OvenCavityView`; `DoorGeometry`; `RingClock` numeral size option; `CountdownFormat.seconds`
+- **Verified:** on iPhone 17 and iPhone Duo, 68 of 68 unit tests (new: hinge-to-door mapping, seconds format, bake progress) and 6 of 6 UI tests. New UI tests: opening mid-bake shows the grace and closing resumes; leaving it open for the full 15 s ends the bake half-baked. The iPhone screen was checked through a UI-test screenshot and the Duo through `ImageRenderer` at 669 × 951 (34° and flat).
+- **Fixed during the slice:**
+  - The Duo top half drew a second oven door and the control column; it now shows the cavity alone.
+  - The tilted door spilled past its half; perspective softened and the door is clipped.
+  - UI tests failed on a folded Duo because the door read closed and Preheat started the bake at once; the tests now open the door themselves.
+- **Left over:** none for 1.6.
 
 ### 2026-10-31: Phase 1.5, bake screens
 

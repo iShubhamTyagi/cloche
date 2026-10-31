@@ -9,6 +9,11 @@ public enum CountdownFormat {
         return "\(total / 60):" + String(format: "%02d", total % 60)
     }
 
+    /// Bare seconds for short countdowns such as the 15 s door-ajar grace: "15", "3", "0".
+    public static func seconds(_ remaining: TimeInterval) -> String {
+        String(wholeSecondsRemaining(remaining))
+    }
+
     static func wholeSecondsRemaining(_ remaining: TimeInterval) -> Int {
         guard remaining.isFinite, remaining > 0 else { return 0 }
         return Int(remaining.rounded(.up))

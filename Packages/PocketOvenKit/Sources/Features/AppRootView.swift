@@ -52,10 +52,10 @@ public struct AppRootView: View {
         if debug.showsComponentGallery {
             ComponentGallery()
         } else {
-            SessionRootView(session: session, screenAwake: screenAwake)
+            SessionRootView(session: session, doorSensor: doorSensor, screenAwake: screenAwake)
         }
         #else
-        SessionRootView(session: session, screenAwake: screenAwake)
+        SessionRootView(session: session, doorSensor: doorSensor, screenAwake: screenAwake)
         #endif
     }
 }

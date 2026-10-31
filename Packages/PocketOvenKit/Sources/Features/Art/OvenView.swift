@@ -1,57 +1,42 @@
 import DesignSystem
+import Domain
 import SwiftUI
 
-/// Wide countertop oven, closed, with the display plate top right. A first pass for Gate 0;
-/// the door animation and cavity states come with the reveal in 1.7.
+/// Wide countertop oven. The glass door hinges on its bottom edge: `doorOpen` 0 is shut,
+/// 1 has it dropped flat, showing the cavity and the dish inside.
 struct OvenView: View {
     /// Text on the display plate, e.g. "Ready" or a time.
     let plate: Text
     var isPlateItalic = false
-    /// 0 cold, 1 fully heated; brightens the rods behind the glass.
+    /// 0 cold, 1 fully heated; brightens the rods.
     var heat: Double = 0.4
+    var doorOpen: Double = 0
+    /// Bake progress of the dish in the cavity; nil shows an empty oven.
+    var dishProgress: Double?
+    var browning: Browning = .golden
 
     var body: some View {
         GeometryReader { proxy in
             let w = proxy.size.width
             let h = proxy.size.height
+            let window = CGRect(x: w * 0.04, y: h * 0.12, width: w * 0.70, height: h * 0.72)
+
             ZStack(alignment: .topLeading) {
                 RoundedRectangle(cornerRadius: w * 0.04)
                     .fill(LinearGradient(colors: [Color(white: 0.23), Color(white: 0.14)], startPoint: .top, endPoint: .bottom))
                     .overlay(RoundedRectangle(cornerRadius: w * 0.04).strokeBorder(Palette.line2, lineWidth: 1))
 
-                // Glass door with the rods glowing behind it.
-                RoundedRectangle(cornerRadius: w * 0.025)
-                    .fill(Color(white: 0.05))
-                    .overlay {
-                        VStack(spacing: h * 0.42) {
-                            rod
-                            rod
-                        }
-                        .padding(.horizontal, w * 0.05)
-                    }
-                    .overlay(RoundedRectangle(cornerRadius: w * 0.025).strokeBorder(.white.opacity(0.08), lineWidth: 1))
-                    .frame(width: w * 0.70, height: h * 0.72)
-                    .offset(x: w * 0.04, y: h * 0.12)
+                OvenCavityView(heat: heat, dishProgress: dishProgress, browning: browning)
+                    .frame(width: window.width, height: window.height)
+                    .offset(x: window.minX, y: window.minY)
 
-                // Door handle.
-                Capsule()
-                    .fill(Color(white: 0.55))
-                    .frame(width: w * 0.62, height: h * 0.025)
-                    .offset(x: w * 0.08, y: h * 0.06)
+                door(width: w, window: window)
+                    .frame(width: window.width, height: window.height)
+                    .rotation3DEffect(.degrees(-82 * min(max(doorOpen, 0), 1)), axis: (x: 1, y: 0, z: 0), anchor: .bottom, perspective: 0.45)
+                    .offset(x: window.minX, y: window.minY)
 
-                // Control column: display plate and two knobs.
-                VStack(spacing: h * 0.1) {
-                    plate
-                        .textStyle(isPlateItalic ? .voice(w * 0.045) : .numeral(w * 0.045))
-                        .foregroundStyle(isPlateItalic ? Palette.sand : Palette.text)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.5)
-                        .frame(width: w * 0.14, height: h * 0.13)
-                        .background(Color.black, in: RoundedRectangle(cornerRadius: 4))
-                    knob(w)
-                    knob(w)
-                }
-                .offset(x: w * 0.80, y: h * 0.15)
+                controls(width: w, height: h)
+                    .offset(x: w * 0.80, y: h * 0.15)
             }
         }
         .aspectRatio(1.4, contentMode: .fit)
@@ -60,11 +45,31 @@ struct OvenView: View {
         .accessibilityValue(plate)
     }
 
-    private var rod: some View {
-        Capsule()
-            .fill(Color(red: 0.95, green: 0.45, blue: 0.15).opacity(0.25 + 0.6 * heat))
-            .frame(height: 3)
-            .shadow(color: Color(red: 0.95, green: 0.45, blue: 0.15).opacity(heat), radius: 6)
+    /// Glass door with handle. Darker glass hides the cavity until the door drops.
+    private func door(width w: CGFloat, window: CGRect) -> some View {
+        RoundedRectangle(cornerRadius: window.width * 0.035)
+            .fill(Color(white: 0.05).opacity(0.92))
+            .overlay(RoundedRectangle(cornerRadius: window.width * 0.035).strokeBorder(.white.opacity(0.08), lineWidth: 1))
+            .overlay(alignment: .top) {
+                Capsule()
+                    .fill(Color(white: 0.55))
+                    .frame(width: window.width * 0.88, height: max(window.height * 0.035, 3))
+                    .offset(y: -window.height * 0.09)
+            }
+    }
+
+    private func controls(width w: CGFloat, height h: CGFloat) -> some View {
+        VStack(spacing: h * 0.1) {
+            plate
+                .textStyle(isPlateItalic ? .voice(w * 0.045) : .numeral(w * 0.045))
+                .foregroundStyle(isPlateItalic ? Palette.sand : Palette.text)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .frame(width: w * 0.14, height: h * 0.13)
+                .background(Color.black, in: RoundedRectangle(cornerRadius: 4))
+            knob(w)
+            knob(w)
+        }
     }
 
     private func knob(_ width: CGFloat) -> some View {
@@ -75,9 +80,56 @@ struct OvenView: View {
     }
 }
 
+/// Inside the oven: dark walls, glowing rods top and bottom, three dishes on the rack.
+/// Used inside `OvenView` and full-bleed on the Duo's top half.
+struct OvenCavityView: View {
+    var heat: Double = 0.8
+    /// Bake progress of the dishes; nil shows an empty oven.
+    var dishProgress: Double?
+    var browning: Browning = .golden
+
+    var body: some View {
+        GeometryReader { proxy in
+            let w = proxy.size.width
+            let h = proxy.size.height
+            RoundedRectangle(cornerRadius: min(w, h) * 0.035)
+                .fill(LinearGradient(colors: [Color(red: 0.16, green: 0.10, blue: 0.07), Color(red: 0.07, green: 0.05, blue: 0.04)], startPoint: .top, endPoint: .bottom))
+                .overlay(alignment: .top) { rod.padding(.horizontal, w * 0.07).padding(.top, h * 0.12) }
+                .overlay(alignment: .bottom) {
+                    VStack(spacing: 0) {
+                        if let dishProgress {
+                            HStack(spacing: w * 0.02) {
+                                ForEach(0..<3, id: \.self) { _ in
+                                    CupcakeView(progress: dishProgress, browning: browning)
+                                        .frame(width: min(w * 0.26, h * 0.45), height: min(w * 0.26, h * 0.45))
+                                }
+                            }
+                        }
+                        // Rack.
+                        Capsule().fill(Color(white: 0.45)).frame(height: 2).padding(.horizontal, w * 0.05)
+                        rod.padding(.horizontal, w * 0.07).padding(.top, h * 0.08)
+                    }
+                    .padding(.bottom, h * 0.06)
+                }
+        }
+        .accessibilityHidden(true)
+    }
+
+    private var rod: some View {
+        Capsule()
+            .fill(Color(red: 0.95, green: 0.45, blue: 0.15).opacity(0.25 + 0.6 * heat))
+            .frame(height: 3)
+            .shadow(color: Color(red: 0.95, green: 0.45, blue: 0.15).opacity(heat), radius: 6)
+    }
+}
+
 #Preview {
-    OvenView(plate: Text(verbatim: "Ready"))
-        .frame(width: 342)
-        .padding()
-        .pocketScreenBackground()
+    VStack(spacing: 24) {
+        OvenView(plate: Text(verbatim: "Ready"))
+        OvenView(plate: Text(verbatim: "0:11"), heat: 0.8, doorOpen: 0.5, dishProgress: 0.5)
+        OvenView(plate: Text(verbatim: "Prêt."), isPlateItalic: true, heat: 1, doorOpen: 1, dishProgress: 1)
+    }
+    .frame(width: 342)
+    .padding()
+    .pocketScreenBackground()
 }

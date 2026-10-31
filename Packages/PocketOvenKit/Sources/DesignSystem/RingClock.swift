@@ -10,16 +10,19 @@ public struct RingClock: View {
     private let total: TimeInterval
     private let size: CGFloat
     private let isAmber: Bool
+    private let numeralSize: CGFloat?
     private let label: Text
 
     /// - Parameters:
     ///   - isAmber: the last-30-seconds state: honey colour, thicker stroke, slow pulse.
+    ///   - numeralSize: overrides the default 29% of the ring (the ajar ring uses larger numerals).
     ///   - label: spoken description, e.g. "4:12 left in the break".
-    public init(remaining: TimeInterval, total: TimeInterval, size: CGFloat, isAmber: Bool = false, label: Text) {
+    public init(remaining: TimeInterval, total: TimeInterval, size: CGFloat, isAmber: Bool = false, numeralSize: CGFloat? = nil, label: Text) {
         self.remaining = remaining
         self.total = total
         self.size = size
         self.isAmber = isAmber
+        self.numeralSize = numeralSize
         self.label = label
     }
 
@@ -43,8 +46,8 @@ public struct RingClock: View {
                 .stroke(colour, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
                 .opacity(isAmber && isPulsing ? 0.55 : 1)
-            Text(CountdownFormat.clock(remaining))
-                .textStyle(.numeral(size * 0.29))
+            Text(numeralSize == nil ? CountdownFormat.clock(remaining) : CountdownFormat.seconds(remaining))
+                .textStyle(.numeral(numeralSize ?? size * 0.29))
                 .foregroundStyle(isAmber ? Palette.honey : Palette.text)
                 .minimumScaleFactor(0.5)
                 .lineLimit(1)

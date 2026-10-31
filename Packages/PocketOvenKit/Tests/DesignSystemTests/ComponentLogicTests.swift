@@ -15,6 +15,12 @@ struct CountdownFormatTests {
         #expect(CountdownFormat.clock(remaining) == expected)
     }
 
+    @Test func shortCountdownsShowBareSeconds() {
+        #expect(CountdownFormat.seconds(15) == "15")
+        #expect(CountdownFormat.seconds(10.2) == "11")
+        #expect(CountdownFormat.seconds(-1) == "0")
+    }
+
     @Test func nonFiniteTimeReadsZero() {
         #expect(CountdownFormat.clock(.infinity) == "0:00")
         #expect(CountdownFormat.clock(.nan) == "0:00")

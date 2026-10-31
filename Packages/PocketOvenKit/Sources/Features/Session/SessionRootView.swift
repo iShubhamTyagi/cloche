@@ -1,4 +1,5 @@
 import DesignSystem
+import DoorSensing
 import Domain
 import Services
 import SwiftUI
@@ -7,6 +8,7 @@ import SwiftUI
 /// between phases.
 struct SessionRootView: View {
     let session: SessionController
+    let doorSensor: AdaptiveDoorSensor
     let screenAwake: any ScreenAwakeControlling
 
     private var recipe: Recipe { StarterRecipes.vanillaCupcakes }
@@ -29,6 +31,15 @@ struct SessionRootView: View {
                 bakeScreen(bake, isReady: false)
             case let .ready(bake):
                 bakeScreen(bake, isReady: true)
+            case let .ajar(bake, _, graceEndsAt):
+                Group {
+                    if bake.source == .hinge {
+                        DuoAjarScreen(bake: bake, graceEndsAt: graceEndsAt, hingeAngle: doorSensor.hingeReading?.angle)
+                    } else {
+                        AjarScreen(bake: bake, graceEndsAt: graceEndsAt)
+                    }
+                }
+                .transition(.opacity)
             default:
                 InterimPhaseView(phase: session.phase, send: session.send)
                     .transition(.opacity)

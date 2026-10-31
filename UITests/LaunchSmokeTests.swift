@@ -11,12 +11,10 @@ final class LaunchSmokeTests: XCTestCase {
         XCTAssertTrue(app.buttons["prep.preheat"].exists)
     }
 
-    /// Prep → Preheat → door closes → baking, using the debug door override in place of sensors.
+    /// Prep → Preheat → door closes → baking.
     @MainActor
     func testPreheatThenClosingTheDoorStartsTheBake() {
-        let app = XCUIApplication()
-        app.launchArguments = ["-freshSession", "-doorDebug"]
-        app.launch()
+        let app = launchWithOpenDoor()
 
         app.buttons["temperature.high"].tap()
         attachScreenshot(of: app, named: "prep")
@@ -24,24 +22,57 @@ final class LaunchSmokeTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["preheat.title"].waitForExistence(timeout: 5))
         attachScreenshot(of: app, named: "preheat")
 
-        app.buttons["doorDebug.toggle"].tap()
-        app.buttons["doorDebug.override.closed"].tap()
-        app.buttons["doorDebug.toggle"].tap()
-        let timer = app.descendants(matching: .any)["bake.timer"]
-        XCTAssertTrue(timer.waitForExistence(timeout: 5))
+        setDoor(app, "closed")
+        XCTAssertTrue(app.descendants(matching: .any)["bake.timer"].waitForExistence(timeout: 5))
         attachScreenshot(of: app, named: "baking")
+    }
+
+    /// Opening the door mid-bake shows the 15 s grace; closing it in time resumes the bake.
+    @MainActor
+    func testOpeningMidBakeShowsTheGraceAndClosingResumes() {
+        let app = startBake()
+
+        setDoor(app, "open")
+        XCTAssertTrue(app.staticTexts["ajar.title"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["ajar.ring"].exists)
+        attachScreenshot(of: app, named: "ajar")
+
+        setDoor(app, "closed")
+        XCTAssertTrue(app.descendants(matching: .any)["bake.timer"].waitForExistence(timeout: 5))
+    }
+
+    /// Leaving the door open past the grace ends the bake half-baked.
+    @MainActor
+    func testLeavingTheDoorOpenEndsTheBakeHalfBaked() {
+        let app = startBake()
+
+        setDoor(app, "open")
+        XCTAssertTrue(app.staticTexts["ajar.title"].waitForExistence(timeout: 5))
+
+        let phase = app.staticTexts["interim.phase"]
+        XCTAssertTrue(phase.waitForExistence(timeout: 20))
+        XCTAssertTrue(phase.label.lowercased().contains("baked"), "Got \(phase.label)")
+        XCTAssertFalse(phase.label.lowercased().contains("fully"))
     }
 
     @MainActor
     func testBackFromPreheatReturnsToPrep() {
-        let app = XCUIApplication()
-        app.launchArguments = ["-freshSession"]
-        app.launch()
+        let app = launchWithOpenDoor()
 
         app.buttons["prep.preheat"].tap()
         XCTAssertTrue(app.buttons["preheat.back"].waitForExistence(timeout: 5))
         app.buttons["preheat.back"].tap()
         XCTAssertTrue(app.buttons["prep.preheat"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
+    private func startBake() -> XCUIApplication {
+        let app = launchWithOpenDoor()
+        app.buttons["prep.preheat"].tap()
+        XCTAssertTrue(app.staticTexts["preheat.title"].waitForExistence(timeout: 5))
+        setDoor(app, "closed")
+        XCTAssertTrue(app.descendants(matching: .any)["bake.timer"].waitForExistence(timeout: 5))
+        return app
     }
 
     @MainActor

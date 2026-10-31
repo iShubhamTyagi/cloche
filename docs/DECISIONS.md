@@ -4,6 +4,12 @@ Choices made during the build that the PRD or design handoff don't settle. Newes
 
 | Date | Decision | Why |
 | --- | --- | --- |
+| 2026-10-31 | Preheating while the door is already closed (e.g. a folded Duo used on its outer screen) starts the bake immediately | "Closed to commit": the door is the only control, and the engine already behaves this way. Found when UI tests ran on a folded Duo |
+| 2026-10-31 | UI tests set the door open through the debug override before preheating | They must not depend on the simulator's posture; a folded Duo reports the door closed |
+| 2026-10-31 | Duo door tilt is 180° minus the hinge angle (radians converted), and 34° when no hinge reading exists | UIKit reports π flat and 0 shut; the handoff draws the ajar door at 34° |
+| 2026-10-31 | The ajar ring uses bare seconds ("13") in larger numerals (88 pt on iPhone, 68 on Duo) instead of the ring's default 29% "0:13" | Boards S2 7 and Duo 2 show a 15-to-0 count in `type-numeral` 88 and 68 |
+| 2026-10-31 | The Duo's top half shows the oven cavity alone (`OvenCavityView`), not the whole oven | On the Duo the bottom half *is* the door; drawing the oven's own door there doubled it |
+| 2026-10-31 | The Duo inner layout splits at half the screen height | The real hinge position is unconfirmed (the handoff assumed y = 440 of 880); revisit with the reserved-region APIs when Duo layouts are finalised in 2.8 |
 | 2026-10-31 | The Duo cover layout is sized from the space it gets, not fixed at 500 × 400 pt | The simulator's cover display is portrait, 1398 × 2034 px (about 466 × 678 pt), not the 500 × 400 landscape the handoff assumed. The handoff flagged its Duo sizes as unconfirmed |
 | 2026-10-31 | A bake whose door is the hinge shows the oven cover screens (Duo 3 and 4); every other source shows the black face-down screen | The door source already says where the player is looking; no display detection needed |
 | 2026-10-31 | The screen is kept awake during baking and the grace only, not while Ready | DR-3 needs detection to keep running during the bake. Once ready, normal auto-lock saves battery (2.4.2); the stored end time and the notification still deliver the result |

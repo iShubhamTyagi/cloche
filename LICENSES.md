@@ -9,4 +9,6 @@ Every image, sound and font that is not original to this project is listed here 
 
 | Ready chime (`Services/Resources/Sounds/ready-chime.wav`) | Synthesized for this project on 2026-10-31 (two-note bell from sine partials; no samples) | Original work | Bake-ready chime |
 
-All art is drawn in code for this project. All sound effects are original (synthesized or recorded for this project). No music.
+The hero oven (`build/oven.blend` and its renders) is original, generated for this project by `scripts/blender/*.py` with procedural materials only; no external models, textures or HDRIs.
+
+All other art is drawn in code for this project. All sound effects are original (synthesized or recorded for this project). No music.

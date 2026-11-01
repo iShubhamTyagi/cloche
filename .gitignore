@@ -14,3 +14,7 @@ Packages/ClocheKit/.build/
 
 # macOS
 .DS_Store
+
+# Blender backups
+*.blend1
+__pycache__/

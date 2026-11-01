@@ -52,9 +52,9 @@ struct FeedbackPlanTests {
     }
 
     @Test func servingAnnouncesTheStars() {
-        let plan = FeedbackPlan.plan(for: .served(stars: 3))
+        let plan = FeedbackPlan.plan(for: .served(stars: 2))
         #expect(plan.haptic == .softThud)
-        #expect(plan.announcement == "Served. 3 of 3 stars")
+        #expect(plan.announcement == "Served. 2 of 2 stars")
     }
 }
 

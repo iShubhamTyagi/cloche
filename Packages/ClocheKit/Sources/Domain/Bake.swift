@@ -3,14 +3,14 @@ import Foundation
 /// What the player asked for on the Prep screen.
 public struct BakeRequest: Equatable, Sendable {
     public let recipe: Recipe
-    public let temperature: Temperature
+    public let length: BakeLength
     public let source: DoorSource
     /// The 15 s demo bake from Settings: labelled, earns no stars (DR-6).
     public let isDemo: Bool
 
-    public init(recipe: Recipe, temperature: Temperature, source: DoorSource, isDemo: Bool = false) {
+    public init(recipe: Recipe, length: BakeLength, source: DoorSource, isDemo: Bool = false) {
         self.recipe = recipe
-        self.temperature = temperature
+        self.length = length
         self.source = source
         self.isDemo = isDemo
     }
@@ -22,8 +22,7 @@ public struct Bake: Codable, Equatable, Sendable {
     public static let demoBreakDuration: TimeInterval = 60
 
     public let recipeID: String
-    public let temperature: Temperature
-    public let idealTemperature: Temperature
+    public let length: BakeLength
     public let duration: TimeInterval
     public let breakDuration: TimeInterval
     public let source: DoorSource
@@ -33,10 +32,9 @@ public struct Bake: Codable, Equatable, Sendable {
 
     public init(_ request: BakeRequest) {
         recipeID = request.recipe.id
-        temperature = request.temperature
-        idealTemperature = request.recipe.idealTemperature
-        duration = request.isDemo ? Self.demoDuration : TimeInterval(request.recipe.bakeMinutes * 60)
-        breakDuration = request.isDemo ? Self.demoBreakDuration : TimeInterval(request.recipe.breakMinutes * 60)
+        length = request.length
+        duration = request.isDemo ? Self.demoDuration : TimeInterval(request.length.minutes * 60)
+        breakDuration = request.isDemo ? Self.demoBreakDuration : TimeInterval(request.length.breakMinutes * 60)
         source = request.source
         isDemo = request.isDemo
     }

@@ -31,7 +31,7 @@ struct CoverBakeScreen: View {
                     HStack(spacing: Spacing.s2) {
                         Image(systemName: "chevron.up")
                             .accessibilityHidden(true)
-                        Text("\(recipe.name) are ready. Lift the lid to open the door", bundle: .module)
+                        Text("Ready. Lift the lid to open the door.", bundle: .module)
                     }
                     .textStyle(.control)
                     .foregroundStyle(Palette.text)

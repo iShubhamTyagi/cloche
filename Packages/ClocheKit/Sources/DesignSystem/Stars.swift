@@ -1,9 +1,9 @@
 import SwiftUI
 
-/// One to three stars: bake, temperature, serve. Earned stars are filled sand; the rest are
+/// Up to two stars: bake and serve. Earned stars are filled sand; the rest are
 /// outlines, so the difference never depends on colour alone.
 public struct Stars: View {
-    nonisolated public static let total = 3
+    nonisolated public static let total = 2
 
     private let earned: Int
     private let size: CGFloat
@@ -28,7 +28,7 @@ public struct Stars: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("\(earned) of 3 stars", bundle: .module))
+        .accessibilityLabel(Text("\(earned) of \(Self.total) stars", bundle: .module))
     }
 }
 

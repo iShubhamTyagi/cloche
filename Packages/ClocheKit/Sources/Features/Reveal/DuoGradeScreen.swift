@@ -19,7 +19,7 @@ struct DuoGradeScreen: View {
             let half = proxy.size.height / 2
             VStack(spacing: 0) {
                 ZStack {
-                    OvenCavityView(heat: grade.isHalfBaked ? 0.8 : 1, dishProgress: grade.isHalfBaked ? max(outcome.doneness * 0.5, 0.3) : 1, browning: grade.browning)
+                    OvenCavityView(heat: grade.isHalfBaked ? 0.8 : 1, dishProgress: grade.isHalfBaked ? max(outcome.doneness * 0.5, 0.3) : 1, browning: grade.browning, dish: Dish(recipeID: recipe.id))
                     if !grade.isHalfBaked {
                         SteamView()
                     }
@@ -42,7 +42,7 @@ struct DuoGradeScreen: View {
     private func gradeContent(grade: Grade, copy: GradeCopy) -> some View {
         VStack(spacing: Spacing.s3) {
             HStack(spacing: Spacing.s4) {
-                CupcakeView(progress: grade.isHalfBaked ? max(outcome.doneness * 0.5, 0.3) : 1, browning: grade.browning, showsPlate: true)
+                DishView(dish: Dish(recipeID: recipe.id), progress: grade.isHalfBaked ? max(outcome.doneness * 0.5, 0.3) : 1, browning: grade.browning, showsPlate: true)
                     .frame(width: 124, height: 124)
                 VStack(alignment: .leading, spacing: Spacing.s1) {
                     EyebrowLabel(copy.eyebrow)
@@ -61,10 +61,7 @@ struct DuoGradeScreen: View {
                 Spacer(minLength: 0)
             }
 
-            HStack(alignment: .top, spacing: 22) {
-                DonenessBar(copy: copy)
-                BrowningBar(copy: copy)
-            }
+            DonenessBar(copy: copy)
 
             HStack(spacing: Spacing.s3) {
                 Button {

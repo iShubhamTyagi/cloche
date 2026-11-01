@@ -14,7 +14,7 @@ struct FaceDownBakeScreen: View {
             VStack(spacing: Spacing.margin) {
                 EyebrowLabel(bake.isDemo
                     ? Text("Demo · \(recipe.name)", bundle: .module)
-                    : Text("\(recipe.name) · \(TemperaturePicker.nameString(bake.temperature))", bundle: .module))
+                    : Text("\(recipe.name) · \(BakeLengthPicker.nameString(bake.length))", bundle: .module))
                 if isReady {
                     Text("Prêt.", bundle: .module)
                         .textStyle(.hero)

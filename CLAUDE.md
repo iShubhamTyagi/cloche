@@ -27,21 +27,7 @@ Build only what the PRD marks for the current phase. Boards marked "Reference on
 
 ## Architecture
 
-```
-Cloche/
-├── Cloche.xcodeproj
-├── App/                    # iOS app target: @main, composition root ONLY (wires concrete types)
-├── Packages/ClocheKit/ # local Swift package, all real code lives here
-│   ├── Domain/             # pure Swift: models, SessionEngine, GradeCalculator. No SwiftUI, no UIKit.
-│   ├── DoorSensing/        # FoldStateService protocol + Hinge / FaceDown / Proximity / Honor / Scripted
-│   ├── Persistence/        # SwiftData recipe book, session snapshot store (behind protocols)
-│   ├── Services/           # Notifications, Feedback (sound+haptics), Purchases, Share, Analytics, LiveActivity
-│   ├── DesignSystem/       # tokens, fonts, reusable views (PrimaryButton, RingClock, Stars, TabBar, Dish, Oven)
-│   └── Features/           # Prep, Preheat, Bake, Reveal, Grade, Decorate, Book, Settings (View + ViewModel)
-├── Widgets/                # Live Activity extension (Phase 3)
-├── Resources/              # Recipes.json, Fonts, Sounds, Localizable.xcstrings, PrivacyInfo.xcprivacy
-└── Tests/                  # unit (Swift Testing) + UI smoke tests (XCUITest)
-```
+`App/` is the composition root only (wires concrete types); all real code lives in the local `Packages/ClocheKit` package. `Domain` has no SwiftUI or UIKit.
 
 Dependency direction: `Features → Services/DoorSensing/Persistence → Domain`. `DesignSystem` depends on nothing but SwiftUI. `Domain` depends on nothing. Never import a Feature from another Feature; route through the app coordinator.
 
@@ -95,25 +81,20 @@ Full checklist with guideline numbers lives in `docs/PLAN.md §5`. The rules tha
 
 ## Workflow
 
-- Work in **vertical slices**, one per prompt (see `docs/PLAN.md`). Each slice ends building, tested, and visible in the simulator.
-- Before saying a slice is done:
-  ```sh
-  ./scripts/build.sh   # xcodebuild build, iPhone simulator, warnings treated as errors
-  ./scripts/test.sh    # unit + UI smoke tests on iPhone and iPhone Duo simulators
-  ```
-  Both must pass. Report failures verbatim; never hide or skip a failing test.
+- Work in **vertical slices**, one per prompt (see `docs/PLAN.md`). Each slice ends building and visible in the simulator.
+- Before saying a slice is done, `./scripts/build.sh` must pass (xcodebuild build, iPhone simulator, warnings treated as errors). Report failures verbatim.
+- **Tests are off until we reach a stable dev build (owner's call, 2026-11-01).** Don't write or update tests. `./scripts/test.sh` is a no-op unless `RUN_TESTS=1`. Verify slices by running them in the simulator and checking screenshots instead.
 - Then launch on the simulator so the user can see it (`./scripts/run.sh "iPhone 17"` / `"iPhone Duo"`). Xcode 27's simulator app is **DeviceHub**, not Simulator.
 - Never move CLI derived data back inside the repo: the space in "My Dev" breaks package test loading (see `docs/DECISIONS.md`).
-- Tests use `ScriptedFoldStateService` and a `TestTimeProvider`. Never `sleep` in tests.
-- Every domain rule in this file gets a unit test (grace expiry, keep-warm, half-baked doneness, star math, break auto-serve, relaunch recovery).
+- When tests return: they use `ScriptedFoldStateService` and a `TestTimeProvider`, never `sleep`, and every domain rule in this file gets a unit test.
 - Commit after each green slice with a clear message, then push to `origin` (github.com/iShubhamTyagi/cloche). Branch per phase (`phase-1-gate0`, …); never force-push `main`.
 - Signing: automatic, team set in Xcode. If a signing/entitlement error appears, show it verbatim to the user.
-- All user-facing strings in `Localizable.xcstrings` (Hindi ships later). No string literals in views except via `LocalizedStringKey`.
+- All user-facing strings go in the package's string catalogs (Hindi ships later). Package code must pass `bundle: .module` (`Text("…", bundle: .module)`, `String(localized:bundle: .module)`); a bare `Text("…")` looks in the app bundle and never gets translated. `Text(verbatim:)` only for debug-only or non-language text.
 - Real-device pass required before submission for haptics, sound, face-down, proximity and heat (simulator cannot test these).
 
 ## Code style
 
-- Swift API Design Guidelines. Types `UpperCamelCase`, members `lowerCamelCase`, protocols describe capability (`…ing`/`…Providing`) or role (`…Service`, `…Store`).
+- Protocols describe capability (`…ing`/`…Providing`) or role (`…Service`, `…Store`).
 - `@Observable` view models, `@MainActor` on UI types, value types for models, `Sendable` everywhere across actors.
 - No force unwraps outside tests and previews. Errors are typed and handled; `Save failure on serve` follows the handoff rule (silent retry, then a one-line note + Retry).
-- Comments explain *why*, not what. Keep files under ~300 lines; split views into subviews when they grow.
+- Keep files under ~300 lines; split views into subviews when they grow.

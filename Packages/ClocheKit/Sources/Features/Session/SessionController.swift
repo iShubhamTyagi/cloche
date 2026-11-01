@@ -38,8 +38,8 @@ public final class SessionController {
         send(.tick)
     }
 
-    public func preheat(_ recipe: Recipe, temperature: Temperature, isDemo: Bool = false) {
-        send(.preheat(BakeRequest(recipe: recipe, temperature: temperature, source: door.source, isDemo: isDemo)))
+    public func preheat(_ recipe: Recipe, length: BakeLength, isDemo: Bool = false) {
+        send(.preheat(BakeRequest(recipe: recipe, length: length, source: door.source, isDemo: isDemo)))
     }
 
     public func send(_ event: SessionEvent) {

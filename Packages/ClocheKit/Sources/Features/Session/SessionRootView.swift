@@ -13,19 +13,18 @@ struct SessionRootView: View {
     @State private var pendingPreheat: PendingPreheat?
 
     private var session: SessionController { dependencies.session }
-    private var recipe: Recipe { StarterRecipes.vanillaCupcakes }
 
     var body: some View {
         let copy = DoorCopy(source: session.doorSource)
         Group {
             switch session.phase {
             case .idle:
-                PrepScreen(recipe: recipe, doorCopy: copy, onSettings: { showsSettings = true }) { temperature in
-                    preheat(PendingPreheat(temperature: temperature, isDemo: false))
+                PrepScreen(doorCopy: copy, onSettings: { showsSettings = true }) { length in
+                    preheat(PendingPreheat(length: length, isDemo: false))
                 }
                 .transition(.opacity)
             case let .armed(bake):
-                PreheatScreen(recipe: recipe, bake: bake, doorCopy: DoorCopy(source: bake.source)) {
+                PreheatScreen(recipe: StarterRecipes.recipe(id: bake.recipeID), bake: bake, doorCopy: DoorCopy(source: bake.source)) {
                     session.send(.cancelPreheat)
                 }
                 .transition(.opacity)
@@ -62,7 +61,7 @@ struct SessionRootView: View {
         .sheet(isPresented: $showsSettings) {
             SettingsScreen(settings: dependencies.settings, hingePresent: dependencies.doorSensor.hingePresent, onDemoBake: {
                 showsSettings = false
-                preheat(PendingPreheat(temperature: recipe.idealTemperature, isDemo: true))
+                preheat(PendingPreheat(length: .quick, isDemo: true))
             }, onClose: { showsSettings = false })
         }
         .sheet(item: $pendingPreheat) { pending in
@@ -81,7 +80,7 @@ struct SessionRootView: View {
     /// Asks about notifications once, in context, before the first bake (Guideline 4.5.4).
     private func preheat(_ request: PendingPreheat) {
         guard !dependencies.settings.hasAskedForNotifications else {
-            session.preheat(recipe, temperature: request.temperature, isDemo: request.isDemo)
+            session.preheat(StarterRecipes.recipe(for: request.length), length: request.length, isDemo: request.isDemo)
             return
         }
         Task {
@@ -89,7 +88,7 @@ struct SessionRootView: View {
                 pendingPreheat = request
             } else {
                 dependencies.settings.hasAskedForNotifications = true
-                session.preheat(recipe, temperature: request.temperature, isDemo: request.isDemo)
+                session.preheat(StarterRecipes.recipe(for: request.length), length: request.length, isDemo: request.isDemo)
             }
         }
     }
@@ -97,7 +96,7 @@ struct SessionRootView: View {
     private func finishPreheat(_ request: PendingPreheat) {
         dependencies.settings.hasAskedForNotifications = true
         pendingPreheat = nil
-        session.preheat(recipe, temperature: request.temperature, isDemo: request.isDemo)
+        session.preheat(StarterRecipes.recipe(for: request.length), length: request.length, isDemo: request.isDemo)
     }
 
     private func updateKeepAwake() {
@@ -133,9 +132,9 @@ struct SessionRootView: View {
     }
 }
 
-/// A Preheat waiting on the notification pre-prompt.
+/// A Bake tap waiting on the notification pre-prompt.
 private struct PendingPreheat: Identifiable {
     let id = UUID()
-    let temperature: Temperature
+    let length: BakeLength
     let isDemo: Bool
 }

@@ -2,59 +2,28 @@ import DesignSystem
 import Domain
 import SwiftUI
 
-/// Board "1 Prep": pick a temperature and preheat. Gate 0 has one hard-coded dish; the recipe
-/// circles, recipe book and work label arrive with their features (2.1, 2.6, 3.4).
+/// Board "1 Prep". The oven, door shut, fills the top half; the bottom half picks how long to
+/// bake. Each length loads its own dish onto the rack (Quick cupcakes, Medium a small cake,
+/// Long a large cake), visible through the door's glass. The art is a placeholder for the 3D
+/// assets; the half-and-half layout is what stays.
 struct PrepScreen: View {
-    let recipe: Recipe
     let doorCopy: DoorCopy
     let onSettings: () -> Void
-    let onPreheat: (Temperature) -> Void
+    let onBake: (BakeLength) -> Void
 
-    @State private var temperature: Temperature = .medium
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var length: BakeLength = .quick
+
+    private var recipe: Recipe { StarterRecipes.recipe(for: length) }
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-
-            CupcakeView(progress: 1, icing: .rose, showsPlate: true)
-                .frame(width: 236, height: 236)
-                .padding(.top, Spacing.s2)
-
-            VStack(spacing: 6) {
-                Text(recipe.name)
-                    .textStyle(.name.sized(34, lineHeight: 38))
-                    .foregroundStyle(Palette.text)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                EyebrowLabel(Text("\(recipe.bakeMinutes) min · \(recipe.region)", bundle: .module))
+        GeometryReader { proxy in
+            VStack(spacing: 0) {
+                ovenHalf
+                    .frame(height: proxy.size.height / 2)
+                optionsHalf
+                    .frame(height: proxy.size.height / 2)
             }
-            .padding(.top, 10)
-
-            VStack(alignment: .leading, spacing: 10) {
-                EyebrowLabel(Text("Oven", bundle: .module))
-                TemperaturePicker(selection: $temperature)
-            }
-            .padding(.top, 22)
-
-            Spacer(minLength: Spacing.margin)
-
-            Button {
-                onPreheat(temperature)
-            } label: {
-                HStack(spacing: Spacing.s2) {
-                    Text("Preheat", bundle: .module)
-                    Text("· \(recipe.bakeMinutes) min", bundle: .module)
-                        .textStyle(.voice(17))
-                }
-            }
-            .buttonStyle(.primary)
-            .accessibilityLabel(Text("Preheat, \(recipe.bakeMinutes) minutes", bundle: .module))
-            .accessibilityIdentifier("prep.preheat")
-
-            doorCopy.afterPreheatNote
-                .textStyle(.note)
-                .foregroundStyle(Palette.muted)
-                .padding(.top, 10)
         }
         .padding(.horizontal, Spacing.margin)
         .padding(.bottom, Spacing.s2)
@@ -62,6 +31,66 @@ struct PrepScreen: View {
         .frame(maxWidth: .infinity)
         .pocketScreenBackground()
         .background(alignment: .top) { heroGlow }
+    }
+
+    private var ovenHalf: some View {
+        VStack(spacing: 0) {
+            header
+            OvenView(
+                plate: Text(CountdownFormat.clock(TimeInterval(length.minutes * 60))),
+                heat: 0.4,
+                doorOpen: 0,
+                dishProgress: 0,
+                dish: Dish(recipeID: recipe.id),
+                hasClearGlass: true
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .animation(reduceMotion ? nil : .spring(duration: 0.5, bounce: 0.15), value: length)
+            .accessibilityIdentifier("prep.oven")
+        }
+    }
+
+    private var optionsHalf: some View {
+        VStack(spacing: 0) {
+            VStack(spacing: 6) {
+                Text(recipe.name)
+                    .textStyle(.name.sized(30, lineHeight: 34))
+                    .foregroundStyle(Palette.text)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .contentTransition(.opacity)
+                    .accessibilityIdentifier("prep.recipe")
+                EyebrowLabel(Text(recipe.region))
+            }
+            .padding(.top, Spacing.margin)
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: length)
+
+            VStack(alignment: .leading, spacing: 10) {
+                EyebrowLabel(Text("Oven", bundle: .module))
+                BakeLengthPicker(selection: $length)
+            }
+            .padding(.top, 22)
+
+            Spacer(minLength: Spacing.s4)
+
+            Button {
+                onBake(length)
+            } label: {
+                HStack(spacing: Spacing.s2) {
+                    Text("Bake", bundle: .module)
+                    Text("· \(length.minutes) min", bundle: .module)
+                        .textStyle(.voice(17))
+                }
+            }
+            .buttonStyle(.primary)
+            .accessibilityLabel(Text("Bake, \(length.minutes) minutes", bundle: .module))
+            .accessibilityIdentifier("prep.bake")
+
+            doorCopy.afterPreheatNote
+                .textStyle(.note)
+                .foregroundStyle(Palette.muted)
+                .padding(.top, 10)
+        }
     }
 
     private var header: some View {
@@ -96,5 +125,5 @@ struct PrepScreen: View {
 }
 
 #Preview {
-    PrepScreen(recipe: StarterRecipes.vanillaCupcakes, doorCopy: DoorCopy(source: .faceDown), onSettings: {}) { _ in }
+    PrepScreen(doorCopy: DoorCopy(source: .faceDown), onSettings: {}) { _ in }
 }

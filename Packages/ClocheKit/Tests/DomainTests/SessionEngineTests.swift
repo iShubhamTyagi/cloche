@@ -5,7 +5,7 @@ import Testing
 struct SessionEngineBakeTests {
     @Test func closingTheDoorStartsTheBakeAndSchedulesTheReadyNotification() {
         var engine = SessionEngine()
-        _ = engine.handle(.preheat(BakeRequest(recipe: .cupcakes, temperature: .medium, source: .faceDown)), now: t0)
+        _ = engine.handle(.preheat(BakeRequest(recipe: .cupcakes, length: .quick, source: .faceDown)), now: t0)
         #expect(engine.phase.name == "armed")
 
         let effects = engine.handle(.door(.closed), now: at(3))
@@ -18,7 +18,7 @@ struct SessionEngineBakeTests {
 
     @Test func cancellingPreheatReturnsToIdle() {
         var engine = SessionEngine()
-        _ = engine.handle(.preheat(BakeRequest(recipe: .cupcakes, temperature: .medium, source: .faceDown)), now: t0)
+        _ = engine.handle(.preheat(BakeRequest(recipe: .cupcakes, length: .quick, source: .faceDown)), now: t0)
         _ = engine.handle(.cancelPreheat, now: t0)
         #expect(engine.phase == .idle)
     }
@@ -128,8 +128,8 @@ struct SessionEngineBreakTests {
         _ = engine.handle(.decorate, now: at(1500))
         let effects = engine.handle(.tick, now: at(1500 + 3600))
 
-        #expect(engine.phase.grade?.stars == 3)
-        #expect(effects == [.cue(.served(stars: 3))])
+        #expect(engine.phase.grade?.stars == 2)
+        #expect(effects == [.cue(.served(stars: 2))])
     }
 
     @Test func serveNowEndsTheBreakEarlyAndLosesNothing() {
@@ -138,7 +138,7 @@ struct SessionEngineBreakTests {
         _ = engine.handle(.decorate, now: at(1500))
         let effects = engine.handle(.serveNow, now: at(1520))
 
-        #expect(engine.phase.grade?.stars == 3)
+        #expect(engine.phase.grade?.stars == 2)
         #expect(effects.contains(.cancelNotification(.breakOver)))
     }
 
@@ -146,7 +146,7 @@ struct SessionEngineBreakTests {
         var engine = bakingEngine()
         _ = engine.handle(.door(.open), now: at(1500))
         _ = engine.handle(.servePlain, now: at(1501))
-        #expect(engine.phase.grade?.stars == 2)
+        #expect(engine.phase.grade?.stars == 1)
     }
 
     @Test func decoratingIsUnreachableWithoutABake() {

@@ -49,7 +49,7 @@ public struct FeedbackPlan: Equatable, Sendable {
         case .doorOpened:
             FeedbackPlan(haptic: .doorThunk, announcement: nil)
         case let .served(stars):
-            FeedbackPlan(haptic: .softThud, announcement: String(localized: "Served. \(stars) of 3 stars", bundle: .module))
+            FeedbackPlan(haptic: .softThud, announcement: String(localized: "Served. \(stars) of \(Grade.maxStars) stars", bundle: .module))
         }
     }
 }

@@ -18,8 +18,8 @@ struct FileSessionSnapshotStoreTests {
     @Test func savedSessionLoadsBackIdentically() throws {
         let directory = try temporaryDirectory()
         var engine = SessionEngine()
-        let recipe = Recipe(id: "cupcake", name: "Vanilla cupcakes", region: "Universal", pack: "core", bakeMinutes: 25, idealTemperature: .medium, isFree: true)
-        _ = engine.handle(.preheat(BakeRequest(recipe: recipe, temperature: .high, source: .hinge)), now: Date(timeIntervalSinceReferenceDate: 0))
+        let recipe = Recipe(id: "cupcake", name: "Vanilla cupcakes", region: "Universal", pack: "core", isFree: true)
+        _ = engine.handle(.preheat(BakeRequest(recipe: recipe, length: .quick, source: .hinge)), now: Date(timeIntervalSinceReferenceDate: 0))
         _ = engine.handle(.door(.closed), now: Date(timeIntervalSinceReferenceDate: 5))
 
         try FileSessionSnapshotStore(directory: directory).save(engine)

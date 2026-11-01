@@ -4,7 +4,7 @@ import Foundation
 import Testing
 
 struct KeepAwakePolicyTests {
-    private let bake = Bake(BakeRequest(recipe: StarterRecipes.vanillaCupcakes, temperature: .medium, source: .faceDown))
+    private let bake = Bake(BakeRequest(recipe: StarterRecipes.vanillaCupcakes, length: .quick, source: .faceDown))
     private let now = Date(timeIntervalSinceReferenceDate: 0)
 
     @Test func screenStaysOnOnlyWhileTheBakeRuns() {

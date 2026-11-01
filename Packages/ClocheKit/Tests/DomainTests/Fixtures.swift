@@ -2,9 +2,9 @@ import Domain
 import Foundation
 
 extension Recipe {
-    static let cupcakes = Recipe(id: "cupcake", name: "Vanilla cupcakes", region: "Universal", pack: "core", bakeMinutes: 25, idealTemperature: .medium, isFree: true)
-    static let cake = Recipe(id: "cake", name: "Chocolate drip cake", region: "Celebration", pack: "core", bakeMinutes: 50, idealTemperature: .medium, isFree: false)
-    static let biryani = Recipe(id: "biryani", name: "Dum biryani", region: "North Indian", pack: "core", bakeMinutes: 90, idealTemperature: .low, isFree: false)
+    static let cupcakes = Recipe(id: "cupcake", name: "Vanilla cupcakes", region: "Universal", pack: "core", isFree: true)
+    static let cake = Recipe(id: "cake", name: "Chocolate drip cake", region: "Celebration", pack: "core", isFree: false)
+    static let biryani = Recipe(id: "biryani", name: "Dum biryani", region: "North Indian", pack: "core", isFree: false)
 }
 
 let t0 = Date(timeIntervalSinceReferenceDate: 800_000_000)
@@ -13,10 +13,10 @@ func at(_ seconds: TimeInterval) -> Date {
     t0.addingTimeInterval(seconds)
 }
 
-/// An engine already baking cupcakes at `temperature`, door closed at t0.
-func bakingEngine(temperature: Temperature = .medium, isDemo: Bool = false) -> SessionEngine {
+/// An engine already baking cupcakes for `length`, door closed at t0.
+func bakingEngine(length: BakeLength = .quick, isDemo: Bool = false) -> SessionEngine {
     var engine = SessionEngine()
-    _ = engine.handle(.preheat(BakeRequest(recipe: .cupcakes, temperature: temperature, source: .faceDown, isDemo: isDemo)), now: t0)
+    _ = engine.handle(.preheat(BakeRequest(recipe: .cupcakes, length: length, source: .faceDown, isDemo: isDemo)), now: t0)
     _ = engine.handle(.door(.closed), now: t0)
     return engine
 }

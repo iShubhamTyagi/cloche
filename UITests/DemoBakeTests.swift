@@ -28,22 +28,22 @@ final class DemoBakeTests: XCTestCase {
         }
         let stars = app.descendants(matching: .any)["grade.stars"]
         XCTAssertTrue(stars.waitForExistence(timeout: 5))
-        XCTAssertEqual(stars.label, "0 of 3 stars")
+        XCTAssertEqual(stars.label, "0 of 2 stars")
 
         app.buttons["grade.servePlain"].tap()
         XCTAssertTrue(app.staticTexts["interim.phase"].waitForExistence(timeout: 5))
     }
 
-    /// The first Preheat explains the notification; "Not now" still preheats.
+    /// The first Bake tap explains the notification; "Not now" still goes on.
     @MainActor
-    func testNotificationPrePromptNotNowStillPreheats() {
+    func testNotificationPrePromptNotNowStillGoesOn() {
         let app = launchWithOpenDoor(["-notificationPrompt"])
 
-        app.buttons["prep.preheat"].tap()
+        app.buttons["prep.bake"].tap()
         let notNow = app.buttons["notifications.notNow"]
         guard notNow.waitForExistence(timeout: 5) else {
             // The simulator already answered the system prompt in an earlier run, so there is
-            // nothing left to ask; Preheat must still have gone through.
+            // nothing left to ask; Bake must still have gone through.
             XCTAssertTrue(app.staticTexts["preheat.title"].waitForExistence(timeout: 5))
             return
         }

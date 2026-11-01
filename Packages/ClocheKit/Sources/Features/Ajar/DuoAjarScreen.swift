@@ -30,7 +30,7 @@ struct DuoAjarScreen: View {
 
     private func topHalf(at date: Date) -> some View {
         ZStack {
-            OvenCavityView(heat: 0.8, dishProgress: bake.progress(at: date), browning: .pale)
+            OvenCavityView(heat: 0.8, dishProgress: bake.progress(at: date), browning: .pale, dish: Dish(recipeID: bake.recipeID))
                 .padding([.horizontal, .top], Spacing.s3)
                 .padding(.bottom, 14)
             // 80% scrim over the cavity.

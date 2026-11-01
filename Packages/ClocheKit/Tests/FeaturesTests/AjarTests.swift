@@ -27,7 +27,7 @@ struct BakeProgressTests {
     @Test func progressIsElapsedOverDuration() {
         var engine = SessionEngine()
         let start = Date(timeIntervalSinceReferenceDate: 0)
-        _ = engine.handle(.preheat(BakeRequest(recipe: StarterRecipes.vanillaCupcakes, temperature: .medium, source: .faceDown)), now: start)
+        _ = engine.handle(.preheat(BakeRequest(recipe: StarterRecipes.vanillaCupcakes, length: .quick, source: .faceDown)), now: start)
         _ = engine.handle(.door(.closed), now: start)
         guard case let .baking(bake) = engine.phase else {
             Issue.record("not baking")

@@ -14,6 +14,9 @@ struct OvenView: View {
     /// Bake progress of the dish in the cavity; nil shows an empty oven.
     var dishProgress: Double?
     var browning: Browning = .golden
+    var dish: Dish = .cupcakes
+    /// Clear glass shows the dish through the shut door (Prep); smoked hides it.
+    var hasClearGlass = false
 
     var body: some View {
         GeometryReader { proxy in
@@ -26,7 +29,7 @@ struct OvenView: View {
                     .fill(LinearGradient(colors: [Color(white: 0.23), Color(white: 0.14)], startPoint: .top, endPoint: .bottom))
                     .overlay(RoundedRectangle(cornerRadius: w * 0.04).strokeBorder(Palette.line2, lineWidth: 1))
 
-                OvenCavityView(heat: heat, dishProgress: dishProgress, browning: browning)
+                OvenCavityView(heat: heat, dishProgress: dishProgress, browning: browning, dish: dish)
                     .frame(width: window.width, height: window.height)
                     .offset(x: window.minX, y: window.minY)
 
@@ -49,7 +52,7 @@ struct OvenView: View {
     /// Glass door with handle. Darker glass hides the cavity until the door drops.
     private func door(width w: CGFloat, window: CGRect) -> some View {
         RoundedRectangle(cornerRadius: window.width * 0.035)
-            .fill(Color(white: 0.05).opacity(0.92))
+            .fill(Color(white: 0.05).opacity(hasClearGlass ? 0.25 : 0.92))
             .overlay(RoundedRectangle(cornerRadius: window.width * 0.035).strokeBorder(.white.opacity(0.08), lineWidth: 1))
             .overlay(alignment: .top) {
                 Capsule()
@@ -81,13 +84,14 @@ struct OvenView: View {
     }
 }
 
-/// Inside the oven: dark walls, glowing rods top and bottom, three dishes on the rack.
+/// Inside the oven: dark walls, glowing rods top and bottom, the dish on the rack.
 /// Used inside `OvenView` and full-bleed on the Duo's top half.
 struct OvenCavityView: View {
     var heat: Double = 0.8
     /// Bake progress of the dishes; nil shows an empty oven.
     var dishProgress: Double?
     var browning: Browning = .golden
+    var dish: Dish = .cupcakes
 
     var body: some View {
         GeometryReader { proxy in
@@ -99,12 +103,11 @@ struct OvenCavityView: View {
                 .overlay(alignment: .bottom) {
                     VStack(spacing: 0) {
                         if let dishProgress {
-                            HStack(spacing: w * 0.02) {
-                                ForEach(0..<3, id: \.self) { _ in
-                                    CupcakeView(progress: dishProgress, browning: browning)
-                                        .frame(width: min(w * 0.26, h * 0.45), height: min(w * 0.26, h * 0.45))
-                                }
-                            }
+                            // Keyed by dish so a new choice slides in onto the rack.
+                            RackDishView(dish: dish, progress: dishProgress, browning: browning)
+                                .frame(height: h * 0.45)
+                                .id(dish)
+                                .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)).combined(with: .opacity))
                         }
                         // Rack.
                         Capsule().fill(Color(white: 0.45)).frame(height: 2).padding(.horizontal, w * 0.05)
@@ -112,6 +115,8 @@ struct OvenCavityView: View {
                     }
                     .padding(.bottom, h * 0.06)
                 }
+                // Dishes slide in from the side; keep them inside the oven walls.
+                .clipShape(RoundedRectangle(cornerRadius: min(w, h) * 0.035))
         }
         .accessibilityHidden(true)
     }

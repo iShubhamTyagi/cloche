@@ -8,17 +8,19 @@ final class LaunchSmokeTests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(app.staticTexts["prep.title"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.buttons["prep.preheat"].exists)
+        XCTAssertTrue(app.buttons["prep.bake"].exists)
     }
 
-    /// Prep → Preheat → door closes → baking.
+    /// Prep → Bake → door closes → baking.
     @MainActor
-    func testPreheatThenClosingTheDoorStartsTheBake() {
+    func testBakeThenClosingTheDoorStartsTheBake() {
         let app = launchWithOpenDoor()
 
-        app.buttons["temperature.high"].tap()
+        XCTAssertEqual(app.buttons["prep.bake"].label, "Bake, 25 minutes")
+        app.buttons["length.medium"].tap()
+        XCTAssertEqual(app.buttons["prep.bake"].label, "Bake, 50 minutes")
         attachScreenshot(of: app, named: "prep")
-        app.buttons["prep.preheat"].tap()
+        app.buttons["prep.bake"].tap()
         XCTAssertTrue(app.staticTexts["preheat.title"].waitForExistence(timeout: 5))
         attachScreenshot(of: app, named: "preheat")
 
@@ -53,7 +55,7 @@ final class LaunchSmokeTests: XCTestCase {
         let eyebrow = app.descendants(matching: .any)["grade.eyebrow"]
         XCTAssertTrue(eyebrow.waitForExistence(timeout: 20))
         XCTAssertEqual(eyebrow.label.lowercased(), "opened early")
-        XCTAssertEqual(app.descendants(matching: .any)["grade.stars"].label, "1 of 3 stars")
+        XCTAssertEqual(app.descendants(matching: .any)["grade.stars"].label, "1 of 2 stars")
         attachScreenshot(of: app, named: "half-baked")
 
         app.buttons["grade.servePlain"].tap()
@@ -64,16 +66,16 @@ final class LaunchSmokeTests: XCTestCase {
     func testBackFromPreheatReturnsToPrep() {
         let app = launchWithOpenDoor()
 
-        app.buttons["prep.preheat"].tap()
+        app.buttons["prep.bake"].tap()
         XCTAssertTrue(app.buttons["preheat.back"].waitForExistence(timeout: 5))
         app.buttons["preheat.back"].tap()
-        XCTAssertTrue(app.buttons["prep.preheat"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["prep.bake"].waitForExistence(timeout: 5))
     }
 
     @MainActor
     private func startBake() -> XCUIApplication {
         let app = launchWithOpenDoor()
-        app.buttons["prep.preheat"].tap()
+        app.buttons["prep.bake"].tap()
         XCTAssertTrue(app.staticTexts["preheat.title"].waitForExistence(timeout: 5))
         setDoor(app, "closed")
         XCTAssertTrue(app.descendants(matching: .any)["bake.timer"].waitForExistence(timeout: 5))

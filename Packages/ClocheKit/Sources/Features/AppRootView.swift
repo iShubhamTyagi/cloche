@@ -17,6 +17,8 @@ public struct DebugOptions: Sendable {
 /// The app's root: hosts the hinge sensor and the session screens.
 public struct AppRootView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var showsSplash = true
 
     private let dependencies: FeatureDependencies
     private let debug: DebugOptions
@@ -27,22 +29,37 @@ public struct AppRootView: View {
     }
 
     public var body: some View {
-        content
-            .background(HingeSensorAnchor(sensor: dependencies.doorSensor).accessibilityHidden(true))
-            .onChange(of: scenePhase) { _, phase in
-                // Catch up on deadlines that passed while the app was in the background.
-                if phase == .active { dependencies.session.send(.tick) }
+        ZStack {
+            if showsSplash {
+                SplashScreen()
+                    .transition(.opacity)
+            } else {
+                content
+                    .transition(.opacity)
             }
-            .onChange(of: dependencies.settings.doorMode, initial: true) { _, mode in
-                dependencies.doorSensor.preference = mode
+        }
+        .task {
+            try? await Task.sleep(for: SplashScreen.duration)
+            // Reduce Motion: a straight cut instead of the cross-fade.
+            withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.35)) {
+                showsSplash = false
             }
-            #if DEBUG
-            .overlay(alignment: .top) {
-                if debug.showsDoorReadout {
-                    DoorDebugOverlay(sensor: dependencies.doorSensor)
-                }
+        }
+        .background(HingeSensorAnchor(sensor: dependencies.doorSensor).accessibilityHidden(true))
+        .onChange(of: scenePhase) { _, phase in
+            // Catch up on deadlines that passed while the app was in the background.
+            if phase == .active { dependencies.session.send(.tick) }
+        }
+        .onChange(of: dependencies.settings.doorMode, initial: true) { _, mode in
+            dependencies.doorSensor.preference = mode
+        }
+        #if DEBUG
+        .overlay(alignment: .top) {
+            if debug.showsDoorReadout {
+                DoorDebugOverlay(sensor: dependencies.doorSensor)
             }
-            #endif
+        }
+        #endif
     }
 
     @ViewBuilder

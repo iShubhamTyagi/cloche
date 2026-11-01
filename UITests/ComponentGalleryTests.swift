@@ -13,7 +13,7 @@ final class ComponentGalleryTests: XCTestCase {
         gallery.swipeUp()
         gallery.swipeUp()
 
-        XCTAssertTrue(app.images["3 of 3 stars"].exists || app.otherElements["3 of 3 stars"].exists)
+        XCTAssertTrue(app.images["2 of 2 stars"].exists || app.otherElements["2 of 2 stars"].exists)
         XCTAssertTrue(app.images["4:12 left in the break"].exists)
         XCTAssertTrue(app.images["11 seconds left"].exists)
 

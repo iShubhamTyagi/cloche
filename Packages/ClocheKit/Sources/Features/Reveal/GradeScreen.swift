@@ -2,8 +2,8 @@ import DesignSystem
 import Domain
 import SwiftUI
 
-/// Boards "5 Grade" and "S2 8 Half-baked grade": the finished dish, its stars, doneness and
-/// browning, then Decorate or Serve plain.
+/// Boards "5 Grade" and "S2 8 Half-baked grade": the finished dish, its stars and doneness,
+/// then Decorate or Serve plain.
 struct GradeScreen: View {
     let recipe: Recipe
     let outcome: BakeOutcome
@@ -20,7 +20,7 @@ struct GradeScreen: View {
                 .padding(.top, Spacing.s4)
                 .accessibilityIdentifier("grade.eyebrow")
 
-            CupcakeView(progress: grade.isHalfBaked ? max(outcome.doneness * 0.5, 0.3) : 1, browning: grade.browning, showsPlate: true)
+            DishView(dish: Dish(recipeID: recipe.id), progress: grade.isHalfBaked ? max(outcome.doneness * 0.5, 0.3) : 1, browning: grade.browning, showsPlate: true)
                 .frame(width: 210, height: 210)
                 .padding(.top, Spacing.s3)
 
@@ -41,11 +41,8 @@ struct GradeScreen: View {
                 .multilineTextAlignment(.center)
                 .padding(.top, Spacing.s3)
 
-            VStack(spacing: Spacing.margin) {
-                DonenessBar(copy: copy)
-                BrowningBar(copy: copy)
-            }
-            .padding(.top, Spacing.margin)
+            DonenessBar(copy: copy)
+                .padding(.top, Spacing.margin)
 
             Spacer(minLength: Spacing.margin)
 

@@ -4,10 +4,11 @@ Read the **Current state** first; it says where the next session starts. Then ad
 
 ## Current state
 
-- **Phase:** Phase 1 (Gate 0 prototype) complete. Next is Phase 2.1 (Recipes.json with five dishes, recipe picker with locked state, temperature hint)
+- **Phase:** Phase 2 on branch `phase-2-gate1`. Owner-requested Prep rework done (see the 2026-11-01 entry). Next is Phase 2.1 (Recipes.json, recipe picker with locked state). The temperature hint is gone, and the picker must fit "each length bakes its own dish"
+- **Tests:** switched off until a stable dev build (owner's call). Verify by running in the simulator and checking screenshots
 - **Last green commit:** see the newest log entry; `main` is pushed to github.com/iShubhamTyagi/cloche
-- **Blockers:** Apple Developer Program not enrolled (needed by the end of Phase 2 for TestFlight); watchOS 27 runtime not installed (needed in Phase 3)
-- **Simulators:** iPhone 17, iPhone 17e and iPhone Duo on iOS 27.2; iPhone 16 on iOS 18.2 (minimum-version check)
+- **Blockers:** Apple Developer Program not enrolled (needed by the end of Phase 2 for TestFlight)
+- **Simulators:** iPhone 17, 17e, Air, 18 Pro, 18 Pro Max and iPhone Duo on iOS 27.2; iPhone 16 set and SE on iOS 18.2 (minimum-version check); watchOS 27.2 (Series 12, Ultra 4, SE 3), with the Ultra 4 paired to iPhone 17. iOS 17 and older watchOS runtimes removed
 - **Gate 0 facts so far:**
   - The Duo hinge reports in the simulator: unfolded is `fullyOpen`, angle `3.141593`, so the angle is in radians and flat open is π.
   - iPhones without a hinge get no hinge update at all, rather than an update with no hinge.
@@ -18,6 +19,17 @@ Read the **Current state** first; it says where the next session starts. Then ad
 - **Known for Phase 1:** the Duo simulator boots folded, showing the cover display (1398 × 2034 px). The system reserves a strip down the cover's right edge, so centred content sits left of centre; cover screens need the reserved-region APIs. `simctl io screenshot` needs `--display=1` on the Duo.
 
 ## Log
+
+### 2026-11-01: Prep rework: Bake button, bake lengths, dish per length, splash
+
+- **Built:**
+  - `BakeLength` (Quick 25, Medium 50, Long 90; breaks 5, 8, 10) replaces `Temperature`. `Recipe` drops `bakeMinutes` and `idealTemperature`. The grade drops the temperature star, so the maximum is 2 stars; `Stars` shows two
+  - `BakeLengthPicker` replaces `TemperaturePicker`; the Prep button reads "Bake · N min"; the Preheat eyebrow reads "Ready to bake"; the browning bar is gone from the grade screens
+  - Prep split in halves: `OvenView` with its door shut and clear glass in the top half, the dish and controls in the bottom. Each length loads its dish onto the rack with a slide (cupcakes, `CakeView` one tier, two tiers); `Dish`, `DishView` and `RackDishView` carry the dish through the ajar, reveal and grade screens
+  - `SplashScreen`: 1 s, empty, on every cold launch
+  - Tests switched off: `test.sh` gate (`RUN_TESTS=1` to run them), UI test target skipped in the scheme
+- **Verified:** `build.sh` green on iPhone 17 (warnings as errors). Prep checked by screenshot on iPhone 17 with Quick and Long selected; the splash checked by screenshot. Portrait-only confirmed in the built Info.plist (it was already set). Before tests were switched off, the updated unit tests were green except four break tests still expecting 3 stars; those were fixed but not re-run.
+- **Left over:** the Duo layout of Prep (it follows the iPhone layout for now); the PRD still describes temperature (DECISIONS supersedes it); the local folder is now `Desktop/My Dev/Cloche`.
 
 ### 2026-10-31: Renamed to Cloche; pushed to GitHub
 

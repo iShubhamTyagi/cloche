@@ -23,7 +23,7 @@ struct RevealScreen: View {
                 .accessibilityIdentifier("reveal.title")
                 .padding(.top, Spacing.s2)
 
-            OvenView(plate: Text("Prêt.", bundle: .module), isPlateItalic: true, heat: 1, doorOpen: doorOpen, dishProgress: 1, browning: browning)
+            OvenView(plate: Text("Prêt.", bundle: .module), isPlateItalic: true, heat: 1, doorOpen: doorOpen, dishProgress: 1, browning: browning, dish: Dish(recipeID: recipe.id))
                 .overlay {
                     // Over the cavity (left 74% of the oven), rising from the dishes.
                     SteamView(centerX: 0.39, startY: 0.62)

@@ -10,6 +10,8 @@ extension XCTestCase {
         app.launch()
         XCTAssertTrue(app.buttons["doorDebug.toggle"].waitForExistence(timeout: 10))
         setDoor(app, "open")
+        // Wait out the launch splash.
+        XCTAssertTrue(app.buttons["prep.bake"].waitForExistence(timeout: 10))
         return app
     }
 

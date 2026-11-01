@@ -11,7 +11,7 @@ struct AjarScreen: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.25)) { context in
             ZStack {
-                OvenView(plate: Text(CountdownFormat.seconds(graceEndsAt.timeIntervalSince(context.date))), heat: 0.8, doorOpen: 1, dishProgress: bake.progress(at: context.date), browning: .pale)
+                OvenView(plate: Text(CountdownFormat.seconds(graceEndsAt.timeIntervalSince(context.date))), heat: 0.8, doorOpen: 1, dishProgress: bake.progress(at: context.date), browning: .pale, dish: Dish(recipeID: bake.recipeID))
                     .frame(maxWidth: 342)
                     .opacity(0.38)
                     .frame(maxHeight: .infinity, alignment: .top)

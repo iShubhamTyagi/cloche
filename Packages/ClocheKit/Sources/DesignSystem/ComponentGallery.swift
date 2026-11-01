@@ -48,7 +48,7 @@ public struct ComponentGallery: View {
                 }
                 section("Stars") {
                     HStack(spacing: Spacing.margin) {
-                        Stars(earned: 3)
+                        Stars(earned: 2)
                         Stars(earned: 1, size: 22)
                     }
                 }

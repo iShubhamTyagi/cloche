@@ -50,7 +50,7 @@ struct SessionControllerTests {
         let effects = RecordingEffects()
         let session = SessionController(door: door, time: time, store: store, effects: effects)
 
-        session.preheat(recipe, temperature: .medium)
+        session.preheat(recipe, length: .quick)
         #expect(session.phase.isArmed)
 
         door.set(.closed)
@@ -64,7 +64,7 @@ struct SessionControllerTests {
     @Test func restoresASavedBakeAndCatchesUpOnTimeThatPassed() throws {
         let time = TestTimeProvider()
         var saved = SessionEngine()
-        _ = saved.handle(.preheat(BakeRequest(recipe: recipe, temperature: .medium, source: .faceDown)), now: time.now)
+        _ = saved.handle(.preheat(BakeRequest(recipe: recipe, length: .quick, source: .faceDown)), now: time.now)
         _ = saved.handle(.door(.closed), now: time.now)
 
         // Relaunch two hours later.
@@ -78,14 +78,14 @@ struct SessionControllerTests {
 
     @Test func backFromPreheatReturnsToPrep() {
         let session = SessionController(door: ManualDoor(), time: TestTimeProvider(), store: InMemorySessionSnapshotStore(), effects: RecordingEffects())
-        session.preheat(recipe, temperature: .low)
+        session.preheat(recipe, length: .quick)
         session.send(.cancelPreheat)
         #expect(session.phase == .idle)
     }
 
     @Test func preheatRecordsTheActiveDoorSource() {
         let session = SessionController(door: ManualDoor(), time: TestTimeProvider(), store: InMemorySessionSnapshotStore(), effects: RecordingEffects())
-        session.preheat(recipe, temperature: .medium)
+        session.preheat(recipe, length: .quick)
         if case let .armed(bake) = session.phase {
             #expect(bake.source == .faceDown)
         } else {

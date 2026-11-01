@@ -40,9 +40,9 @@ struct RingClockTests {
 }
 
 struct StarsTests {
-    @Test func earnedCountIsClampedToZeroThroughThree() {
+    @Test func earnedCountIsClampedToZeroThroughTwo() {
         #expect(Stars.clamped(-1) == 0)
-        #expect(Stars.clamped(2) == 2)
-        #expect(Stars.clamped(5) == 3)
+        #expect(Stars.clamped(1) == 1)
+        #expect(Stars.clamped(5) == 2)
     }
 }

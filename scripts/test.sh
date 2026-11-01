@@ -3,6 +3,13 @@
 # Usage: scripts/test.sh ["Simulator name" ...]   (defaults to iPhone 17 and iPhone Duo)
 source "$(dirname "$0")/common.sh"
 
+# Tests are switched off until we reach a stable dev build (owner's call, 2026-11-01; see
+# docs/DECISIONS.md). The test code is kept; run it anyway with RUN_TESTS=1 scripts/test.sh.
+if [[ "${RUN_TESTS:-0}" != "1" ]]; then
+  echo "⏸  Tests are disabled until a stable dev build (set RUN_TESTS=1 to run them anyway)."
+  exit 0
+fi
+
 if [[ $# -gt 0 ]]; then SIMS=("$@"); else SIMS=("$DEFAULT_SIM" "$DUO_SIM"); fi
 
 for SIM in "${SIMS[@]}"; do

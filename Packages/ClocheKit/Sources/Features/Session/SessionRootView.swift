@@ -12,58 +12,35 @@ struct SessionRootView: View {
     @State private var showsSettings = false
     @State private var pendingPreheat: PendingPreheat?
     @State private var length: BakeLength = .quick
+    /// The current bake's door is worked by hand ("Start without turning over").
+    @State private var usesManualDoor = false
 
     private var session: SessionController { dependencies.session }
 
     var body: some View {
         let copy = DoorCopy(source: session.doorSource)
         Group {
-            switch session.phase {
-            case .idle:
-                if isFoldedShut {
-                    // Folded on Prep: the cover shows the oven from outside.
-                    CoverIdleScreen(length: length)
-                        .transition(.opacity)
-                } else {
-                    PrepScreen(doorCopy: copy, onSettings: { showsSettings = true }, length: $length) { length in
-                        preheat(PendingPreheat(length: length, isDemo: false))
-                    }
+            if isPhysicallyFolded {
+                // Folded shut, only the cover is visible: every phase gets its cover screen.
+                CoverPhaseScreen(phase: session.phase, length: length)
                     .transition(.opacity)
-                }
-            case let .armed(bake):
-                PreheatScreen(recipe: StarterRecipes.recipe(id: bake.recipeID), bake: bake, doorCopy: DoorCopy(source: bake.source)) {
-                    session.send(.cancelPreheat)
-                }
-                .transition(.opacity)
-            case let .baking(bake):
-                bakeScreen(bake, isReady: false)
-            case let .ready(bake):
-                bakeScreen(bake, isReady: true)
-            case let .ajar(bake, _, graceEndsAt):
-                Group {
-                    if bake.source == .hinge {
-                        DuoAjarScreen(bake: bake, graceEndsAt: graceEndsAt, hingeAngle: dependencies.doorSensor.hingeReading?.angle)
-                    } else {
-                        AjarScreen(bake: bake, graceEndsAt: graceEndsAt)
-                    }
-                }
-                .transition(.opacity)
-            case let .graded(outcome):
-                Group {
-                    if outcome.bake.source == .hinge {
-                        DuoGradeScreen(recipe: StarterRecipes.recipe(id: outcome.bake.recipeID), outcome: outcome, hingeAngle: dependencies.doorSensor.hingeReading?.angle, send: session.send)
-                    } else {
-                        GradedFlow(recipe: StarterRecipes.recipe(id: outcome.bake.recipeID), outcome: outcome, send: session.send)
-                    }
-                }
-                .transition(.opacity)
-            default:
-                InterimPhaseView(phase: session.phase, send: session.send)
-                    .transition(.opacity)
+            } else {
+                phaseScreen(copy: copy)
             }
         }
+        .onChange(of: isPhysicallyFolded) { _, folded in
+            guard folded else { return }
+            // Sheets can't be used on the cover: Settings closes, and folding at the
+            // notification pre-prompt counts as "Not now" (the bake goes ahead).
+            showsSettings = false
+            if let pendingPreheat { finishPreheat(pendingPreheat) }
+        }
         .animation(.easeInOut(duration: 0.25), value: phaseKey)
-        .onChange(of: phaseKey, initial: true) { updateKeepAwake() }
+        .animation(.easeInOut(duration: 0.25), value: isPhysicallyFolded)
+        .onChange(of: phaseKey, initial: true) {
+            updateKeepAwake()
+            releaseManualDoorIfDone()
+        }
         .onChange(of: dependencies.settings.keepsScreenAwake) { updateKeepAwake() }
         .sheet(isPresented: $showsSettings) {
             SettingsScreen(settings: dependencies.settings, hingePresent: dependencies.doorSensor.hingePresent, onDemoBake: {
@@ -82,6 +59,53 @@ struct SessionRootView: View {
             })
             .interactiveDismissDisabled()
         }
+    }
+
+    /// The open screen (iPhone, or the Duo unfolded) for each phase.
+    @ViewBuilder
+    private func phaseScreen(copy: DoorCopy) -> some View {
+        switch session.phase {
+            case .idle:
+                PrepScreen(doorCopy: copy, onSettings: { showsSettings = true }, length: $length) { length in
+                    preheat(PendingPreheat(length: length, isDemo: false))
+                }
+                .transition(.opacity)
+            case let .armed(bake):
+                PreheatScreen(
+                    recipe: StarterRecipes.recipe(id: bake.recipeID),
+                    bake: bake,
+                    doorCopy: DoorCopy(source: bake.source),
+                    onStartWithoutTurning: bake.source == .hinge ? nil : { setManualDoor(.closed) }
+                ) {
+                    session.send(.cancelPreheat)
+                }
+                .transition(.opacity)
+            case let .baking(bake):
+                bakeScreen(bake, isReady: false)
+            case let .ready(bake):
+                bakeScreen(bake, isReady: true)
+            case let .ajar(bake, _, graceEndsAt):
+                Group {
+                    if bake.source == .hinge {
+                        DuoAjarScreen(bake: bake, graceEndsAt: graceEndsAt, hingeAngle: dependencies.doorSensor.hingeReading?.angle)
+                    } else {
+                        AjarScreen(bake: bake, graceEndsAt: graceEndsAt, onClose: usesManualDoor ? { setManualDoor(.closed) } : nil)
+                    }
+                }
+                .transition(.opacity)
+            case let .graded(outcome):
+                Group {
+                    if outcome.bake.source == .hinge {
+                        DuoGradeScreen(recipe: StarterRecipes.recipe(id: outcome.bake.recipeID), outcome: outcome, hingeAngle: dependencies.doorSensor.hingeReading?.angle, send: session.send)
+                    } else {
+                        GradedFlow(recipe: StarterRecipes.recipe(id: outcome.bake.recipeID), outcome: outcome, send: session.send)
+                    }
+                }
+                .transition(.opacity)
+            default:
+                InterimPhaseView(phase: session.phase, send: session.send)
+                    .transition(.opacity)
+            }
     }
 
     /// Asks about notifications once, in context, before the first bake (Guideline 4.5.4).
@@ -106,6 +130,23 @@ struct SessionRootView: View {
         session.preheat(StarterRecipes.recipe(for: request.length), length: request.length, isDemo: request.isDemo)
     }
 
+    private func setManualDoor(_ state: DoorState) {
+        usesManualDoor = true
+        dependencies.doorSensor.manualOverride = state
+    }
+
+    /// Once the bake is out of the oven (or called off), the real sensors take over again.
+    private func releaseManualDoorIfDone() {
+        guard usesManualDoor else { return }
+        switch session.phase {
+        case .idle, .graded, .decorating, .served:
+            usesManualDoor = false
+            dependencies.doorSensor.manualOverride = nil
+        default:
+            break
+        }
+    }
+
     private func updateKeepAwake() {
         dependencies.screenAwake.keepsScreenAwake = KeepAwakePolicy.keepsAwake(session.phase, setting: dependencies.settings.keepsScreenAwake)
     }
@@ -119,20 +160,21 @@ struct SessionRootView: View {
             CoverBakeScreen(recipe: recipe, bake: bake, isReady: isReady)
                 .transition(.opacity)
         } else {
-            FaceDownBakeScreen(recipe: recipe, bake: bake, isReady: isReady)
+            FaceDownBakeScreen(recipe: recipe, bake: bake, isReady: isReady, onOpen: usesManualDoor ? { setManualDoor(.open) } : nil)
                 .transition(.opacity)
         }
     }
 
-    /// A Duo shut by its hinge. Read from the engine, which is the only consumer of the door sensor.
-    private var isFoldedShut: Bool {
-        session.doorSource == .hinge && session.engine.door == .closed
+    /// The Duo is physically folded shut, so only its cover screen is visible. Read from the hinge
+    /// itself, not the door state: leaving the app counts as an open door even while folded.
+    private var isPhysicallyFolded: Bool {
+        dependencies.doorSensor.hingeReading?.status == .closed
     }
 
     /// Animates only when the phase changes, not on every tick inside a phase.
     private var phaseKey: String {
         switch session.phase {
-        case .idle: isFoldedShut ? "idle-shut" : "idle"
+        case .idle: "idle"
         case .armed: "armed"
         case .baking: "baking"
         case .ajar: "ajar"

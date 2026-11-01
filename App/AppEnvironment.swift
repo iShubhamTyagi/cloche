@@ -41,7 +41,10 @@ final class AppEnvironment {
             notifications: notifications,
             soundsEnabled: { [settings] in settings.soundsOn }
         )
-        let session = SessionController(door: doorSensor, time: SystemTimeProvider(), store: store, effects: router)
+        // UI tests run without a Live Activity so they never leave one behind, unless they ask.
+        let wantsActivity = !isFresh || LaunchArguments.contains("-liveActivity")
+        let activity: (any BakeActivityPresenting)? = wantsActivity ? ActivityKitBakeActivity() : nil
+        let session = SessionController(door: doorSensor, time: SystemTimeProvider(), store: store, effects: router, activity: activity)
 
         dependencies = FeatureDependencies(
             session: session,

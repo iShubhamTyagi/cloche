@@ -3,6 +3,7 @@ import Domain
 import Foundation
 import Observation
 import os
+import Services
 
 /// Drives `SessionEngine` with real inputs: door states, the clock and app lifecycle.
 /// Saves after every change and wakes itself at the engine's next deadline.
@@ -18,12 +19,14 @@ public final class SessionController {
     @ObservationIgnored private let time: any TimeProviding
     @ObservationIgnored private let store: any SessionSnapshotStoring
     @ObservationIgnored private let effects: any SessionEffectPerforming
+    @ObservationIgnored private let activity: (any BakeActivityPresenting)?
     @ObservationIgnored private var doorTask: Task<Void, Never>?
     @ObservationIgnored private var deadlineTask: Task<Void, Never>?
     @ObservationIgnored private let logger = Logger(subsystem: "com.shubhamtyagi.cloche", category: "Session")
 
-    public init(door: any FoldStateService, time: any TimeProviding, store: any SessionSnapshotStoring, effects: any SessionEffectPerforming) {
+    public init(door: any FoldStateService, time: any TimeProviding, store: any SessionSnapshotStoring, effects: any SessionEffectPerforming, activity: (any BakeActivityPresenting)? = nil) {
         self.door = door
+        self.activity = activity
         self.time = time
         self.store = store
         self.effects = effects
@@ -50,6 +53,7 @@ public final class SessionController {
             logger.error("Could not save session: \(error.localizedDescription, privacy: .public)")
         }
         effects.perform(produced)
+        activity?.reflect(engine.phase)
         scheduleNextDeadline()
     }
 

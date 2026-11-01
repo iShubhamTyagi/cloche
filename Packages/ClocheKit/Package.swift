@@ -10,15 +10,20 @@ let package = Package(
     products: [
         .library(
             name: "ClocheKit",
-            targets: ["Domain", "DoorSensing", "Persistence", "Services", "DesignSystem", "Features"]
+            targets: ["Domain", "DoorSensing", "Persistence", "Services", "DesignSystem", "Features", "BakeActivity"]
         ),
+        // The widget extension: draws the bake's Live Activity (lock screen, Dynamic Island, Watch).
+        .library(name: "BakeActivityUI", targets: ["BakeActivityUI", "BakeActivity", "DesignSystem"]),
     ],
     targets: [
         // Pure Swift: models, session engine, grading. Depends on nothing.
         .target(name: "Domain", swiftSettings: settings),
         .target(name: "DoorSensing", dependencies: ["Domain"], swiftSettings: settings),
         .target(name: "Persistence", dependencies: ["Domain"], swiftSettings: settings),
-        .target(name: "Services", dependencies: ["Domain"], resources: [.process("Resources")], swiftSettings: settings),
+        // The Live Activity's shared model: the app starts it, the widget extension draws it.
+        .target(name: "BakeActivity", swiftSettings: settings),
+        .target(name: "BakeActivityUI", dependencies: ["BakeActivity", "DesignSystem"], resources: [.process("Resources")], swiftSettings: settings),
+        .target(name: "Services", dependencies: ["Domain", "BakeActivity"], resources: [.process("Resources")], swiftSettings: settings),
         // SwiftUI only; no domain knowledge.
         .target(name: "DesignSystem", resources: [.process("Resources")], swiftSettings: settings),
         .target(

@@ -87,7 +87,7 @@ Full checklist with guideline numbers lives in `docs/PLAN.md §5`. The rules tha
 - Then launch on the simulator so the user can see it (`./scripts/run.sh "iPhone 17"` / `"iPhone Duo"`). Xcode 27's simulator app is **DeviceHub**, not Simulator.
 - Never move CLI derived data back inside the repo: the space in "My Dev" breaks package test loading (see `docs/DECISIONS.md`).
 - When tests return: they use `ScriptedFoldStateService` and a `TestTimeProvider`, never `sleep`, and every domain rule in this file gets a unit test.
-- Commit after each green slice with a clear message, then push to `origin` (github.com/iShubhamTyagi/cloche). Branch per phase (`phase-1-gate0`, …); never force-push `main`.
+- **Commit and push only when the owner asks** (owner's call, 2026-11-01); then use a clear message and push to `origin` (github.com/iShubhamTyagi/cloche). Branch per phase (`phase-1-gate0`, …); never force-push `main`.
 - Signing: automatic, team set in Xcode. If a signing/entitlement error appears, show it verbatim to the user.
 - All user-facing strings go in the package's string catalogs (Hindi ships later). Package code must pass `bundle: .module` (`Text("…", bundle: .module)`, `String(localized:bundle: .module)`); a bare `Text("…")` looks in the app bundle and never gets translated. `Text(verbatim:)` only for debug-only or non-language text.
 - Real-device pass required before submission for haptics, sound, face-down, proximity and heat (simulator cannot test these).

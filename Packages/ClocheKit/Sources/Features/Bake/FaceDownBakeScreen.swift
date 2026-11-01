@@ -8,6 +8,8 @@ struct FaceDownBakeScreen: View {
     let recipe: Recipe
     let bake: Bake
     let isReady: Bool
+    /// Opens the oven by hand when the bake was started without turning the phone over.
+    var onOpen: (() -> Void)?
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
@@ -31,6 +33,14 @@ struct FaceDownBakeScreen: View {
             }
             .offset(y: BurnInDrift.offset(at: context.date, period: 90, range: 16))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .overlay(alignment: .bottom) {
+            if let onOpen {
+                ManualDoorButton(title: Text("Open the oven", bundle: .module), identifier: "bake.openManually", action: onOpen)
+                    // Kept dim: this screen stays on for up to 90 minutes (Guideline 2.4.2).
+                    .opacity(0.45)
+                    .padding(.bottom, Spacing.margin)
+            }
         }
         .background(Palette.black.ignoresSafeArea())
         .statusBarHidden()

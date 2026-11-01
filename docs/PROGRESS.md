@@ -4,7 +4,7 @@ Read the **Current state** first; it says where the next session starts. Then ad
 
 ## Current state
 
-- **Phase:** Phase 2 on branch `phase-2-gate1`. Owner-requested Prep rework done (see the 2026-11-01 entry). Next is Phase 2.1 (Recipes.json, recipe picker with locked state). The temperature hint is gone, and the picker must fit "each length bakes its own dish"
+- **Phase:** Phase 2 on branch `phase-2-gate1`. The Live Activity (Phase 3.2, Watch Layer A) was brought forward on 2026-11-01. Owner-requested Prep rework done (see the 2026-11-01 entry). Next is Phase 2.1 (Recipes.json, recipe picker with locked state). The temperature hint is gone, and the picker must fit "each length bakes its own dish"
 - **Tests:** switched off until a stable dev build (owner's call). Verify by running in the simulator and checking screenshots
 - **Last green commit:** see the newest log entry; `main` is pushed to github.com/iShubhamTyagi/cloche
 - **Blockers:** Apple Developer Program not enrolled (needed by the end of Phase 2 for TestFlight)
@@ -13,12 +13,51 @@ Read the **Current state** first; it says where the next session starts. Then ad
   - The Duo hinge reports in the simulator: unfolded is `fullyOpen`, angle `3.141593`, so the angle is in radians and flat open is π.
   - iPhones without a hinge get no hinge update at all, rather than an update with no hinge.
   - The Duo cover display is portrait, 1398 × 2034 px (about 466 × 678 pt), not the handoff's assumed 500 × 400 landscape.
-  - XCUITest screenshots on the Duo simulator are black; use `ImageRenderer` (see DECISIONS).
+  - XCUITest screenshots on the Duo simulator are black. To see the folded cover, use `xcrun simctl io "iPhone Duo" screenshot --display=primary` (`primary` is the cover, `primary-1` the inner screen).
   - Slow close in the simulator: `fullyOpen` (π) → one `partiallyOpen` reading at 2.82 rad (about 162°) → `closed` (0). A real Duo will likely report more steps; partly open always maps to ajar, never closed.
   - Still open: readings during a slow close and open on a real Duo (needs folding by hand in DeviceHub, then `xcrun simctl spawn <Duo> log show --last 5m --predicate 'subsystem == "com.shubhamtyagi.cloche"'`); face-down on a real iPhone on three surfaces.
 - **Known for Phase 1:** the Duo simulator boots folded, showing the cover display (1398 × 2034 px). The system reserves a strip down the cover's right edge, so centred content sits left of centre; cover screens need the reserved-region APIs. `simctl io screenshot` needs `--display=1` on the Duo.
 
 ## Log
+
+### 2026-11-01: The bake's Live Activity, mirrored to the Apple Watch (uncommitted)
+
+- **Built:** Phase 3.2's Live Activity, brought forward at the owner's request. A widget extension target `ClocheWidgets` (folder `Widgets/`, embedded in the app) draws `BakeLiveActivity` from the new package product `BakeActivityUI`; the shared model `BakeActivityAttributes` lives in the new `BakeActivity` target. `ActivityKitBakeActivity` (Services) starts the activity when a bake starts (the door first shuts), updates it for door ajar, shut again and ready, and ends it once the bake is out of the oven; `SessionController` calls it after every event. The views: the time left counting down by itself from the stored end time (`Text(timerInterval:)`), one word for the state and a hairline of progress, ivory on black. The Watch gets the `.small` family in its Smart Stack (Always-On dims it and drops the progress line); the lock screen and Dynamic Island get the same content. App Info.plist: `NSSupportsLiveActivities`.
+- **Verified:** build green. A throwaway UI test on iPhone 17 (paired with the Apple Watch Ultra 4 simulator; removed afterwards, UI tests switched off again) ran a 15 s demo bake: the log shows the activity started when the door shut, updated to ready and ended at the grade, and the widget renderer subscribed to it.
+- **Seen by the owner:** the activity mirrors to the paired Apple Watch Ultra 4 simulator during a bake started on the iPhone 17 simulator. (`simctl io screenshot` doesn't capture the Watch Smart Stack or the Dynamic Island, so it was checked by eye in DeviceHub.) Still to check on a real iPhone and Watch.
+- **Left over:** the UI tests' fresh sessions skip the Live Activity unless launched with `-liveActivity`.
+
+### 2026-11-01: The oven is one full-half slot, ready for the 3D asset (uncommitted)
+
+- **Built:** `OvenFrame`, a minimal placeholder oven with no aspect ratio of its own: a black body, a glass door hinged on its bottom edge (handle across the top, two hinge tabs at the bottom, `doorOpen` drops it), and a slim control column with a small timer display and two knobs. The door takes nearly all the space. (A first pass with only a thin rim hid the oven's exterior; the owner asked for the body back.) The door has one fixed size, 520 × 348 pt (`OvenFrame.doorSize`), on both the open screen and the cover, and both keep the same header and caption bands, so on the Duo the interior is the same size folded and unfolded; the black body takes up the difference. Smaller screens (iPhone 17) shrink the door. `OvenStage` gives it the whole top half of the open screen, edge to edge, with the header laid over a top band; `CoverStage` gives it the whole folded cover, with the caption laid over its bottom. `CoverOvenFront` is gone, and Prep's glow behind the oven was removed (the oven now covers it).
+- **Verified:** build green; screenshots of Prep on iPhone 17 and of the folded Duo cover (`--display=primary`, turned as held). On the cover the door measures 520 pt wide. The open Duo top half (669 × 475 pt) has room for the same door by arithmetic; not seen on screen, because the simulator stayed folded.
+- **Then:** the unfolded Duo's ajar and grade screens (`DuoAjarScreen`, `DuoGradeScreen`) drew the cavity full-bleed across the top half, so the dish jumped in size on unfolding. Both now put `OvenFrame` (with `showsDoor: false`, since the door lies on the bottom half) in `OvenStage`'s top slot, with the door panel full width below (`isContentFullBleed`). Measured on the Duo simulator: door 519 pt wide on the cover and 518 pt open; cupcakes 98 pt and 97 pt.
+- **Left over:** on the iPhone (not Duo), Preheat, Ajar and Reveal still use the older `OvenView` (door-drop animation) in their own layouts. The 3D asset has to fill two shapes: about 402 × 437 pt portrait on the open screen and 678 × 466 pt landscape on the cover, keeping the top 60 pt (header) and bottom 40 pt (caption) quiet.
+
+### 2026-11-01: Every state has a folded cover screen (uncommitted)
+
+- **Built:** `CoverPhaseScreen` and `CoverMessageScreen`; `SessionRootView` picks the cover for every phase while the hinge reports closed, and otherwise the open-screen layout (`phaseScreen`).
+- **Verified:** build green. All nine phases rendered at the cover's 466 × 678 and turned as held (throwaway render, not kept). Live on the folded Duo simulator, a half-baked grade (the state the owner reported) shows the upright oven front.
+- **Left over:** the debug door readout still draws unrotated on the cover (debug builds only).
+
+### 2026-11-01: Leaving the app mid-bake opens the oven (uncommitted)
+
+- **Built:** `AppAwayMonitor` (scene phase plus lock detection) drives `AdaptiveDoorSensor.isAppAway`; `SessionEngine` cancels the ready notification when the door opens mid-bake and reschedules it when it shuts.
+- **Verified:** build green; throwaway UI tests on iPhone 17 (not kept; UI tests switched off again): Home for 3 s then back → door ajar, "Close the door" resumes; Home for 20 s → graded "Opened early". Both passed.
+- **Not verified:** the lock exception (needs a passcode; check on a real device); the engine notification change has no unit test (tests are off).
+
+### 2026-11-01: Start a bake without turning the phone over (uncommitted)
+
+- **Built:** `ManualDoorButton`; "Start without turning over" on Preheat (face-down only), a dim "Open the oven" on the face-down bake screen and "Close the door" on the ajar screen while the door is worked by hand; `SessionRootView` sets and releases `AdaptiveDoorSensor.manualOverride`.
+- **Verified:** build green; a throwaway UI test on iPhone 17 (not kept; the scheme's UI tests are switched off again) went Bake → Start without turning over → baking → Open the oven → door ajar → Close the door → baking, with screenshots of each step.
+
+### 2026-11-01: Duo cover shows the oven front in the open screen's place (uncommitted)
+
+- **Built:** `CoverOvenFront` (board Duo 3: handle, glass door with the dish, display and three knobs) at the open-screen oven's 1.4 aspect, placed by `OvenStage` on `CoverBakeScreen` (baking, ready) and `CoverIdleScreen` (folded before a bake); `CoverCaption` for the line and progress below. Cupcakes on the rack are a little larger everywhere.
+- **Verified:** build green; on the folded iPhone Duo simulator, a screenshot of the cover (`simctl io screenshot --display=primary`; `primary` is the cover, `primary-1` the inner screen) shows the oven upright and wide in the top half with the caption below.
+- **Learned:** the cover panel draws in portrait but is mounted sideways; folded, the panel's top edge is on the viewer's left (seen in the owner's DeviceHub screenshot). `CoverDisplay` lays the cover out landscape and turns it a fixed quarter clockwise; the reported device orientation flips between launches, so it isn't used. To view a cover screenshot as held: `sips -r 270`.
+- **Then:** the status bar is hidden app-wide and the Prep header moves up into the freed band (checked by screenshot on iPhone 17 and the Duo's inner screen).
+- **Left over:** the Duo ajar and grade screens still use their older layouts; on a real Duo, confirm which way the cover panel is mounted.
 
 ### 2026-11-01: Duo cover shows the oven from outside
 

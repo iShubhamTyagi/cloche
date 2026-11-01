@@ -8,6 +8,8 @@ struct PreheatScreen: View {
     let recipe: Recipe
     let bake: Bake
     let doorCopy: DoorCopy
+    /// Starts the bake without turning the phone over; nil hides the option (the Duo's hinge).
+    var onStartWithoutTurning: (() -> Void)?
     let onBack: () -> Void
 
     var body: some View {
@@ -58,6 +60,11 @@ struct PreheatScreen: View {
                     .foregroundStyle(Palette.subtle)
                     .multilineTextAlignment(.center)
                     .padding(.top, Spacing.s4)
+            }
+
+            if let onStartWithoutTurning {
+                ManualDoorButton(title: Text("Start without turning over", bundle: .module), identifier: "preheat.startManually", action: onStartWithoutTurning)
+                    .padding(.top, Spacing.s2)
             }
         }
         .padding(.horizontal, Spacing.margin)

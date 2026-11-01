@@ -2,8 +2,10 @@ import DesignSystem
 import Domain
 import SwiftUI
 
-/// Boards "Duo 5 Unfolded, reveal and grade" and "Duo 6 Opened early". The top half is the
-/// cavity (steam over a finished bake); the grade sits inside the door's glass on the bottom half.
+/// Boards "Duo 5 Unfolded, reveal and grade" and "Duo 6 Opened early". The top half is the same
+/// oven as on the cover (`OvenFrame` in `OvenStage`'s slot), door off, so the dish keeps its size
+/// and place when the Duo unfolds; steam rises over a finished bake. The grade sits inside the
+/// door's glass on the bottom half.
 struct DuoGradeScreen: View {
     let recipe: Recipe
     let outcome: BakeOutcome
@@ -15,27 +17,30 @@ struct DuoGradeScreen: View {
         let grade = GradeCalculator.grade(outcome, served: true)
         let copy = GradeCopy(grade: grade, isDemo: outcome.bake.isDemo)
 
-        GeometryReader { proxy in
-            let half = proxy.size.height / 2
-            VStack(spacing: 0) {
-                ZStack {
-                    OvenCavityView(heat: grade.isHalfBaked ? 0.8 : 1, dishProgress: grade.isHalfBaked ? max(outcome.doneness * 0.5, 0.3) : 1, browning: grade.browning, dish: Dish(recipeID: recipe.id))
-                    if !grade.isHalfBaked {
-                        SteamView()
-                    }
+        OvenStage(isContentFullBleed: true) {
+            EmptyView()
+        } oven: {
+            OvenFrame(
+                plate: outcome.isFullyBaked ? Text("Prêt.", bundle: .module) : Text("Done", bundle: .module),
+                isPlateItalic: outcome.isFullyBaked,
+                heat: grade.isHalfBaked ? 0.8 : 1,
+                dish: Dish(recipeID: recipe.id),
+                dishProgress: grade.isHalfBaked ? max(outcome.doneness * 0.5, 0.3) : 1,
+                browning: grade.browning,
+                showsDoor: false
+            )
+            .overlay {
+                if !grade.isHalfBaked {
+                    SteamView()
                 }
-                .padding([.horizontal, .top], Spacing.s3)
-                .padding(.bottom, 14)
-                .frame(height: half)
-                .accessibilityHidden(true)
-
-                DuoDoorPanel(liftDegrees: hingeAngle.map(DoorGeometry.liftDegrees(hingeAngle:)) ?? 0) {
-                    gradeContent(grade: grade, copy: copy)
-                }
-                .frame(height: half)
             }
-            .overlay { HingeCrease().position(x: proxy.size.width / 2, y: half) }
+            .accessibilityHidden(true)
+        } content: {
+            DuoDoorPanel(liftDegrees: hingeAngle.map(DoorGeometry.liftDegrees(hingeAngle:)) ?? 0) {
+                gradeContent(grade: grade, copy: copy)
+            }
         }
+        .overlay { HingeCrease().ignoresSafeArea() }
         .background(Palette.black.ignoresSafeArea())
     }
 

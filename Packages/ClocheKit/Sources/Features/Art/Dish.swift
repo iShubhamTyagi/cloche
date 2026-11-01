@@ -53,7 +53,7 @@ struct RackDishView: View {
                 case .cupcakes:
                     ForEach(0..<3, id: \.self) { _ in
                         CupcakeView(progress: progress, browning: browning)
-                            .frame(width: min(w * 0.26, h), height: min(w * 0.26, h))
+                            .frame(width: min(w * 0.3, h), height: min(w * 0.3, h))
                     }
                 case .smallCake:
                     CakeView(tiers: 1, progress: progress, browning: browning)

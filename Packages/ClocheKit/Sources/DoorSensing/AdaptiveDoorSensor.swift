@@ -16,12 +16,17 @@ public final class AdaptiveDoorSensor: FoldStateService {
         didSet { reselect() }
     }
 
-    #if DEBUG
-    /// Simulator stand-in for real sensors; wins over them while set.
+    /// A door worked by hand: "Start without turning over" (and the debug readout in the
+    /// simulator, where there is no face-down). Wins over the real sensors while set.
     public var manualOverride: DoorState? {
         didSet { forward() }
     }
-    #endif
+
+    /// The player left the app mid-bake (home, another app, the app switcher). Leaving counts as
+    /// opening the oven, so this wins over every sensor and the manual door while set.
+    public var isAppAway = false {
+        didSet { forward() }
+    }
 
     public let faceDown: FaceDownFoldStateService
     public var hingeReading: HingeReading? { hinge?.reading }
@@ -77,9 +82,8 @@ public final class AdaptiveDoorSensor: FoldStateService {
 
     private func forward() {
         var next = latest[source] ?? .open
-        #if DEBUG
         if let manualOverride { next = manualOverride }
-        #endif
+        if isAppAway { next = .open }
         state = next
         broadcaster.send(next)
     }

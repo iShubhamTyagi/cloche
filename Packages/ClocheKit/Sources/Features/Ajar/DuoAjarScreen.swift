@@ -2,8 +2,8 @@ import DesignSystem
 import Domain
 import SwiftUI
 
-/// Board "Duo 2 Door ajar": the inner display split at the hinge. The top half is the dimmed
-/// oven cavity with the countdown; the bottom half is the oven door, tilted by the real hinge
+/// Board "Duo 2 Door ajar": the inner display split at the hinge. The top half is the same oven
+/// as on the cover (`OvenFrame` in `OvenStage`'s slot, door off), dimmed, with the countdown; the bottom half is the oven door, tilted by the real hinge
 /// angle (effect only, never layout). Nothing is placed across the hinge band.
 struct DuoAjarScreen: View {
     let bake: Bake
@@ -12,27 +12,30 @@ struct DuoAjarScreen: View {
     let hingeAngle: Double?
 
     var body: some View {
-        GeometryReader { proxy in
-            let half = proxy.size.height / 2
-            TimelineView(.periodic(from: .now, by: 0.25)) { context in
-                VStack(spacing: 0) {
-                    topHalf(at: context.date)
-                        .frame(height: half)
-                    DuoDoorPanel(liftDegrees: hingeAngle.map(DoorGeometry.liftDegrees(hingeAngle:)) ?? DoorGeometry.defaultAjarLift)
-                        .frame(height: half)
-                        .accessibilityHidden(true)
-                }
-                .overlay { HingeCrease().position(x: proxy.size.width / 2, y: half) }
+        TimelineView(.periodic(from: .now, by: 0.25)) { context in
+            OvenStage(isContentFullBleed: true) {
+                EmptyView()
+            } oven: {
+                topHalf(at: context.date)
+            } content: {
+                DuoDoorPanel(liftDegrees: hingeAngle.map(DoorGeometry.liftDegrees(hingeAngle:)) ?? DoorGeometry.defaultAjarLift)
+                    .accessibilityHidden(true)
             }
+            .overlay { HingeCrease().ignoresSafeArea() }
         }
         .background(Palette.black.ignoresSafeArea())
     }
 
     private func topHalf(at date: Date) -> some View {
         ZStack {
-            OvenCavityView(heat: 0.8, dishProgress: bake.progress(at: date), browning: .pale, dish: Dish(recipeID: bake.recipeID))
-                .padding([.horizontal, .top], Spacing.s3)
-                .padding(.bottom, 14)
+            OvenFrame(
+                plate: Text(CountdownFormat.seconds(graceEndsAt.timeIntervalSince(date))),
+                heat: 0.8,
+                dish: Dish(recipeID: bake.recipeID),
+                dishProgress: bake.progress(at: date),
+                browning: .pale,
+                showsDoor: false
+            )
             // 80% scrim over the cavity.
             Palette.black.opacity(0.8)
                 .accessibilityHidden(true)

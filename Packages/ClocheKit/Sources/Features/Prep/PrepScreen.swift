@@ -2,7 +2,7 @@ import DesignSystem
 import Domain
 import SwiftUI
 
-/// Board "1 Prep". The oven, door shut, fills the top half; the bottom half picks how long to
+/// Board "1 Prep". The oven slot (`OvenFrame`) fills the whole top half, edge to edge; the bottom half picks how long to
 /// bake. Each length loads its own dish onto the rack (Quick cupcakes, Medium a small cake,
 /// Long a large cake), visible through the door's glass. The art is a placeholder for the 3D
 /// assets; the half-and-half layout is what stays.
@@ -26,17 +26,13 @@ struct PrepScreen: View {
             optionsHalf
         }
         .pocketScreenBackground()
-        .background(alignment: .top) { heroGlow }
     }
 
     private var oven: some View {
-        OvenView(
+        OvenFrame(
             plate: Text(CountdownFormat.clock(TimeInterval(length.minutes * 60))),
             heat: 0.4,
-            doorOpen: 0,
-            dishProgress: 0,
-            dish: Dish(recipeID: recipe.id),
-            hasClearGlass: true
+            dish: Dish(recipeID: recipe.id)
         )
         .animation(reduceMotion ? nil : .spring(duration: 0.5, bounce: 0.15), value: length)
         .accessibilityIdentifier("prep.oven")
@@ -104,14 +100,6 @@ struct PrepScreen: View {
             .accessibilityIdentifier("prep.settings")
             .padding(.trailing, -Spacing.s3)
         }
-    }
-
-    private var heroGlow: some View {
-        RadialGradient(colors: [Palette.accent.opacity(0.17), .clear], center: .center, startRadius: 0, endRadius: 220)
-            .frame(height: 420)
-            .offset(y: 40)
-            .allowsHitTesting(false)
-            .accessibilityHidden(true)
     }
 }
 

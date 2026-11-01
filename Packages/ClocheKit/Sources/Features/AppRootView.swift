@@ -19,6 +19,7 @@ public struct AppRootView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showsSplash = true
+    @State private var awayMonitor: AppAwayMonitor
 
     private let dependencies: FeatureDependencies
     private let debug: DebugOptions
@@ -26,6 +27,7 @@ public struct AppRootView: View {
     public init(dependencies: FeatureDependencies, debug: DebugOptions = DebugOptions()) {
         self.dependencies = dependencies
         self.debug = debug
+        _awayMonitor = State(initialValue: AppAwayMonitor(sensor: dependencies.doorSensor))
     }
 
     public var body: some View {
@@ -46,9 +48,12 @@ public struct AppRootView: View {
             }
         }
         .background(HingeSensorAnchor(sensor: dependencies.doorSensor).accessibilityHidden(true))
+        // Full screen everywhere: no time, network or battery over the oven (open screen and cover).
+        .statusBarHidden()
         .onChange(of: scenePhase) { _, phase in
             // Catch up on deadlines that passed while the app was in the background.
             if phase == .active { dependencies.session.send(.tick) }
+            awayMonitor.scenePhaseChanged(to: phase, isBaking: isBaking)
         }
         .onChange(of: dependencies.settings.doorMode, initial: true) { _, mode in
             dependencies.doorSensor.preference = mode
@@ -73,5 +78,13 @@ public struct AppRootView: View {
         #else
         SessionRootView(dependencies: dependencies)
         #endif
+    }
+
+    /// The bake is in the oven: leaving the app now counts as opening the door.
+    private var isBaking: Bool {
+        switch dependencies.session.phase {
+        case .baking, .ajar: true
+        default: false
+        }
     }
 }

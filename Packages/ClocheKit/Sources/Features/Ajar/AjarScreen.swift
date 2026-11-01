@@ -7,6 +7,8 @@ import SwiftUI
 struct AjarScreen: View {
     let bake: Bake
     let graceEndsAt: Date
+    /// Shuts the door by hand when the bake was started without turning the phone over.
+    var onClose: (() -> Void)?
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.25)) { context in
@@ -31,6 +33,12 @@ struct AjarScreen: View {
                 )
                 .padding(.horizontal, Spacing.margin)
                 .padding(.top, 140)
+            }
+        }
+        .overlay(alignment: .bottom) {
+            if let onClose {
+                ManualDoorButton(title: Text("Close the door", bundle: .module), identifier: "ajar.closeManually", action: onClose)
+                    .padding(.bottom, Spacing.margin)
             }
         }
         .pocketScreenBackground()

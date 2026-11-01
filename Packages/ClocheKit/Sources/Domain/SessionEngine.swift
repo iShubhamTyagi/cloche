@@ -123,12 +123,23 @@ public struct SessionEngine: Codable, Equatable, Sendable {
             return startBake(now: now)
 
         case let .baking(bake) where door != .closed:
-            phase = .ajar(bake, openedAt: now, graceEndsAt: now.addingTimeInterval(Self.graceDuration))
-            return [.cue(.doorAjar)]
+            let graceEndsAt = now.addingTimeInterval(Self.graceDuration)
+            phase = .ajar(bake, openedAt: now, graceEndsAt: graceEndsAt)
+            var effects: [SessionEffect] = [.cue(.doorAjar)]
+            // The player may have left the app and not come back; don't promise a ready bake
+            // that could end half-baked while the app is suspended. Back on when the door shuts.
+            if let endsAt = bake.endsAt, endsAt > graceEndsAt {
+                effects.append(.cancelNotification(.bakeReady))
+            }
+            return effects
 
-        case let .ajar(bake, _, _) where door == .closed:
+        case let .ajar(bake, _, graceEndsAt) where door == .closed:
             phase = .baking(bake)
-            return [.cue(.bakeResumed)]
+            var effects: [SessionEffect] = [.cue(.bakeResumed)]
+            if let endsAt = bake.endsAt, endsAt > graceEndsAt {
+                effects.append(.scheduleNotification(.bakeReady, at: endsAt))
+            }
+            return effects
 
         case let .ready(bake) where door == .open:
             // A partly open Duo (ajar) waits; the reveal needs the door fully open.

@@ -1,0 +1,313 @@
+{
+  "asset": "oven",
+  "units": "metres",
+  "axes": "camera looks +Y, oven front y=0, Z up",
+  "frame_count": 48,
+  "angle_range_degrees": [
+    0,
+    180
+  ],
+  "angle_of_frame": "180 * index / 47",
+  "resolution": [
+    1000,
+    1200
+  ],
+  "pixel_origin": "top-left",
+  "background": "transparent RGBA PNG",
+  "camera": {
+    "location": [
+      0.0,
+      -2.3,
+      0.36
+    ],
+    "target": [
+      0.0,
+      -0.05,
+      0.05
+    ],
+    "lens": 110,
+    "sensor_width_mm": 36.0
+  },
+  "render": {
+    "engine": "Cycles",
+    "samples": 96,
+    "denoiser": "OpenImageDenoise",
+    "view_transform": "AgX",
+    "look": "AgX - Medium High Contrast",
+    "heat": 1.0,
+    "bloom": true,
+    "note": "studio softboxes light-linked off DoorGlass (no glint flashes)"
+  },
+  "hinge_axis_pixels": [
+    [
+      98.0,
+      610.1
+    ],
+    [
+      742.5,
+      610.1
+    ]
+  ],
+  "body_front_pixels": {
+    "front_top_left": [
+      81.8,
+      111.1
+    ],
+    "front_top_right": [
+      918.2,
+      111.1
+    ],
+    "front_bottom_left": [
+      89.7,
+      617.4
+    ],
+    "front_bottom_right": [
+      910.3,
+      617.4
+    ]
+  },
+  "depth_m": 0.4,
+  "frames": [
+    {
+      "index": 0,
+      "file": "door/door_000.png",
+      "angle": 0.0
+    },
+    {
+      "index": 1,
+      "file": "door/door_001.png",
+      "angle": 3.8298
+    },
+    {
+      "index": 2,
+      "file": "door/door_002.png",
+      "angle": 7.6596
+    },
+    {
+      "index": 3,
+      "file": "door/door_003.png",
+      "angle": 11.4894
+    },
+    {
+      "index": 4,
+      "file": "door/door_004.png",
+      "angle": 15.3191
+    },
+    {
+      "index": 5,
+      "file": "door/door_005.png",
+      "angle": 19.1489
+    },
+    {
+      "index": 6,
+      "file": "door/door_006.png",
+      "angle": 22.9787
+    },
+    {
+      "index": 7,
+      "file": "door/door_007.png",
+      "angle": 26.8085
+    },
+    {
+      "index": 8,
+      "file": "door/door_008.png",
+      "angle": 30.6383
+    },
+    {
+      "index": 9,
+      "file": "door/door_009.png",
+      "angle": 34.4681
+    },
+    {
+      "index": 10,
+      "file": "door/door_010.png",
+      "angle": 38.2979
+    },
+    {
+      "index": 11,
+      "file": "door/door_011.png",
+      "angle": 42.1277
+    },
+    {
+      "index": 12,
+      "file": "door/door_012.png",
+      "angle": 45.9574
+    },
+    {
+      "index": 13,
+      "file": "door/door_013.png",
+      "angle": 49.7872
+    },
+    {
+      "index": 14,
+      "file": "door/door_014.png",
+      "angle": 53.617
+    },
+    {
+      "index": 15,
+      "file": "door/door_015.png",
+      "angle": 57.4468
+    },
+    {
+      "index": 16,
+      "file": "door/door_016.png",
+      "angle": 61.2766
+    },
+    {
+      "index": 17,
+      "file": "door/door_017.png",
+      "angle": 65.1064
+    },
+    {
+      "index": 18,
+      "file": "door/door_018.png",
+      "angle": 68.9362
+    },
+    {
+      "index": 19,
+      "file": "door/door_019.png",
+      "angle": 72.766
+    },
+    {
+      "index": 20,
+      "file": "door/door_020.png",
+      "angle": 76.5957
+    },
+    {
+      "index": 21,
+      "file": "door/door_021.png",
+      "angle": 80.4255
+    },
+    {
+      "index": 22,
+      "file": "door/door_022.png",
+      "angle": 84.2553
+    },
+    {
+      "index": 23,
+      "file": "door/door_023.png",
+      "angle": 88.0851
+    },
+    {
+      "index": 24,
+      "file": "door/door_024.png",
+      "angle": 91.9149
+    },
+    {
+      "index": 25,
+      "file": "door/door_025.png",
+      "angle": 95.7447
+    },
+    {
+      "index": 26,
+      "file": "door/door_026.png",
+      "angle": 99.5745
+    },
+    {
+      "index": 27,
+      "file": "door/door_027.png",
+      "angle": 103.4043
+    },
+    {
+      "index": 28,
+      "file": "door/door_028.png",
+      "angle": 107.234
+    },
+    {
+      "index": 29,
+      "file": "door/door_029.png",
+      "angle": 111.0638
+    },
+    {
+      "index": 30,
+      "file": "door/door_030.png",
+      "angle": 114.8936
+    },
+    {
+      "index": 31,
+      "file": "door/door_031.png",
+      "angle": 118.7234
+    },
+    {
+      "index": 32,
+      "file": "door/door_032.png",
+      "angle": 122.5532
+    },
+    {
+      "index": 33,
+      "file": "door/door_033.png",
+      "angle": 126.383
+    },
+    {
+      "index": 34,
+      "file": "door/door_034.png",
+      "angle": 130.2128
+    },
+    {
+      "index": 35,
+      "file": "door/door_035.png",
+      "angle": 134.0426
+    },
+    {
+      "index": 36,
+      "file": "door/door_036.png",
+      "angle": 137.8723
+    },
+    {
+      "index": 37,
+      "file": "door/door_037.png",
+      "angle": 141.7021
+    },
+    {
+      "index": 38,
+      "file": "door/door_038.png",
+      "angle": 145.5319
+    },
+    {
+      "index": 39,
+      "file": "door/door_039.png",
+      "angle": 149.3617
+    },
+    {
+      "index": 40,
+      "file": "door/door_040.png",
+      "angle": 153.1915
+    },
+    {
+      "index": 41,
+      "file": "door/door_041.png",
+      "angle": 157.0213
+    },
+    {
+      "index": 42,
+      "file": "door/door_042.png",
+      "angle": 160.8511
+    },
+    {
+      "index": 43,
+      "file": "door/door_043.png",
+      "angle": 164.6809
+    },
+    {
+      "index": 44,
+      "file": "door/door_044.png",
+      "angle": 168.5106
+    },
+    {
+      "index": 45,
+      "file": "door/door_045.png",
+      "angle": 172.3404
+    },
+    {
+      "index": 46,
+      "file": "door/door_046.png",
+      "angle": 176.1702
+    },
+    {
+      "index": 47,
+      "file": "door/door_047.png",
+      "angle": 180.0
+    }
+  ],
+  "usdz": "build/oven.usdz"
+}

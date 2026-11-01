@@ -136,6 +136,8 @@ Stage 1 note: height is 0.35 m, not the brief's 0.33, because at 0.33 the front 
 
 Stage 4 note: the racks sit at 105 and 200 mm so a cupcake on either tray has headroom (checked by `render.py`, with a slide-out clearance check through the gasket). Each tube carries a thin warm area light (`*_Light`) so its glow reaches the racks and walls; `materials.set_heat(0..1)` drives tubes and lights together.
 
+Stage 5 note: `scripts/blender/frames.py` renders `build/renders/stage5/door/door_000`–`047.png` (1000 × 1200, transparent, heat on, one fixed near-level camera; frame *i* is at 180 × *i* / 47 degrees) and `manifest.json` with each frame's angle and the pixel positions of the hinge axis and the body front, so the app can map the hinge angle to a frame and line it up with `OvenStage`. Studio softboxes are light-linked off the door glass in these frames (otherwise the key light's edge flashes across the hanging door around 145–160°). `build/oven.usdz` holds only the `Oven` hierarchy, Y-up, for Reality Composer Pro and Quick Look.
+
 ## Blender export spec (for the oven now, and every later asset)
 
 - **Scale:** real-world metres (a countertop oven is about 0.50 × 0.32 × 0.40 m), with scale applied.

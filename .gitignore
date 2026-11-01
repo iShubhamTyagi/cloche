@@ -19,3 +19,5 @@ Packages/ClocheKit/.build/
 *.blend1
 __pycache__/
 build/watch.log
+build/renders/*/frames.log
+build/renders/*/render.log

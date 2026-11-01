@@ -115,7 +115,7 @@ The owner's brief replaces the greybox-by-hand in Step 1. Everything is a re-run
 | --- | --- |
 | Reference | `reference/oven_ref.png` (open, elevated, near-frontal) and `reference/oven_ref_closed.png` (closed, front). Match the design; make it far more realistic. No text, logos or brand marks. |
 | Size and axes | Metres, about 0.52 W × 0.33 H × 0.40 D. Camera looks along +Y, oven front on y = 0, Z up. |
-| Parts | Separate named objects: `Body`, `Door` (children `DoorGlass`, `DoorHandle`), `ControlPanel` (child `Display`), `Knob1`–`Knob3`, `Rack1` (upper, carries the tray) and `Rack2` (lower; two racks at the owner's request), `Tray`, `HeatingElement_Top1/2`, `HeatingElement_Bottom1/2`, `Feet`, empties `CakeSlot_A`–`D` on the tray, all under one `Oven` root empty. These names replace the `Oven_*` names below for this asset. |
+| Parts | Separate named objects: `Body`, `Door` (children `DoorGlass`, `DoorHandle`), `ControlPanel` (child `Display`), `Knob1`–`Knob3`, `Rack1` and `Rack2` (two racks at the owner's request, each its own object with its origin on the back edge so code slides it out along -Y for plating), `Tray1` on Rack1 and `Tray2` on Rack2 (children of their racks, so they come out with them), `HeatingElement_Top1/2`, `HeatingElement_Bottom1/2`, `Feet`, empties `CakeSlot_A`–`D` on Tray1 and `CakeSlot_E`–`H` on Tray2, all under one `Oven` root empty. These names replace the `Oven_*` names below for this asset. |
 | Door hinge | Origin on the hinge axis. `--hinge bottom` (default): axis along X at the bottom front edge, `rotation_euler.x = +radians(angle)`, 0 closed, 88 flat toward the camera, **up to 180 hanging straight down** to match the Duo's hinge (owner, 2026-11-01). The oven sits at the counter's front edge so the door can swing past flat; the hinge test covers 0, 30, 60, 88, 120, 150 and 180°. `--hinge left`: axis along Z at the left front edge, `rotation_euler.z = -radians(angle)`. |
 | Materials | Principled BSDF, **procedural only** (no image textures, no external assets): black enamel, brushed anisotropic steel, smoked double glass, rubber, satin knobs, emissive quartz tubes with matching area lights. Light micro-imperfections, never dirty. (Supersedes "no procedural node textures" below for the pre-rendered oven; a USDZ export would need them baked.) |
 | Render | Cycles, AgX, transparent background, RGBA PNG. 32 samples for previews, 256 for finals, OpenImageDenoise, bloom on finals only. |
@@ -133,6 +133,8 @@ The owner's brief replaces the greybox-by-hand in Step 1. Everything is a re-run
 Each stage is committed on its own (scripts and renders only).
 
 Stage 1 note: height is 0.35 m, not the brief's 0.33, because at 0.33 the front read 1.58:1 against the reference's 1.39:1; at 0.35 the perspective front matches (1.40). Feet are 32 mm so the open door's handle clears the floor (13 mm at 88°).
+
+Stage 4 note: the racks sit at 105 and 200 mm so a cupcake on either tray has headroom (checked by `render.py`, with a slide-out clearance check through the gasket). Each tube carries a thin warm area light (`*_Light`) so its glow reaches the racks and walls; `materials.set_heat(0..1)` drives tubes and lights together.
 
 ## Blender export spec (for the oven now, and every later asset)
 

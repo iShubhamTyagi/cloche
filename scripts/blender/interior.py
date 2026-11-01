@@ -3,7 +3,7 @@ upper rack), quartz heating tubes with ceramic end caps and wall mounts, and a c
 import bpy
 
 import common as C
-from layout import (CAKE_SPACING, CAV_X0, CAV_X1, CAV_XC, CAV_Y1, CAV_Z0, ELEMENT_R, ELEMENT_YS,
+from layout import (CAKE_SPACING, ELEMENT_LIGHT_COLOR, ELEMENT_LIGHT_WATTS, TRAYS, CAV_X0, CAV_X1, CAV_XC, CAV_Y1, CAV_Z0, ELEMENT_R, ELEMENT_YS,
                     ELEMENT_ZS, FRAME_ROD_R, RACKS, RAIL_LEVELS, ROD_R, TRAY_DEPTH, TRAY_X0, TRAY_X1,
                     TRAY_Y0, TRAY_Y1)
 
@@ -16,10 +16,11 @@ def build(root, body):
     build_crumb_tray(body)
     for name, z in RACKS.items():
         rack = build_rack(root, name, z)
-        if name == "Rack1":
-            build_tray(rack, z)
+        rack["slides"] = "-Y"           # code pulls it out along -Y from its back-edge origin
+        tray_name, letters = TRAYS[name]
+        build_tray(rack, z, tray_name, letters)
     for prefix, z in ELEMENT_ZS.items():
-        for i, y in enumerate(ELEMENT_YS, start=1):
+        for i, y in enumerate(ELEMENT_YS[prefix], start=1):
             build_element(root, f"HeatingElement_{prefix}{i}", y, z)
 
 
@@ -55,8 +56,9 @@ def build_rack(root, name, z):
     return rack
 
 
-def build_tray(rack, rack_z):
-    """Black enamel tray with sloped walls and a rolled rim, four cake slots on its floor."""
+def build_tray(rack, rack_z, name, letters):
+    """Black enamel tray with sloped walls and a rolled rim, four cake slots on its floor.
+    A child of its rack, so it comes out with it; code can also lift it off on its own."""
     base = rack_z + FRAME_ROD_R
     inset = 0.006            # walls slope in toward the floor
     bm = C.bmesh.new()
@@ -65,7 +67,7 @@ def build_tray(rack, rack_z):
         if v.co.z < base + 0.001:
             v.co.x += inset if v.co.x < CAV_XC else -inset
             v.co.y += inset if v.co.y < (TRAY_Y0 + TRAY_Y1) / 2 else -inset
-    tray = C.mesh_object("Tray", bm, origin=((TRAY_X0 + TRAY_X1) / 2, (TRAY_Y0 + TRAY_Y1) / 2, base), parent=rack)
+    tray = C.mesh_object(name, bm, origin=((TRAY_X0 + TRAY_X1) / 2, (TRAY_Y0 + TRAY_Y1) / 2, base), parent=rack)
 
     hollow = C.bmesh.new()
     wall = 0.0012
@@ -87,12 +89,12 @@ def build_tray(rack, rack_z):
     for x in (TRAY_X0, TRAY_X1):
         for y in (TRAY_Y0, TRAY_Y1):
             C.add_sphere(rim, (x, y, top), r, segments=16)
-    rim_obj = C.mesh_object("TrayRim", rim, origin=tray.location, parent=tray)
+    rim_obj = C.mesh_object(f"{name}Rim", rim, origin=tray.location, parent=tray)
     C.finish(rim_obj, angle=80)
     C.finish(tray, bevel=0.0008, segments=2)
 
     yc = (TRAY_Y0 + TRAY_Y1) / 2
-    for i, letter in enumerate("ABCD"):
+    for i, letter in enumerate(letters):
         x = CAV_XC + (i - 1.5) * CAKE_SPACING
         slot = C.empty(f"CakeSlot_{letter}", (0, 0, 0), size=0.03, kind="SINGLE_ARROW")
         slot.parent = tray
@@ -117,6 +119,26 @@ def build_element(root, name, y, z):
                   (max(wall, wall + inward * 0.005), y + 0.009, z + 0.009))
     caps = C.mesh_object(f"{name}_Caps", bm, origin=tube.location, parent=tube)
     C.finish(caps, bevel=0.0008)
+
+    # A thin area light along the tube so its glow lights the racks and walls (the emissive
+    # tube alone is too small for Cycles to sample cleanly). Top tubes shine down, bottom up.
+    data = bpy.data.lights.new(f"{name}_Light", "AREA")
+    data.shape = "RECTANGLE"
+    data.size, data.size_y = tube_x1 - tube_x0, 0.010
+    data.color = ELEMENT_LIGHT_COLOR
+    data.energy = 0.0
+    light = bpy.data.objects.new(f"{name}_Light", data)
+    light["watts_at_full"] = ELEMENT_LIGHT_WATTS
+    light.visible_camera = False
+    shines_down = name.startswith("HeatingElement_Top")
+    offset = -(ELEMENT_R + 0.001) if shines_down else ELEMENT_R + 0.001
+    light.location = ((tube_x0 + tube_x1) / 2, y, z + offset)
+    if not shines_down:
+        light.rotation_euler = (3.14159265, 0, 0)
+    C.link(light)
+    bpy.context.view_layer.update()
+    light.parent = tube
+    light.matrix_parent_inverse = tube.matrix_world.inverted()
 
 
 def build_crumb_tray(body):

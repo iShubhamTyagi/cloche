@@ -143,8 +143,8 @@ def cavity_enamel():
     """Oven-interior enamel: dark charcoal with fine light flecks, satin."""
     n = Nodes("CavityEnamel")
     fleck = n.remap(n.noise(900.0, 1.0), 0.70, 0.73, 0.0, 1.0)
-    n.link(n.mix_color(fleck, (0.022, 0.022, 0.025), (0.22, 0.22, 0.23)), n.bsdf.inputs["Base Color"])
-    n.link(n.remap(n.noise(20.0, 3.0), 0.3, 0.7, 0.5, 0.62), n.bsdf.inputs["Roughness"])
+    n.link(n.mix_color(fleck, (0.012, 0.012, 0.014), (0.16, 0.16, 0.17)), n.bsdf.inputs["Base Color"])
+    n.link(n.remap(n.noise(20.0, 3.0), 0.3, 0.7, 0.62, 0.75), n.bsdf.inputs["Roughness"])
     n.bump(n.noise(600.0, 2.0), 0.04)
     return n.mat
 
@@ -250,7 +250,7 @@ def quartz_element(half_length):
     n.link(ramp.outputs["Color"], n.bsdf.inputs["Emission Color"])
     heat = n.value("Heat", 0.0)
     falloff = n.remap(along, 0.7, 1.0, 1.0, 0.45)
-    n.link(n.math("MULTIPLY", n.math("MULTIPLY", heat, 18.0), falloff), n.bsdf.inputs["Emission Strength"])
+    n.link(n.math("MULTIPLY", n.math("MULTIPLY", heat, 7.0), falloff), n.bsdf.inputs["Emission Strength"])
     return n.mat
 
 
@@ -284,7 +284,7 @@ ASSIGN = {
     "DoorHingeArms": ("dark_steel",), "HingeKnuckles": ("dark_steel",), "BodyScrews": ("dark_steel",),
     "Gasket": ("rubber",), "Feet": ("rubber",), "FeetRings": ("steel",), "RackRails": ("cavity",),
     "CrumbTray": ("alu",), "CrumbTrayTab": ("enamel",), "Rack1": ("chrome",), "Rack2": ("chrome",),
-    "Tray": ("tray",), "TrayRim": ("tray",),
+    "Tray1": ("tray",), "Tray1Rim": ("tray",), "Tray2": ("tray",), "Tray2Rim": ("tray",),
 }
 
 
@@ -316,7 +316,11 @@ def mark_cavity_faces(body):
 
 
 def set_heat(level):
+    """0 off, 1 full: the tubes' emission and their area lights together."""
     bpy.data.materials["QuartzElement"].node_tree.nodes["Heat"].outputs[0].default_value = level
+    for obj in bpy.data.objects:
+        if obj.type == "LIGHT" and "watts_at_full" in obj:
+            obj.data.energy = level * obj["watts_at_full"]
 
 
 def set_display_glow(level):

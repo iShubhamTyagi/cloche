@@ -23,14 +23,17 @@ CAV_Z0, CAV_Z1 = Z0 + 0.028, Z1 - 0.030
 CAV_Y1 = D - 0.025
 CAV_XC = (CAV_X0 + CAV_X1) / 2
 
-# Two racks: the upper one carries the tray. Rails are on the side walls at every level.
-RACKS = {"Rack1": 0.200, "Rack2": 0.125}   # z of the rack's rod centres
-RAIL_LEVELS = (0.125, 0.200, 0.262)
+# Two racks, each its own object carrying its own tray, so either can slide out (-Y) for
+# plating. Rack2 sits low enough that a cupcake on Tray2 clears Rack1 (90 mm), and Tray1's
+# cupcakes clear the top tubes. Rails are on the side walls at every level (one spare).
+RACKS = {"Rack1": 0.200, "Rack2": 0.105}   # z of the rack's rod centres
+TRAYS = {"Rack1": ("Tray1", "ABCD"), "Rack2": ("Tray2", "EFGH")}   # tray name, cake slot letters
+RAIL_LEVELS = (0.105, 0.200, 0.262)
 ROD_R, FRAME_ROD_R = 0.0016, 0.0025
 
 ELEMENT_R = 0.0055
-ELEMENT_YS = (0.11, 0.27)
-ELEMENT_ZS = {"Top": CAV_Z1 - 0.018, "Bottom": CAV_Z0 + 0.018}
+ELEMENT_YS = {"Top": (0.17, 0.30), "Bottom": (0.11, 0.27)}   # top pair set back so they show under the cavity lip
+ELEMENT_ZS = {"Top": CAV_Z1 - 0.040, "Bottom": CAV_Z0 + 0.020}   # top tubes clear the door's top band
 
 TRAY_X0, TRAY_X1 = CAV_XC - 0.155, CAV_XC + 0.155
 TRAY_Y0, TRAY_Y1 = 0.075, 0.315
@@ -40,3 +43,6 @@ CAKE_SPACING = 0.072
 PANEL_T = 0.008                     # control panel plate, y in [-PANEL_T, 0]
 PANEL_XC = (PANEL_X0 + X1) / 2
 KNOB_ZS = (DOOR_Z1 - 0.115, DOOR_Z1 - 0.180, DOOR_Z1 - 0.245)
+
+ELEMENT_LIGHT_WATTS = 2.0           # area light per tube at full heat (render.set_heat scales it)
+ELEMENT_LIGHT_COLOR = (1.0, 0.42, 0.12)

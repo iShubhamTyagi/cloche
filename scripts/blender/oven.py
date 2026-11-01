@@ -10,8 +10,10 @@ matching the Duo's hinge: 180 hangs straight down in front of the counter edge.
 
 Parts: Body (children RackRails, CrumbTray, Gasket, BodyScrews, HingeKnuckles), Door (DoorGlass,
 DoorFrit, DoorHandle, DoorHingeArms), ControlPanel (Display, KnobRings, Knob1-3), Rack1 (upper,
-carries Tray > TrayRim, CakeSlot_A-D), Rack2 (lower), HeatingElement_Top1/2 and _Bottom1/2 (each
-with _Caps), Feet (FeetRings). Layout numbers live in layout.py.
+carries Tray1 > Tray1Rim, CakeSlot_A-D), Rack2 (lower, carries Tray2 > Tray2Rim, CakeSlot_E-H),
+HeatingElement_Top1/2 and _Bottom1/2 (each with _Caps and an area _Light), Feet (FeetRings).
+Each rack is its own object with its origin on its back edge: slide it out along -Y (its tray
+comes with it) for plating. Layout numbers live in layout.py.
 """
 import argparse
 import math

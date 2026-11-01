@@ -18,7 +18,8 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(__file__))
 import common as C  # noqa: E402
 import materials  # noqa: E402
-from layout import COUNTER_EDGE_Y, COUNTER_T, D, X0, X1, Z0, Z1  # noqa: E402
+from layout import (CAV_X0, CAV_X1, CAV_Z0, CAV_Z1, COUNTER_EDGE_Y, COUNTER_T, D, ELEMENT_R,  # noqa: E402
+                    ELEMENT_ZS, RACKS, TRAYS, X0, X1, Z0, Z1)
 
 HINGE_TEST_ANGLES = (0, 30, 60, 88, 120, 150, 180)
 OPEN_ANGLE = 88
@@ -30,9 +31,9 @@ REF_OPEN = ("oven_ref.png", (30, 224, 374, 584))           # body + dropped door
 
 # name: (location, target, lens mm or None for ortho, ortho scale, door angle)
 VIEWS = {
-    "front_closed": ((0.0, -1.85, 0.62), (0.0, 0.12, 0.165), 85, None, 0),
+    "front_closed": ((0.0, -1.90, 0.42), (0.0, 0.12, 0.17), 85, None, 0),
     "open_34": ((1.05, -1.40, 0.62), (0.0, -0.05, 0.13), 70, None, OPEN_ANGLE),
-    "refmatch_open": ((0.0, -1.20, 0.80), (0.0, -0.06, 0.14), 45, None, OPEN_ANGLE),
+    "refmatch_open": ((0.0, -1.25, 0.62), (0.0, -0.06, 0.12), 45, None, OPEN_ANGLE),
     "ortho_front": ((0.0, -2.0, 0.175), (0.0, 0.0, 0.175), None, 0.62, 0),
 }
 # Close-ups from Stage 2 on, to judge bevels and small parts.
@@ -45,6 +46,12 @@ DETAIL_VIEWS = {
 
 
 # ------------------------------------------------------------------ scene setup
+
+# Stage 4 on: both racks pulled part-way out over the open door, to show they come out.
+RACK_VIEWS = {"racks_out": ((0.85, -1.25, 0.70), (0.0, -0.12, 0.14), 50, None, OPEN_ANGLE)}
+RACKS_OUT = {"racks_out": {"Rack1": 0.24, "Rack2": 0.13}}
+CAKE_ALLOWANCE = 0.065   # tallest cupcake plus a margin, for the rack spacing check
+
 
 def setup_cycles(quality):
     scene = bpy.context.scene
@@ -163,12 +170,12 @@ def studio_lighting():
     bg.inputs["Strength"].default_value = 1.0
     links.new(bg.outputs["Background"], out.inputs["Surface"])
     add_area("SoftboxKey", (-1.1, -1.3, 1.3), (0, 0.1, 0.15), (1.6, 1.0), 120)
-    add_area("SoftboxFill", (1.4, -0.9, 0.7), (0, 0.1, 0.15), (1.2, 1.2), 30)
-    add_area("Rim", (0.5, 1.3, 0.9), (0, 0.2, 0.2), (1.2, 0.3), 110)
+    add_area("SoftboxFill", (1.4, -0.9, 0.7), (0, 0.1, 0.15), (1.6, 1.6), 16)
+    add_area("Rim", (1.3, 0.9, 0.55), (0, 0.2, 0.2), (1.2, 0.3), 110)
 
 
 def camera(view):
-    location, target, lens, ortho, _ = {**VIEWS, **DETAIL_VIEWS}[view]
+    location, target, lens, ortho, _ = {**VIEWS, **DETAIL_VIEWS, **RACK_VIEWS}[view]
     cam = bpy.data.objects.get("Camera")
     if cam is None:
         cam = bpy.data.objects.new("Camera", bpy.data.cameras.new("Camera"))
@@ -229,6 +236,75 @@ def door_clearance(angle):
         ev.to_mesh_clear()
     return {"angle": angle, "min_z": round(min_z, 4), "clips_body": in_body > 0,
             "clips_counter": in_counter > 0}
+
+
+def slide_racks(offsets):
+    """Pull each rack out along -Y by `offsets[name]` metres (0 = home)."""
+    for name in RACKS:
+        rack = bpy.data.objects[name]
+        if "home_y" not in rack:
+            rack["home_y"] = rack.location.y
+        rack.location.y = rack["home_y"] - offsets.get(name, 0.0)
+    bpy.context.view_layer.update()
+
+
+def rack_clearance():
+    """Each rack with its tray must fit through the cavity mouth inside the gasket (so it slides
+    straight out), and each tray needs room for a cupcake above it."""
+    slide_racks({})
+    out = {}
+    tops = {}
+    for name in RACKS:
+        meshes = [o.name for o in C.descendants(bpy.data.objects[name]) if o.type == "MESH"]
+        lo, hi = C.world_bounds(meshes)
+        tray_lo, tray_hi = C.world_bounds([TRAYS[name][0]])
+        tops[name] = (lo.z, tray_lo.z)
+        gasket = 0.004
+        out[name] = {"slides_out_clear": bool(lo.x > CAV_X0 + gasket and hi.x < CAV_X1 - gasket
+                                              and lo.z > CAV_Z0 + gasket and hi.z < CAV_Z1 - gasket)}
+    top_tube_bottom = ELEMENT_ZS["Top"] - ELEMENT_R
+    out["Rack1"]["cake_headroom_mm"] = round((top_tube_bottom - tops["Rack1"][1]) * 1000, 1)
+    out["Rack2"]["cake_headroom_mm"] = round((tops["Rack1"][0] - tops["Rack2"][1]) * 1000, 1)
+    for name in RACKS:
+        out[name]["fits_cupcake"] = out[name]["cake_headroom_mm"] > CAKE_ALLOWANCE * 1000
+    return out
+
+
+def bloom(enabled):
+    """Compositor glare (bloom) for the tubes' glow, final stills only."""
+    scene = bpy.context.scene
+    if enabled and scene.compositing_node_group is None:
+        tree = bpy.data.node_groups.new("Bloom", "CompositorNodeTree")
+        tree.interface.new_socket("Image", in_out="OUTPUT", socket_type="NodeSocketColor")
+        layers = tree.nodes.new("CompositorNodeRLayers")
+        glare = tree.nodes.new("CompositorNodeGlare")
+        glare.inputs["Type"].default_value = "Bloom"
+        glare.inputs["Threshold"].default_value = 2.5
+        glare.inputs["Strength"].default_value = 0.6
+        glare.inputs["Size"].default_value = 0.35
+        # Add only the glare, masked by the render's alpha, on top of the untouched render, and
+        # keep that alpha: transparent pixels stay exactly zero and shadows stay untinted.
+        mask = tree.nodes.new("CompositorNodeSetAlpha")
+        mask.inputs["Type"].default_value = "Apply Mask"
+        add = tree.nodes.new("ShaderNodeMix")
+        add.data_type = "RGBA"
+        add.blend_type = "ADD"
+        next(i for i in add.inputs if i.identifier == "Factor_Float").default_value = 1.0
+        keep_alpha = tree.nodes.new("CompositorNodeSetAlpha")
+        keep_alpha.inputs["Type"].default_value = "Replace Alpha"
+        out = tree.nodes.new("NodeGroupOutput")
+        link = tree.links.new
+        link(layers.outputs["Image"], glare.inputs["Image"])
+        link(glare.outputs["Glare"], mask.inputs["Image"])
+        link(layers.outputs["Alpha"], mask.inputs["Alpha"])
+        ins = {i.identifier: i for i in add.inputs}
+        link(layers.outputs["Image"], ins["A_Color"])
+        link(mask.outputs["Image"], ins["B_Color"])
+        link(next(o for o in add.outputs if o.identifier == "Result_Color"), keep_alpha.inputs["Image"])
+        link(layers.outputs["Alpha"], keep_alpha.inputs["Alpha"])
+        link(keep_alpha.outputs["Image"], out.inputs[0])
+        scene.compositing_node_group = tree
+    scene.render.use_compositing = enabled
 
 
 def hinge_test(out_dir):
@@ -314,12 +390,40 @@ def comparison(ref_spec, render_path, out_path, height=600):
 
 # ------------------------------------------------------------------ main
 
+def clean_transparent(path):
+    """Zero the colour of fully transparent pixels (bloom leaves stray colour there, which
+    viewers that ignore alpha would show)."""
+    arr = load(path)
+    arr[arr[..., 3] < 1 / 255, :3] = 0
+    save(arr, path)
+
+
+def render_heroes(views, out_dir):
+    """Final stills: 256 samples, bloom on, 1600 x 1200."""
+    scene = bpy.context.scene
+    preview_samples = scene.cycles.samples
+    scene.cycles.samples = 256
+    bloom(True)
+    for name, view in (("hero_closed", "front_closed"), ("hero_open", "open_34")):
+        set_door(views[view][4])
+        slide_racks({})
+        camera(view)
+        path = os.path.join(out_dir, f"{name}.png")
+        render(path, (1600, 1200))
+        clean_transparent(path)
+    bloom(False)
+    scene.cycles.samples = preview_samples
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--stage", type=int, default=1)
     parser.add_argument("--quality", choices=("preview", "final"), default="preview")
     parser.add_argument("--blend", default=os.path.join(C.BUILD, "oven.blend"))
     parser.add_argument("--only", nargs="*", help="render just these views (quick look; no sheets)")
+    parser.add_argument("--bloom", action="store_true", help="with --only: bloom on, as in the finals")
+    parser.add_argument("--heroes", action="store_true", help="stage 4+: re-render only the final stills")
+    parser.add_argument("--clean", action="store_true", help="only re-run clean_transparent on the final stills")
     args = C.script_args(parser)
 
     bpy.ops.wm.open_mainfile(filepath=args.blend)
@@ -334,20 +438,38 @@ def main():
     else:
         studio_lighting()
         materials.set_heat(0.0 if args.stage == 3 else 1.0)
+    if args.stage >= 4:
+        bpy.context.scene.view_settings.look = "AgX - Medium High Contrast"
+        materials.set_display_glow(0.08)
 
     report = {"stage": args.stage, "quality": args.quality}
     report["triangles"], _ = C.triangle_count([o for o in bpy.context.scene.objects if o.name != "Floor"])
-    views = dict(VIEWS, **(DETAIL_VIEWS if args.stage >= 2 else {}))
+    views = dict(VIEWS, **(DETAIL_VIEWS if args.stage >= 2 else {}), **(RACK_VIEWS if args.stage >= 4 else {}))
+    if args.heroes:
+        render_heroes(views, out_dir)
+        return
+    if args.clean:
+        for name in ("hero_closed", "hero_open"):
+            clean_transparent(os.path.join(out_dir, f"{name}.png"))
+        return
     if args.only:
+        bloom(args.bloom)
         for view in args.only:
             set_door(views[view][4])
+            slide_racks(RACKS_OUT.get(view, {}))
             camera(view)
             render(os.path.join(out_dir, f"quick_{view}.png"), (800, 600))
         return
     for view in views:
         set_door(views[view][4])
+        slide_racks(RACKS_OUT.get(view, {}))
         camera(view)
         render(os.path.join(out_dir, f"{view}.png"), (1200, 900))
+    slide_racks({})
+
+    if args.stage >= 4:
+        render_heroes(views, out_dir)
+        report["racks"] = rack_clearance()
 
     report["proportions_closed"] = comparison(REF_CLOSED, os.path.join(out_dir, "ortho_front.png"),
                                               os.path.join(out_dir, "compare_closed_ortho.png"))

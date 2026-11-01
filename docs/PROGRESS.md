@@ -20,6 +20,12 @@ Read the **Current state** first; it says where the next session starts. Then ad
 
 ## Log
 
+### 2026-11-01: Duo cover shows the oven from outside
+
+- **Built:** `OvenStage`, the shared half-and-half layout used by `PrepScreen`, `CoverBakeScreen` (rebuilt: dish baking behind the glass, timer below, ready glow) and the new `CoverIdleScreen` (folded on Prep). The length choice now lives in `SessionRootView`, so it survives a fold.
+- **Verified:** build green on iPhone Duo and iPhone 17; installed on both. Inner Prep (669 × 951) and the cover idle, baking and ready screens (466 × 678) checked through a throwaway `ImageRenderer` render (not kept): the oven is the same width on both screens and sits in the top half.
+- **Left over:** the cover's reserved strip on the right edge still isn't accounted for; the Duo's ajar and grade screens still use their older layouts.
+
 ### 2026-11-01: Prep rework: Bake button, bake lengths, dish per length, splash
 
 - **Built:**

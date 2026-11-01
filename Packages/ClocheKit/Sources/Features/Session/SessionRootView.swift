@@ -11,6 +11,7 @@ struct SessionRootView: View {
 
     @State private var showsSettings = false
     @State private var pendingPreheat: PendingPreheat?
+    @State private var length: BakeLength = .quick
 
     private var session: SessionController { dependencies.session }
 
@@ -19,10 +20,16 @@ struct SessionRootView: View {
         Group {
             switch session.phase {
             case .idle:
-                PrepScreen(doorCopy: copy, onSettings: { showsSettings = true }) { length in
-                    preheat(PendingPreheat(length: length, isDemo: false))
+                if isFoldedShut {
+                    // Folded on Prep: the cover shows the oven from outside.
+                    CoverIdleScreen(length: length)
+                        .transition(.opacity)
+                } else {
+                    PrepScreen(doorCopy: copy, onSettings: { showsSettings = true }, length: $length) { length in
+                        preheat(PendingPreheat(length: length, isDemo: false))
+                    }
+                    .transition(.opacity)
                 }
-                .transition(.opacity)
             case let .armed(bake):
                 PreheatScreen(recipe: StarterRecipes.recipe(id: bake.recipeID), bake: bake, doorCopy: DoorCopy(source: bake.source)) {
                     session.send(.cancelPreheat)
@@ -117,10 +124,15 @@ struct SessionRootView: View {
         }
     }
 
+    /// A Duo shut by its hinge. Read from the engine, which is the only consumer of the door sensor.
+    private var isFoldedShut: Bool {
+        session.doorSource == .hinge && session.engine.door == .closed
+    }
+
     /// Animates only when the phase changes, not on every tick inside a phase.
     private var phaseKey: String {
         switch session.phase {
-        case .idle: "idle"
+        case .idle: isFoldedShut ? "idle-shut" : "idle"
         case .armed: "armed"
         case .baking: "baking"
         case .ajar: "ajar"

@@ -9,45 +9,37 @@ import SwiftUI
 struct PrepScreen: View {
     let doorCopy: DoorCopy
     let onSettings: () -> Void
+    /// Owned by the session root so the choice survives a fold to the cover screen and back.
+    @Binding var length: BakeLength
     let onBake: (BakeLength) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var length: BakeLength = .quick
 
     private var recipe: Recipe { StarterRecipes.recipe(for: length) }
 
     var body: some View {
-        GeometryReader { proxy in
-            VStack(spacing: 0) {
-                ovenHalf
-                    .frame(height: proxy.size.height / 2)
-                optionsHalf
-                    .frame(height: proxy.size.height / 2)
-            }
+        OvenStage {
+            header
+        } oven: {
+            oven
+        } content: {
+            optionsHalf
         }
-        .padding(.horizontal, Spacing.margin)
-        .padding(.bottom, Spacing.s2)
-        .frame(maxWidth: 440)
-        .frame(maxWidth: .infinity)
         .pocketScreenBackground()
         .background(alignment: .top) { heroGlow }
     }
 
-    private var ovenHalf: some View {
-        VStack(spacing: 0) {
-            header
-            OvenView(
-                plate: Text(CountdownFormat.clock(TimeInterval(length.minutes * 60))),
-                heat: 0.4,
-                doorOpen: 0,
-                dishProgress: 0,
-                dish: Dish(recipeID: recipe.id),
-                hasClearGlass: true
-            )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .animation(reduceMotion ? nil : .spring(duration: 0.5, bounce: 0.15), value: length)
-            .accessibilityIdentifier("prep.oven")
-        }
+    private var oven: some View {
+        OvenView(
+            plate: Text(CountdownFormat.clock(TimeInterval(length.minutes * 60))),
+            heat: 0.4,
+            doorOpen: 0,
+            dishProgress: 0,
+            dish: Dish(recipeID: recipe.id),
+            hasClearGlass: true
+        )
+        .animation(reduceMotion ? nil : .spring(duration: 0.5, bounce: 0.15), value: length)
+        .accessibilityIdentifier("prep.oven")
     }
 
     private var optionsHalf: some View {
@@ -112,7 +104,6 @@ struct PrepScreen: View {
             .accessibilityIdentifier("prep.settings")
             .padding(.trailing, -Spacing.s3)
         }
-        .frame(minHeight: HitTarget.minimum)
     }
 
     private var heroGlow: some View {
@@ -125,5 +116,6 @@ struct PrepScreen: View {
 }
 
 #Preview {
-    PrepScreen(doorCopy: DoorCopy(source: .faceDown), onSettings: {}) { _ in }
+    @Previewable @State var length = BakeLength.quick
+    PrepScreen(doorCopy: DoorCopy(source: .faceDown), onSettings: {}, length: $length) { _ in }
 }

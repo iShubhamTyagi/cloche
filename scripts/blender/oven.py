@@ -5,7 +5,8 @@
 Axes: metres, camera looks along +Y, the oven front is the y = 0 plane, Z up, the floor is z = 0.
 Every part is its own named object under the `Oven` root empty. The door's origin sits on its
 hinge axis: bottom hinge opens with rotation_euler.x = +radians(angle) (0 shut, 88 open); left
-hinge opens with rotation_euler.z = -radians(angle).
+hinge opens with rotation_euler.z = -radians(angle). The angle runs 0..180 (DOOR_MAX_ANGLE),
+matching the Duo's hinge: 180 hangs straight down in front of the counter edge.
 
 Parts: Body (children RackRails, CrumbTray, Gasket, BodyScrews, HingeKnuckles), Door (DoorGlass,
 DoorFrit, DoorHandle, DoorHingeArms), ControlPanel (Display, KnobRings, Knob1-3), Rack1 (upper,
@@ -23,6 +24,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 import common as C  # noqa: E402
 import door as door_parts  # noqa: E402
 import interior  # noqa: E402
+import materials  # noqa: E402
 from layout import *  # noqa: E402,F403
 
 
@@ -158,6 +160,7 @@ def build(stage, hinge):
     build_controls(root)
     interior.build(root, body)
     build_feet(root)
+    materials.assign()
     root["stage"] = stage
     root["hinge"] = hinge
     return root
@@ -167,7 +170,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--stage", type=int, default=2)
     parser.add_argument("--hinge", choices=("bottom", "left"), default="bottom")
-    parser.add_argument("--angle", type=float, default=0)
+    parser.add_argument("--angle", type=float, default=0, help="door angle, 0..180")
     parser.add_argument("--out", default=os.path.join(C.BUILD, "oven.blend"))
     args = C.script_args(parser)
 

@@ -17,8 +17,10 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(__file__))
 import common as C  # noqa: E402
+import materials  # noqa: E402
+from layout import COUNTER_EDGE_Y, COUNTER_T, D, X0, X1, Z0, Z1  # noqa: E402
 
-HINGE_TEST_ANGLES = (0, 30, 60, 88)
+HINGE_TEST_ANGLES = (0, 30, 60, 88, 120, 150, 180)
 OPEN_ANGLE = 88
 
 # Oven bounding boxes in the reference images, in pixels (x0, y0, x1, y1), top-left origin.
@@ -92,9 +94,11 @@ def apply_clay():
 
 
 def add_floor():
-    bpy.ops.mesh.primitive_plane_add(size=6, location=(0, 0, 0))
-    floor = bpy.context.active_object
-    floor.name = "Floor"
+    """Shadow-catching counter: top at z = 0, front edge just behind the hinge, so the door can
+    swing past flat (88) to hanging straight down (180) like the Duo's hinge."""
+    bm = C.bmesh.new()
+    C.add_box(bm, (-3, COUNTER_EDGE_Y, -COUNTER_T), (3, 3, 0))
+    floor = C.mesh_object("Floor", bm)
     floor.is_shadow_catcher = True
     return floor
 
@@ -128,6 +132,39 @@ def clay_lighting():
     add_area("Key", (-0.9, -1.2, 1.3), (0, 0.1, 0.15), (1.2, 0.8), 70)
     add_area("Fill", (1.2, -0.9, 0.5), (0, 0.1, 0.15), (1.0, 1.0), 22)
     add_area("Rim", (0.4, 1.2, 1.0), (0, 0.2, 0.2), (0.8, 0.4), 45)
+
+
+def studio_lighting():
+    """Studio: an environment graded from a dark floor to a bright ceiling (so steel and glass
+    reflect something), two large softboxes and a rim light. Neutral white."""
+    world = bpy.data.worlds.new("Studio")
+    bpy.context.scene.world = world
+    if world.node_tree is None:
+        world.use_nodes = True
+    nodes, links = world.node_tree.nodes, world.node_tree.links
+    nodes.clear()
+    out = nodes.new("ShaderNodeOutputWorld")
+    bg = nodes.new("ShaderNodeBackground")
+    tc = nodes.new("ShaderNodeTexCoord")
+    sep = nodes.new("ShaderNodeSeparateXYZ")
+    ramp = nodes.new("ShaderNodeValToRGB")
+    ramp.color_ramp.interpolation = "EASE"
+    ramp.color_ramp.elements[0].position = 0.42
+    ramp.color_ramp.elements[0].color = (0.004, 0.004, 0.004, 1)
+    ramp.color_ramp.elements[1].position = 1.0
+    ramp.color_ramp.elements[1].color = (0.09, 0.09, 0.095, 1)
+    links.new(tc.outputs["Generated"], sep.inputs["Vector"])
+    # Generated world coords run -1..1; remap z to 0..1 for the ramp.
+    remap = nodes.new("ShaderNodeMapRange")
+    remap.inputs["From Min"].default_value = -1
+    links.new(sep.outputs["Z"], remap.inputs["Value"])
+    links.new(remap.outputs["Result"], ramp.inputs["Fac"])
+    links.new(ramp.outputs["Color"], bg.inputs["Color"])
+    bg.inputs["Strength"].default_value = 1.0
+    links.new(bg.outputs["Background"], out.inputs["Surface"])
+    add_area("SoftboxKey", (-1.1, -1.3, 1.3), (0, 0.1, 0.15), (1.6, 1.0), 120)
+    add_area("SoftboxFill", (1.4, -0.9, 0.7), (0, 0.1, 0.15), (1.2, 1.2), 30)
+    add_area("Rim", (0.5, 1.3, 0.9), (0, 0.2, 0.2), (1.2, 0.3), 110)
 
 
 def camera(view):
@@ -171,25 +208,39 @@ def render(path, resolution):
 # ------------------------------------------------------------------ hinge test
 
 def door_clearance(angle):
-    """World bounds of the door and its children at an angle: it must stay above the floor and
-    in front of the body (y <= 0)."""
+    """Every vertex of the door and its children at an angle must stay out of the body's box
+    and out of the counter slab."""
     set_door(angle)
-    names = [o.name for o in C.descendants(bpy.data.objects["Door"]) if o.type == "MESH"]
-    lo, hi = C.world_bounds(names)
-    return {"angle": angle, "min_z": round(lo.z, 4), "max_y": round(hi.y, 4),
-            "clips_floor": lo.z < 0.0, "clips_body": hi.y > 1e-4}
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    in_body = in_counter = 0
+    min_z = 1e9
+    for obj in C.descendants(bpy.data.objects["Door"]):
+        if obj.type != "MESH":
+            continue
+        ev = obj.evaluated_get(depsgraph)
+        me = ev.to_mesh()
+        for v in me.vertices:
+            w = ev.matrix_world @ v.co
+            min_z = min(min_z, w.z)
+            if 1e-4 < w.y < D and X0 < w.x < X1 and Z0 < w.z < Z1:
+                in_body += 1
+            if w.y > COUNTER_EDGE_Y and -COUNTER_T < w.z < -1e-4:
+                in_counter += 1
+        ev.to_mesh_clear()
+    return {"angle": angle, "min_z": round(min_z, 4), "clips_body": in_body > 0,
+            "clips_counter": in_counter > 0}
 
 
 def hinge_test(out_dir):
     cam = camera("ortho_front")
-    cam.location = (1.6, -0.12, 0.17)
-    aim(cam, (0, -0.12, 0.17))
-    cam.data.ortho_scale = 0.78
+    cam.location = (1.6, -0.10, 0.04)
+    aim(cam, (0, -0.10, 0.04))
+    cam.data.ortho_scale = 0.95
     frames, checks = [], []
     for angle in HINGE_TEST_ANGLES:
         checks.append(door_clearance(angle))
         path = os.path.join(out_dir, f"hinge_{angle:03d}.png")
-        render(path, (640, 480))
+        render(path, (480, 480))
         frames.append(path)
     strip = np.concatenate([over_background(load(p)) for p in frames], axis=1)
     save(strip, os.path.join(out_dir, "hinge_test.png"))
@@ -268,6 +319,7 @@ def main():
     parser.add_argument("--stage", type=int, default=1)
     parser.add_argument("--quality", choices=("preview", "final"), default="preview")
     parser.add_argument("--blend", default=os.path.join(C.BUILD, "oven.blend"))
+    parser.add_argument("--only", nargs="*", help="render just these views (quick look; no sheets)")
     args = C.script_args(parser)
 
     bpy.ops.wm.open_mainfile(filepath=args.blend)
@@ -279,10 +331,19 @@ def main():
     if args.stage <= 2:
         apply_clay()
         clay_lighting()
+    else:
+        studio_lighting()
+        materials.set_heat(0.0 if args.stage == 3 else 1.0)
 
     report = {"stage": args.stage, "quality": args.quality}
     report["triangles"], _ = C.triangle_count([o for o in bpy.context.scene.objects if o.name != "Floor"])
     views = dict(VIEWS, **(DETAIL_VIEWS if args.stage >= 2 else {}))
+    if args.only:
+        for view in args.only:
+            set_door(views[view][4])
+            camera(view)
+            render(os.path.join(out_dir, f"quick_{view}.png"), (800, 600))
+        return
     for view in views:
         set_door(views[view][4])
         camera(view)

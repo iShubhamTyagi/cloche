@@ -12,6 +12,11 @@ DOOR_T = 0.024                      # door thickness; it sits proud of the front
 DOOR_BORDER = 0.020                 # frame width around the glass (sides and bottom)
 DOOR_TOP_BAND = 0.042               # thicker top band that carries the handle, as in the reference
 HINGE_Y, HINGE_Z = -DOOR_T, DOOR_Z0  # bottom hinge axis (along X)
+# The door opens 0..180 degrees like the Duo's hinge: 88 lies flat toward the camera, 180 hangs
+# straight down in front of the counter edge. So the oven sits at the counter's front edge.
+DOOR_MAX_ANGLE = 180
+COUNTER_EDGE_Y = HINGE_Y + 0.002    # counter top (z = 0) runs from here back; nothing in front
+COUNTER_T = 0.04
 
 CAV_X0, CAV_X1 = X0 + 0.025, PANEL_X0 - 0.027
 CAV_Z0, CAV_Z1 = Z0 + 0.028, Z1 - 0.030

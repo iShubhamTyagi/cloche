@@ -1,0 +1,61 @@
+{
+  "stage": 3,
+  "quality": "preview",
+  "triangles": 67286,
+  "proportions_closed": {
+    "reference_ratio": 1.387,
+    "render_ratio": 1.494
+  },
+  "compare_closed": {
+    "reference_ratio": 1.387,
+    "render_ratio": 1.391
+  },
+  "compare_open": {
+    "reference_ratio": 0.956,
+    "render_ratio": 0.94
+  },
+  "hinge": [
+    {
+      "angle": 0,
+      "min_z": 0.0315,
+      "clips_body": false,
+      "clips_counter": false
+    },
+    {
+      "angle": 30,
+      "min_z": 0.0315,
+      "clips_body": false,
+      "clips_counter": false
+    },
+    {
+      "angle": 60,
+      "min_z": 0.0315,
+      "clips_body": false,
+      "clips_counter": false
+    },
+    {
+      "angle": 88,
+      "min_z": 0.0133,
+      "clips_body": false,
+      "clips_counter": false
+    },
+    {
+      "angle": 120,
+      "min_z": -0.133,
+      "clips_body": false,
+      "clips_counter": false
+    },
+    {
+      "angle": 150,
+      "min_z": -0.2248,
+      "clips_body": false,
+      "clips_counter": false
+    },
+    {
+      "angle": 180,
+      "min_z": -0.262,
+      "clips_body": false,
+      "clips_counter": false
+    }
+  ]
+}

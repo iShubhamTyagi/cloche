@@ -18,3 +18,4 @@ Packages/ClocheKit/.build/
 # Blender backups
 *.blend1
 __pycache__/
+build/watch.log

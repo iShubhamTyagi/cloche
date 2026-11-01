@@ -130,6 +130,32 @@ def build_knob(panel, index, z):
     C.add_box(notch, (PANEL_XC - 0.0011, front - 0.002, z + 0.004), (PANEL_XC + 0.0011, front + 0.0012, z + 0.0165))
     C.cut(knob, notch)
     C.finish(knob, bevel=0.0007, segments=3, angle=40)
+    add_detents(knob)
+
+
+def add_detents(knob):
+    """Clicked, indexed turning: an integer `detent` property drives the knob's rotation through
+    a driver, so in Blender it can only sit on a click (drag the property, it steps). Angle is
+    clockwise as seen from the front (rotation_euler.y), 0 = notch at 12 o'clock. The table of
+    values and angles is also stored on the knob for the app (see KNOB_DETENTS in layout.py)."""
+    spec = KNOB_DETENTS[knob.name]
+    count = len(spec["values"])
+    knob["role"] = spec["role"] or ""
+    knob["detent_values"] = spec["values"]
+    knob["first_angle"], knob["step_angle"] = spec["first_angle"], spec["step_angle"]
+    # Temperature rests on its middle click (190 C, notch up); the others on their first.
+    knob["detent"] = count // 2 if spec["role"] == "temperature" else 0
+    knob.id_properties_ui("detent").update(min=0, max=count - 1, soft_min=0, soft_max=count - 1, step=1,
+                                           description="Click position (0 = first)")
+    knob.lock_rotation = (True, False, True)
+    fcurve = knob.driver_add("rotation_euler", 1)
+    driver = fcurve.driver
+    driver.type = "SCRIPTED"
+    var = driver.variables.new()
+    var.name, var.type = "d", "SINGLE_PROP"
+    var.targets[0].id = knob
+    var.targets[0].data_path = '["detent"]'
+    driver.expression = f"({spec['first_angle']} + {spec['step_angle']} * d) * 0.017453292519943295"
 
 
 def build_feet(root):

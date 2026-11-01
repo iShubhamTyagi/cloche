@@ -1,0 +1,223 @@
+{
+  "convention": "metres, Z up, camera looks along +Y, oven front y = 0; written by scripts/blender/studio.py, do not edit by hand",
+  "prop_origin": [
+    0.0,
+    0.3,
+    0.0
+  ],
+  "views": {
+    "frames": {
+      "location": [
+        0.0,
+        -2.3,
+        0.36
+      ],
+      "target": [
+        0.0,
+        -0.05,
+        0.05
+      ],
+      "lens": 110,
+      "resolution": [
+        1000,
+        1200
+      ]
+    },
+    "front_closed": {
+      "location": [
+        0.0,
+        -1.9,
+        0.42
+      ],
+      "target": [
+        0.0,
+        0.12,
+        0.17
+      ],
+      "lens": 85,
+      "resolution": [
+        1200,
+        900
+      ]
+    },
+    "open_34": {
+      "location": [
+        1.05,
+        -1.4,
+        0.62
+      ],
+      "target": [
+        0.0,
+        -0.05,
+        0.13
+      ],
+      "lens": 70,
+      "resolution": [
+        1200,
+        900
+      ]
+    },
+    "refmatch_open": {
+      "location": [
+        0.0,
+        -1.25,
+        0.62
+      ],
+      "target": [
+        0.0,
+        -0.06,
+        0.12
+      ],
+      "lens": 45,
+      "resolution": [
+        1200,
+        900
+      ]
+    },
+    "ortho_front": {
+      "location": [
+        0.0,
+        -2.0,
+        0.175
+      ],
+      "target": [
+        0.0,
+        0.0,
+        0.175
+      ],
+      "ortho_scale": 0.62,
+      "resolution": [
+        1200,
+        900
+      ]
+    },
+    "detail_controls": {
+      "location": [
+        0.48,
+        -0.42,
+        0.34
+      ],
+      "target": [
+        0.21,
+        0.0,
+        0.2
+      ],
+      "lens": 90,
+      "resolution": [
+        1200,
+        900
+      ]
+    },
+    "detail_cavity": {
+      "location": [
+        0.22,
+        -0.7,
+        0.4
+      ],
+      "target": [
+        -0.05,
+        0.18,
+        0.17
+      ],
+      "lens": 45,
+      "resolution": [
+        1200,
+        900
+      ]
+    },
+    "detail_hinge": {
+      "location": [
+        -0.5,
+        -0.42,
+        0.16
+      ],
+      "target": [
+        -0.24,
+        -0.03,
+        0.05
+      ],
+      "lens": 90,
+      "resolution": [
+        1200,
+        900
+      ]
+    },
+    "detail_back": {
+      "location": [
+        -0.55,
+        1.1,
+        0.62
+      ],
+      "target": [
+        0.0,
+        0.25,
+        0.2
+      ],
+      "lens": 55,
+      "resolution": [
+        1200,
+        900
+      ]
+    },
+    "racks_out": {
+      "location": [
+        0.85,
+        -1.25,
+        0.7
+      ],
+      "target": [
+        0.0,
+        -0.12,
+        0.14
+      ],
+      "lens": 50,
+      "resolution": [
+        1200,
+        900
+      ]
+    },
+    "hinge_side": {
+      "location": [
+        1.6,
+        -0.1,
+        0.04
+      ],
+      "target": [
+        0.0,
+        -0.1,
+        0.04
+      ],
+      "ortho_scale": 0.95,
+      "resolution": [
+        480,
+        480
+      ]
+    },
+    "three_quarter": {
+      "direction": [
+        0.62,
+        -0.62,
+        0.48
+      ],
+      "lens": 85,
+      "margin": 1.15,
+      "resolution": [
+        1200,
+        900
+      ]
+    },
+    "topdown": {
+      "direction": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "ortho": true,
+      "margin": 1.12,
+      "resolution": [
+        1024,
+        1024
+      ]
+    }
+  }
+}

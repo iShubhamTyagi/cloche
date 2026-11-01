@@ -46,3 +46,17 @@ KNOB_ZS = (DOOR_Z1 - 0.115, DOOR_Z1 - 0.180, DOOR_Z1 - 0.245)
 
 ELEMENT_LIGHT_WATTS = 2.0           # area light per tube at full heat (render.set_heat scales it)
 ELEMENT_LIGHT_COLOR = (1.0, 0.42, 0.12)
+
+# Knobs turn in clicks (detents). Angle convention: degrees clockwise as seen from the front,
+# 0 = pointer notch at 12 o'clock; in Blender that is rotation_euler.y = radians(angle) on the
+# knob (its origin is on its axis). Knob1 is temperature: 140-240 C in 10 C clicks across a
+# 250 degree sweep. Knobs 2 and 3 turn too; their meaning is the app's to define, so they get a
+# placeholder of 12 clicks a turn. Sprites are rendered every KNOB_SPRITE_STEP degrees for a
+# full turn, so any later click layout on a multiple of 5 degrees needs no re-render.
+KNOB_SPRITE_STEP = 5
+KNOB_DETENTS = {
+    "Knob1": {"role": "temperature", "unit": "C", "values": list(range(140, 241, 10)),
+              "first_angle": -125.0, "step_angle": 25.0},
+    "Knob2": {"role": None, "unit": None, "values": list(range(12)), "first_angle": 0.0, "step_angle": 30.0},
+    "Knob3": {"role": None, "unit": None, "values": list(range(12)), "first_angle": 0.0, "step_angle": 30.0},
+}

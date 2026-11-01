@@ -1,57 +1,47 @@
 """Stage 5: door animation frames, manifest, contact sheet, reference comparison, USDZ.
 
-    Blender -b -P scripts/blender/frames.py -- [--count 48] [--samples 96] [--test] [--force]
+    Blender -b -P scripts/blender/frames.py -- [--count 48] [--preview | --final] [--samples N]
+                                               [--force] [--test] [--usdz-only]
 
-Renders door_000.png .. door_047.png into build/renders/stage5/door/: the same camera, lights
-and heat for every frame, the door at equal hinge-angle steps from 0 (shut) to 180 (hanging
-straight down, like the Duo unfolded). The app maps any hinge angle to the nearest frame (or
-blends the two either side). Existing frames are kept unless --force, so a stopped run resumes.
+Renders door_000.png .. door_047.png into build/renders/stage5/door/ from camera.json's
+"frames" camera, in the studio, heat on: the door at equal hinge-angle steps from 0 (shut) to
+180 (hanging straight down, like the Duo unfolded). The knobs are NOT in these frames (hidden
+from the camera only, so their shadows and reflections stay): they are a separate layer of
+sprites (knobs.py) so the app can turn them. Existing frames are skipped unless --force.
 
-manifest.json records each frame's angle, the camera, the resolution, and where the hinge axis
-and the oven body land in the image, so the app can line the frames up with its own layout.
+manifest.json records each frame's angle, the camera, and where the hinge axis and the body
+front land in the image, so the app can line the frames up with its own layout.
 """
 import argparse
 import json
-import math
 import os
 import sys
 
 import bpy
-import numpy as np
 from bpy_extras.object_utils import world_to_camera_view
 
 sys.path.insert(0, os.path.dirname(__file__))
 import common as C  # noqa: E402
+import imaging as I  # noqa: E402
 import materials  # noqa: E402
 import render as R  # noqa: E402
+import studio  # noqa: E402
 from layout import (D, DOOR_MAX_ANGLE, DOOR_X0, DOOR_X1, HINGE_Y, HINGE_Z, X0, X1, Z0,  # noqa: E402
                     Z1)
 
-# One camera for every frame: near-level front view, framed for the door's whole sweep
-# (flat toward the camera at 88, hanging below the counter edge at 180).
-DOOR_CAMERA = {"location": (0.0, -2.30, 0.36), "target": (0.0, -0.05, 0.05), "lens": 110}
-RESOLUTION = (1000, 1200)
+OUT = os.path.join(C.BUILD, "renders", "stage5")
+KNOBS = ("Knob1", "Knob2", "Knob3")
 
 
-def setup(samples):
+def setup():
+    """The oven in the studio from the app's camera, heat on, bloom on."""
     bpy.ops.wm.open_mainfile(filepath=os.path.join(C.BUILD, "oven.blend"))
-    R.setup_cycles("preview")
-    bpy.context.scene.cycles.samples = samples
-    R.add_floor()
-    R.studio_lighting()
+    studio.use()
     materials.set_heat(1.0)
     materials.set_display_glow(0.08)
-    bpy.context.scene.view_settings.look = "AgX - Medium High Contrast"
-    cam = bpy.data.objects.new("Camera", bpy.data.cameras.new("Camera"))
-    bpy.context.scene.collection.objects.link(cam)
-    bpy.context.scene.camera = cam
-    cam.location = DOOR_CAMERA["location"]
-    R.aim(cam, DOOR_CAMERA["target"])
-    cam.data.lens = DOOR_CAMERA["lens"]
-    cam.data.clip_start = 0.01
-    R.bloom(True)
+    studio.bloom(True)
     keep_studio_lights_off_glass()
-    return cam
+    return studio.camera("frames")
 
 
 def keep_studio_lights_off_glass():
@@ -66,47 +56,55 @@ def keep_studio_lights_off_glass():
         bpy.data.objects[name].light_linking.receiver_collection = receivers
 
 
+def hide_knobs_from_camera(hidden=True):
+    for name in KNOBS:
+        bpy.data.objects[name].visible_camera = not hidden
+
+
 def angles(count):
     return [DOOR_MAX_ANGLE * i / (count - 1) for i in range(count)]
 
 
+def frames_res():
+    return tuple(studio.views()["frames"]["resolution"])
+
+
 def to_pixels(cam, point):
-    """World point -> (x, y) pixels, top-left origin."""
-    scene = bpy.context.scene
-    v = world_to_camera_view(scene, cam, C.Vector(point))
-    w, h = RESOLUTION
+    """World point -> [x, y] pixels, top-left origin, at the frames camera's resolution."""
+    w, h = frames_res()
+    v = world_to_camera_view(bpy.context.scene, cam, C.Vector(point))
     return [round(v.x * w, 1), round((1 - v.y) * h, 1)]
 
 
-def render_frames(cam, count, out_dir, force):
+def render_frames(count, args):
     frames = []
     for i, angle in enumerate(angles(count)):
-        path = os.path.join(out_dir, "door", f"door_{i:03d}.png")
-        if force or not os.path.exists(path):
-            R.set_door(angle)
-            R.render(path, RESOLUTION)
-            R.clean_transparent(path)
+        path = os.path.join(OUT, "door", f"door_{i:03d}.png")
+        R.set_door(angle)
+        if studio.render(path, args, view_res=frames_res()):
+            I.clean_transparent(path)
         frames.append({"index": i, "file": f"door/door_{i:03d}.png", "angle": round(angle, 4)})
         print(f"[frames] {i + 1}/{count} at {angle:.2f} deg", flush=True)
     return frames
 
 
-def manifest(cam, frames, samples):
+def manifest(cam, frames, args):
     scene = bpy.context.scene
     body = {name: to_pixels(cam, p) for name, p in (
         ("front_top_left", (X0, 0, Z1)), ("front_top_right", (X1, 0, Z1)),
         ("front_bottom_left", (X0, 0, Z0)), ("front_bottom_right", (X1, 0, Z0)))}
+    res, samples = studio.resolved(args, frames_res())
     return {
         "asset": "oven", "units": "metres", "axes": "camera looks +Y, oven front y=0, Z up",
         "frame_count": len(frames), "angle_range_degrees": [0, DOOR_MAX_ANGLE],
         "angle_of_frame": f"{DOOR_MAX_ANGLE} * index / {len(frames) - 1}",
-        "resolution": list(RESOLUTION), "pixel_origin": "top-left", "background": "transparent RGBA PNG",
-        "camera": {**{k: list(v) if isinstance(v, tuple) else v for k, v in DOOR_CAMERA.items()},
-                   "sensor_width_mm": cam.data.sensor_width},
+        "resolution": list(res), "pixel_origin": "top-left", "background": "transparent RGBA PNG",
+        "camera": "build/camera.json views.frames",
         "render": {"engine": "Cycles", "samples": samples, "denoiser": "OpenImageDenoise",
                    "view_transform": scene.view_settings.view_transform, "look": scene.view_settings.look,
                    "heat": 1.0, "bloom": True,
                    "note": "studio softboxes light-linked off DoorGlass (no glint flashes)"},
+        "knobs": "not in these frames; overlay the sprites listed in knobs.json",
         "hinge_axis_pixels": [to_pixels(cam, (DOOR_X0, HINGE_Y, HINGE_Z)), to_pixels(cam, (DOOR_X1, HINGE_Y, HINGE_Z))],
         "body_front_pixels": body,
         "depth_m": D,
@@ -114,26 +112,15 @@ def manifest(cam, frames, samples):
     }
 
 
-def contact_sheet(out_dir, frames, columns=8, thumb_h=240):
-    tiles = [R.to_height(R.over_background(R.load(os.path.join(out_dir, f["file"]))), thumb_h) for f in frames]
-    tw = tiles[0].shape[1]
-    rows = math.ceil(len(tiles) / columns)
-    sheet = np.full((rows * thumb_h, columns * tw, 4), 0.07, dtype=np.float32)
-    sheet[..., 3] = 1
-    for i, tile in enumerate(tiles):
-        r, c = divmod(i, columns)
-        sheet[r * thumb_h:(r + 1) * thumb_h, c * tw:c * tw + tile.shape[1]] = tile[:, :tw]
-    R.save(sheet, os.path.join(out_dir, "contact_sheet.png"))
-
-
 def export_usdz():
-    """Optional USDZ of the shut oven: only the `Oven` hierarchy (no counter, camera or studio
-    lights), converted to Y-up for RealityKit and Quick Look, metres. Procedural materials don't
-    survive USD (base colours only); this is for shape, part names and pivots, not the look."""
+    """Optional USDZ of the shut oven: only the `Oven` hierarchy (no studio), converted to Y-up
+    for RealityKit and Quick Look, metres. Procedural materials don't survive USD (base colours
+    only); this is for shape, part names and pivots, not the look."""
     R.set_door(0)
     R.slide_racks({})
+    hide_knobs_from_camera(False)
     path = os.path.join(C.BUILD, "oven.usdz")
-    oven = [o for o in C.descendants(bpy.data.objects["Oven"])]
+    oven = C.descendants(bpy.data.objects["Oven"])
     for obj in bpy.context.scene.objects:
         obj.select_set(obj in oven)
     try:
@@ -150,39 +137,33 @@ def export_usdz():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--count", type=int, default=48)
-    parser.add_argument("--samples", type=int, default=96)
-    parser.add_argument("--test", action="store_true", help="three low-res frames to check framing")
-    parser.add_argument("--force", action="store_true")
+    parser.add_argument("--test", action="store_true", help="three preview frames to check framing")
     parser.add_argument("--usdz-only", action="store_true")
+    studio.add_render_args(parser, samples=96)
     args = C.script_args(parser)
 
-    out_dir = os.path.join(C.BUILD, "renders", "stage5")
-    os.makedirs(os.path.join(out_dir, "door"), exist_ok=True)
-    cam = setup(16 if args.test else args.samples)
-
+    os.makedirs(os.path.join(OUT, "door"), exist_ok=True)
+    cam = setup()
     if args.usdz_only:
         print(f"[frames] usdz {export_usdz()}")
         return
-
+    hide_knobs_from_camera()
     if args.test:
-        global RESOLUTION
-        RESOLUTION = (500, 600)
+        args.preview, args.force = True, True
         for angle in (0, 88, 180):
             R.set_door(angle)
-            R.render(os.path.join(out_dir, f"test_{angle:03d}.png"), RESOLUTION)
+            studio.render(os.path.join(OUT, f"test_{angle:03d}.png"), args)
         return
 
-    frames = render_frames(cam, args.count, out_dir, args.force)
-    data = manifest(cam, frames, args.samples)
-    R.set_door(88)
+    frames = render_frames(args.count, args)
+    data = manifest(cam, frames, args)
     data["usdz"] = export_usdz()
-    with open(os.path.join(out_dir, "manifest.json"), "w") as f:
+    with open(os.path.join(OUT, "manifest.json"), "w") as f:
         json.dump(data, f, indent=2)
-    contact_sheet(out_dir, frames)
-    # Against the reference: the frame nearest 88 degrees beside oven_ref.png.
-    nearest = min(frames, key=lambda f: abs(f["angle"] - 88))
-    R.comparison(R.REF_OPEN, os.path.join(out_dir, nearest["file"]), os.path.join(out_dir, "compare_open.png"))
-    R.comparison(R.REF_CLOSED, os.path.join(out_dir, frames[0]["file"]), os.path.join(out_dir, "compare_closed.png"))
+    I.grid([os.path.join(OUT, fr["file"]) for fr in frames], os.path.join(OUT, "contact_sheet.png"), columns=8)
+    nearest = min(frames, key=lambda fr: abs(fr["angle"] - 88))
+    I.comparison(I.REF_OPEN, os.path.join(OUT, nearest["file"]), os.path.join(OUT, "compare_open.png"))
+    I.comparison(I.REF_CLOSED, os.path.join(OUT, frames[0]["file"]), os.path.join(OUT, "compare_closed.png"))
     print("[frames] done")
 
 

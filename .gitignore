@@ -21,3 +21,10 @@ __pycache__/
 build/watch.log
 build/renders/*/frames.log
 build/renders/*/render.log
+
+# Blender outputs stay out of git (pipeline rule): .blend files and renders. Manifests,
+# reports and camera.json are committed.
+build/*.blend
+build/*.usdz
+build/renders/**/*.png
+build/renders/**/*.mp4

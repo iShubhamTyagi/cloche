@@ -20,6 +20,19 @@ Read the **Current state** first; it says where the next session starts. Then ad
 
 ## Log
 
+### 2026-11-01: Splash screen (uncommitted)
+
+- **Built:** `SplashScreen` (shown for 2 s on every cold launch, then cross-fades to the app), after the owner's reference image: "Vanilla cupcakes" eyebrow and "Prêt." hero in sand over the oven, whose door drops open on its bottom hinge to show three finished cupcakes in a warm glow. It reuses `OvenFrame` (new `openAngle`, default 100°; the splash tips the door to 130° so its inside face shows). Reduce Motion: the door starts open and nothing moves.
+- **Fixed (Duo):** launched folded, the splash drew its portrait layout on the sideways cover panel. `AppRootView` now passes the hinge's folded status, and the cover gets its own landscape layout inside `CoverDisplay` (title left, oven right with the door hanging below). The oven may grow to 560 pt wide on the Duo's inner screen.
+- **Verified:** build green; launch frames on iPhone 17 match the reference layout; on the folded Duo the cover shows the splash upright from the first frame, then the cover idle screen.
+
+### 2026-11-01: The Watch shows only the bake timer, and leftover activities (uncommitted)
+
+- **Found:** the phone updates the Live Activity the moment the door opens or shuts, but the system relays plain updates to the Watch "opportunistically": 4.6 to 6.1 s late in the simulator log (once, the activity itself arrived 47 s late), so the Watch's 15 s grace countdown ran out of step.
+- **Built:** the owner parked Watch sync: the Watch's `.small` view now treats a door left open as the bake still running (`BakeDisplay(showsDoor: false)`), so it only ever shows the bake countdown and "Ready". Lock screen and Dynamic Island are unchanged. `ActivityKitBakeActivity`'s first call always acts, so a launch with no bake running ends an activity left over from an earlier run (found when a test was stopped mid-bake).
+- **Tried and reverted:** an alert on door changes, and a 15 s stale margin on the grace; both were only for the Watch's grace countdown.
+- **Verified:** build green.
+
 ### 2026-11-01: The bake's Live Activity, mirrored to the Apple Watch (uncommitted)
 
 - **Built:** Phase 3.2's Live Activity, brought forward at the owner's request. A widget extension target `ClocheWidgets` (folder `Widgets/`, embedded in the app) draws `BakeLiveActivity` from the new package product `BakeActivityUI`; the shared model `BakeActivityAttributes` lives in the new `BakeActivity` target. `ActivityKitBakeActivity` (Services) starts the activity when a bake starts (the door first shuts), updates it for door ajar, shut again and ready, and ends it once the bake is out of the oven; `SessionController` calls it after every event. The views: the time left counting down by itself from the stored end time (`Text(timerInterval:)`), one word for the state and a hairline of progress, ivory on black. The Watch gets the `.small` family in its Smart Stack (Always-On dims it and drops the progress line); the lock screen and Dynamic Island get the same content. App Info.plist: `NSSupportsLiveActivities`.

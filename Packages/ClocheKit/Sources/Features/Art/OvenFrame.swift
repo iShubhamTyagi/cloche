@@ -23,6 +23,9 @@ struct OvenFrame: View {
     /// False on the unfolded Duo, where the door lies on the bottom half (`DuoDoorPanel`) and the
     /// top half shows the same oven with its door off.
     var showsDoor = true
+    /// How far past upright a fully open door drops, in degrees. Past 90 it lies below the hinge;
+    /// further shows more of its inside face (the splash tips it right down).
+    var openAngle: Double = 100
 
     /// The door (and so the oven's interior) is the same size in points on the open screen and on
     /// the folded cover, so folding and unfolding looks like the same oven. Sized to fit both of the
@@ -73,7 +76,7 @@ struct OvenFrame: View {
             if showsDoor {
                 doorPanel(corner: corner)
                     // Past 90° so the dropped door lies below the hinge, widening toward the viewer.
-                    .rotation3DEffect(.degrees(-100 * min(max(doorOpen, 0), 1)), axis: (x: 1, y: 0, z: 0), anchor: .bottom, perspective: 0.45)
+                    .rotation3DEffect(.degrees(-openAngle * min(max(doorOpen, 0), 1)), axis: (x: 1, y: 0, z: 0), anchor: .bottom, perspective: 0.45)
             }
         }
     }

@@ -56,11 +56,13 @@ struct BakeActivityView: View {
     @Environment(\.activityFamily) private var family
 
     var body: some View {
-        let display = BakeDisplay(state: state, isStale: isStale)
         switch family {
         case .small:
-            WatchBakeView(display: display)
+            // The Watch shows only the bake: a door left open keeps the bake timer on screen,
+            // because the system relays updates to the Watch seconds late (DECISIONS 2026-11-01).
+            WatchBakeView(display: BakeDisplay(state: state, isStale: isStale, showsDoor: false))
         default:
+            let display = BakeDisplay(state: state, isStale: isStale)
             HStack(alignment: .center, spacing: Spacing.s4) {
                 VStack(alignment: .leading, spacing: Spacing.s2) {
                     BakeLabel(display: display)
@@ -106,9 +108,18 @@ struct BakeDisplay {
     /// The whole bake, for the progress line; nil hides it.
     let bakeSpan: ClosedRange<Date>?
 
-    init(state: BakeActivityAttributes.ContentState, isStale: Bool) {
+    /// `showsDoor` false shows a door left open as the bake still running (the bake keeps its
+    /// end time while the door is open), with no grace countdown.
+    init(state: BakeActivityAttributes.ContentState, isStale: Bool, showsDoor: Bool = true) {
         let span = state.startedAt...max(state.startedAt, state.endsAt)
-        switch (state.stage, isStale) {
+        var stage = state.stage
+        var isStale = isStale
+        if !showsDoor, stage == .ajar {
+            stage = .baking
+            // Stale here only means the grace ran out; the timer itself stops at 0:00.
+            isStale = false
+        }
+        switch (stage, isStale) {
         case (.baking, false):
             label = Text("Baking", bundle: .module)
             // The lower bound only has to be in the past; the text shows the time left to the upper.

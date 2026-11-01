@@ -38,13 +38,17 @@ import ActivityKit
 @MainActor
 public final class ActivityKitBakeActivity: BakeActivityPresenting {
     private var shown: BakeActivityAttributes.ContentState?
+    /// False until the first call, which always acts: it ends an activity left over from an
+    /// earlier launch when no bake is running.
+    private var hasReflected = false
     private let logger = Logger(subsystem: "com.shubhamtyagi.cloche", category: "LiveActivity")
 
     public init() {}
 
     public func reflect(_ phase: SessionPhase) {
         let state = BakeActivityContent.state(for: phase)
-        guard state != shown || (state != nil && Activity<BakeActivityAttributes>.activities.isEmpty) else { return }
+        guard !hasReflected || state != shown || (state != nil && Activity<BakeActivityAttributes>.activities.isEmpty) else { return }
+        hasReflected = true
         shown = state
         guard let state else {
             endAll()

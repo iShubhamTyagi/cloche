@@ -33,7 +33,7 @@ public struct AppRootView: View {
     public var body: some View {
         ZStack {
             if showsSplash {
-                SplashScreen()
+                SplashScreen(isOnCover: dependencies.doorSensor.hingeReading?.status == .closed)
                     .transition(.opacity)
             } else {
                 content

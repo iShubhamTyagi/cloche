@@ -1,13 +1,16 @@
 """Build the hero oven and save build/oven.blend.
 
-    Blender -b -P scripts/blender/oven.py -- [--stage 1] [--hinge bottom|left] [--angle 0]
+    Blender -b -P scripts/blender/oven.py -- [--stage 2] [--hinge bottom|left] [--angle 0]
 
 Axes: metres, camera looks along +Y, the oven front is the y = 0 plane, Z up, the floor is z = 0.
 Every part is its own named object under the `Oven` root empty. The door's origin sits on its
 hinge axis: bottom hinge opens with rotation_euler.x = +radians(angle) (0 shut, 88 open); left
 hinge opens with rotation_euler.z = -radians(angle).
 
-Stages add detail on top of the same layout: 1 blockout. (Later stages extend `build`.)
+Parts: Body (children RackRails, CrumbTray, Gasket, BodyScrews, HingeKnuckles), Door (DoorGlass,
+DoorFrit, DoorHandle, DoorHingeArms), ControlPanel (Display, KnobRings, Knob1-3), Rack1 (upper,
+carries Tray > TrayRim, CakeSlot_A-D), Rack2 (lower), HeatingElement_Top1/2 and _Bottom1/2 (each
+with _Caps), Feet (FeetRings). Layout numbers live in layout.py.
 """
 import argparse
 import math
@@ -18,118 +21,125 @@ import bpy
 
 sys.path.insert(0, os.path.dirname(__file__))
 import common as C  # noqa: E402
-
-# ------------------------------------------------------------------ layout (metres)
-W, H, D = 0.52, 0.35, 0.40          # overall incl. feet; 0.35 not the brief's 0.33 so the front reads ~1.45:1 like the reference
-FOOT_H = 0.032                      # feet lift the body so the open door's handle clears the floor
-X0, X1 = -W / 2, W / 2
-Z0, Z1 = FOOT_H, H                  # body shell
-PANEL_X0 = 0.162                    # control column starts here (to X1)
-
-DOOR_X0, DOOR_X1 = X0 + 0.008, PANEL_X0 - 0.010
-DOOR_Z0, DOOR_Z1 = Z0 + 0.008, Z1 - 0.008
-DOOR_T = 0.024                      # door thickness; it sits proud of the front, y in [-DOOR_T, 0]
-DOOR_BORDER = 0.020                 # frame width around the glass (sides and bottom)
-DOOR_TOP_BAND = 0.042               # thicker top band that carries the handle, as in the reference
-
-CAV_X0, CAV_X1 = X0 + 0.025, PANEL_X0 - 0.027
-CAV_Z0, CAV_Z1 = Z0 + 0.028, Z1 - 0.030
-CAV_Y1 = D - 0.025
-
-RACK_Z = (CAV_Z0 + CAV_Z1) / 2 - 0.012
-ELEMENT_R = 0.0055
-ELEMENT_YS = (0.11, 0.27)
-TRAY_DEPTH = 0.018
-CAKE_SPACING = 0.072
+import door as door_parts  # noqa: E402
+import interior  # noqa: E402
+from layout import *  # noqa: E402,F403
 
 
 def build_body(root):
     body = C.box_object("Body", (X0, 0, Z0), (X1, D, Z1), origin=(0, D / 2, Z0), parent=root)
-    cutter = C.box_object("cavity_cut", (CAV_X0, -0.01, CAV_Z0), (CAV_X1, CAV_Y1, CAV_Z1))
-    C.boolean_difference(body, cutter)
+
+    cuts = C.bmesh.new()
+    C.add_box(cuts, (CAV_X0, -0.01, CAV_Z0), (CAV_X1, CAV_Y1, CAV_Z1))
+    # Sheet-metal seams (0.7 mm wide, 0.5 mm deep): the wrap meets the front bezel 18 mm back
+    # on the top and sides, and the back panel 12 mm from the rear.
+    g, d = 0.0007, 0.0005
+    for y in (0.018, D - 0.012):
+        C.add_box(cuts, (X0 - 0.01, y, Z1 - d), (X1 + 0.01, y + g, Z1 + 0.01))
+        C.add_box(cuts, (X0 - 0.01, y, Z0 - 0.01), (X0 + d, y + g, Z1 + 0.01))
+        C.add_box(cuts, (X1 - d, y, Z0 - 0.01), (X1 + 0.01, y + g, Z1 + 0.01))
+    # Seam where the control column meets the oven on top.
+    C.add_box(cuts, (PANEL_X0 - 0.004, 0.018, Z1 - d), (PANEL_X0 - 0.004 + g, D - 0.012, Z1 + 0.01))
+    # Vent slits: a block on the top toward the back, two rows on the rear panel.
+    for i in range(14):
+        x = X0 + 0.06 + i * 0.012
+        C.add_box(cuts, (x, D - 0.115, Z1 - 0.003), (x + 0.0045, D - 0.045, Z1 + 0.01))
+    for z in (Z1 - 0.040, Z1 - 0.050, Z1 - 0.060, Z1 - 0.070):
+        for x in (X0 + 0.07, X0 + 0.20):
+            C.add_box(cuts, (x, D - 0.003, z - 0.0018), (x + 0.11, D + 0.01, z + 0.0018))
+    C.cut(body, cuts)
+    C.finish(body, bevel=0.0018, segments=4)
+
+    build_gasket(body)
+    build_screws(body)
+    build_hinge_knuckles(body)
     return body
 
 
-def build_door(root, hinge):
+def build_gasket(body):
+    """Rubber seal lining the cavity mouth, 6 mm deep, flush with the front."""
+    t, depth = 0.004, 0.006
     bm = C.bmesh.new()
-    b = DOOR_BORDER
-    y0, y1 = -DOOR_T, 0.0
-    # Frame: four bars around the glass.
-    C.add_box(bm, (DOOR_X0, y0, DOOR_Z0), (DOOR_X1, y1, DOOR_Z0 + b))
-    C.add_box(bm, (DOOR_X0, y0, DOOR_Z1 - DOOR_TOP_BAND), (DOOR_X1, y1, DOOR_Z1))
-    C.add_box(bm, (DOOR_X0, y0, DOOR_Z0 + b), (DOOR_X0 + b, y1, DOOR_Z1 - DOOR_TOP_BAND))
-    C.add_box(bm, (DOOR_X1 - b, y0, DOOR_Z0 + b), (DOOR_X1, y1, DOOR_Z1 - DOOR_TOP_BAND))
-    pivot = (DOOR_X0, -DOOR_T, DOOR_Z0) if hinge == "left" else ((DOOR_X0 + DOOR_X1) / 2, -DOOR_T, DOOR_Z0)
-    door = C.mesh_object("Door", bm, origin=pivot, parent=root)
-    door["hinge"] = hinge
+    C.add_box(bm, (CAV_X0, -0.0005, CAV_Z0), (CAV_X1, depth, CAV_Z0 + t))
+    C.add_box(bm, (CAV_X0, -0.0005, CAV_Z1 - t), (CAV_X1, depth, CAV_Z1))
+    C.add_box(bm, (CAV_X0, -0.0005, CAV_Z0), (CAV_X0 + t, depth, CAV_Z1))
+    C.add_box(bm, (CAV_X1 - t, -0.0005, CAV_Z0), (CAV_X1, depth, CAV_Z1))
+    gasket = C.mesh_object("Gasket", bm, origin=(CAV_XC, 0, CAV_Z0), parent=body)
+    C.finish(gasket, bevel=0.0015, segments=4)
 
-    bm = C.bmesh.new()
-    C.add_box(bm, (DOOR_X0 + b - 0.002, -DOOR_T * 0.6, DOOR_Z0 + b - 0.002),
-              (DOOR_X1 - b + 0.002, -DOOR_T * 0.3, DOOR_Z1 - DOOR_TOP_BAND + 0.002))
-    C.mesh_object("DoorGlass", bm, origin=pivot, parent=door)
 
-    # Handle on two standoffs, on the edge opposite the hinge.
+def build_screws(body):
+    """Small pan-head screws holding the back panel and the side wrap."""
     bm = C.bmesh.new()
-    reach = 0.030
-    if hinge == "left":
-        hx = DOOR_X1 - 0.016
-        zc = (DOOR_Z0 + DOOR_Z1) / 2
-        C.add_cylinder(bm, (hx, -DOOR_T - reach, zc), 0.0065, 0.22, axis="Z")
-        for dz in (-0.09, 0.09):
-            C.add_cylinder(bm, (hx, -DOOR_T - reach / 2, zc + dz), 0.005, reach, axis="Y")
-    else:
-        hz = DOOR_Z1 - DOOR_TOP_BAND / 2
-        xc = (DOOR_X0 + DOOR_X1) / 2
-        C.add_cylinder(bm, (xc, -DOOR_T - reach, hz), 0.0065, 0.30, axis="X")
-        for dx in (-0.125, 0.125):
-            C.add_cylinder(bm, (xc + dx, -DOOR_T - reach / 2, hz), 0.005, reach, axis="Y")
-    C.mesh_object("DoorHandle", bm, origin=pivot, parent=door)
-    return door
+    for x in (X0 + 0.02, 0.0, X1 - 0.02):
+        for z in (Z0 + 0.015, Z1 - 0.015):
+            C.add_cylinder(bm, (x, D + 0.0006, z), 0.0028, 0.0012, axis="Y", segments=20)
+    for x in (X0 - 0.0006, X1 + 0.0006):
+        for y in (0.06, D - 0.06):
+            C.add_cylinder(bm, (x, y, Z0 + 0.012), 0.0028, 0.0012, axis="X", segments=20)
+    screws = C.mesh_object("BodyScrews", bm, origin=(0, D, Z0), parent=body)
+    C.finish(screws, bevel=0.0004, segments=2)
+
+
+def build_hinge_knuckles(body):
+    """Steel brackets on the body front at each lower corner; the door's arms turn on them."""
+    bm = C.bmesh.new()
+    for kx0 in (X0 + 0.0006, DOOR_X1 + 0.0046):
+        kx1 = kx0 + 0.0028
+        C.add_box(bm, (kx0, HINGE_Y, HINGE_Z - 0.007), (kx1, 0.0, HINGE_Z + 0.005))
+        C.add_cylinder(bm, ((kx0 + kx1) / 2, HINGE_Y, HINGE_Z), 0.0065, 0.004, axis="X", segments=32)
+    knuckles = C.mesh_object("HingeKnuckles", bm, origin=(0, HINGE_Y, HINGE_Z), parent=body)
+    C.finish(knuckles, bevel=0.0007)
 
 
 def build_controls(root):
-    panel = C.box_object("ControlPanel", (PANEL_X0, -0.006, DOOR_Z0), (X1 - 0.004, 0.0, DOOR_Z1), parent=root)
-    cx = (PANEL_X0 + X1) / 2
-    C.box_object("Display", (cx - 0.034, -0.0065, DOOR_Z1 - 0.050), (cx + 0.034, -0.006, DOOR_Z1 - 0.016), parent=panel)
-    for i, z in enumerate((DOOR_Z1 - 0.115, DOOR_Z1 - 0.180, DOOR_Z1 - 0.245), start=1):
-        bm = C.bmesh.new()
-        C.add_cylinder(bm, (cx, -0.006 - 0.010, z), 0.019, 0.020, axis="Y", segments=48)
-        C.mesh_object(f"Knob{i}", bm, origin=(cx, -0.006, z), parent=panel)
+    panel = C.box_object("ControlPanel", (PANEL_X0, -PANEL_T, DOOR_Z0), (X1 - 0.004, 0.0, DOOR_Z1), parent=root)
+    recess = C.bmesh.new()
+    dz1 = DOOR_Z1 - 0.014
+    C.add_box(recess, (PANEL_XC - 0.034, -PANEL_T - 0.01, dz1 - 0.038), (PANEL_XC + 0.034, -PANEL_T + 0.003, dz1))
+    C.cut(panel, recess)
+    C.finish(panel, bevel=0.0012)
+
+    display = C.box_object("Display", (PANEL_XC - 0.0335, -PANEL_T + 0.0026, dz1 - 0.0375),
+                           (PANEL_XC + 0.0335, -PANEL_T + 0.003, dz1 - 0.0005), parent=panel)
+    C.finish(display, smooth=False)
+
+    rings = C.bmesh.new()
+    for i, z in enumerate(KNOB_ZS, start=1):
+        C.add_ring(rings, (PANEL_XC, -PANEL_T - 0.0003, z), 0.0228, 0.0240, 0.0006, axis="Y", segments=96)
+        build_knob(panel, i, z)
+    ring_obj = C.mesh_object("KnobRings", rings, origin=(PANEL_XC, -PANEL_T, KNOB_ZS[1]), parent=panel)
+    C.finish(ring_obj, angle=60)
     return panel
 
 
-def build_interior(root):
-    length = CAV_X1 - CAV_X0 - 0.020
-    xc = (CAV_X0 + CAV_X1) / 2
-    for prefix, z in (("Top", CAV_Z1 - 0.018), ("Bottom", CAV_Z0 + 0.016)):
-        for i, y in enumerate(ELEMENT_YS, start=1):
-            bm = C.bmesh.new()
-            C.add_cylinder(bm, (xc, y, z), ELEMENT_R, length, axis="X")
-            C.mesh_object(f"HeatingElement_{prefix}{i}", bm, origin=(xc, y, z), parent=root)
-
-    # Rack: origin at its back edge, so code can slide it out along -Y.
-    rack = C.box_object("Rack", (CAV_X0 + 0.006, 0.020, RACK_Z - 0.003), (CAV_X1 - 0.006, CAV_Y1 - 0.010, RACK_Z),
-                        origin=(xc, CAV_Y1 - 0.010, RACK_Z), parent=root)
-
-    tray_x0, tray_x1 = xc - 0.155, xc + 0.155
-    tray_y0, tray_y1 = 0.075, 0.315
-    tray = C.box_object("Tray", (tray_x0, tray_y0, RACK_Z), (tray_x1, tray_y1, RACK_Z + TRAY_DEPTH), parent=rack)
-    yc = (tray_y0 + tray_y1) / 2
-    for i, letter in enumerate("ABCD"):
-        x = xc + (i - 1.5) * CAKE_SPACING
-        slot = C.empty(f"CakeSlot_{letter}", (0, 0, 0), size=0.03, kind="SINGLE_ARROW")
-        slot.parent = tray
-        bpy.context.view_layer.update()
-        slot.matrix_world = C.Matrix.Translation((x, yc, RACK_Z + 0.004))
-    return rack
+def build_knob(panel, index, z):
+    """Satin knob: a thin skirt, a knurled grip, a chamfered face with a pointer notch at 12 o'clock.
+    Origin on the knob's axis at the panel face, so code turns it with rotation_euler.y."""
+    y_face = -PANEL_T
+    bm = C.bmesh.new()
+    C.add_cylinder(bm, (PANEL_XC, y_face - 0.0015, z), 0.0205, 0.003, axis="Y", segments=96)
+    C.add_knurled_cylinder(bm, (PANEL_XC, y_face - 0.0030 - 0.0085, z), 0.0178, 0.017, axis="Y")
+    knob = C.mesh_object(f"Knob{index}", bm, origin=(PANEL_XC, y_face, z), parent=panel)
+    notch = C.bmesh.new()
+    front = y_face - 0.003 - 0.017
+    C.add_box(notch, (PANEL_XC - 0.0011, front - 0.002, z + 0.004), (PANEL_XC + 0.0011, front + 0.0012, z + 0.0165))
+    C.cut(knob, notch)
+    C.finish(knob, bevel=0.0007, segments=3, angle=40)
 
 
 def build_feet(root):
-    bm = C.bmesh.new()
+    """Rubber feet, slightly tapered, each under a thin steel ring."""
+    rubber, rings = C.bmesh.new(), C.bmesh.new()
     for x in (X0 + 0.045, X1 - 0.045):
         for y in (0.045, D - 0.045):
-            C.add_cylinder(bm, (x, y, FOOT_H / 2), 0.014, FOOT_H, axis="Z")
-    return C.mesh_object("Feet", bm, origin=(0, D / 2, 0), parent=root)
+            C.add_cylinder(rubber, (x, y, (FOOT_H - 0.003) / 2), 0.0155, FOOT_H - 0.003, axis="Z",
+                           segments=40, radius2=0.0135)
+            C.add_ring(rings, (x, y, FOOT_H - 0.0015), 0.010, 0.0165, 0.003, axis="Z", segments=48)
+    feet = C.mesh_object("Feet", rubber, origin=(0, D / 2, 0), parent=root)
+    C.finish(feet, bevel=0.002, segments=4, angle=40)
+    ring_obj = C.mesh_object("FeetRings", rings, origin=(0, D / 2, FOOT_H), parent=feet)
+    C.finish(ring_obj, bevel=0.0004, segments=2, angle=60)
 
 
 def set_door(angle, hinge):
@@ -143,10 +153,10 @@ def set_door(angle, hinge):
 
 def build(stage, hinge):
     root = C.empty("Oven", size=0.1)
-    build_body(root)
-    build_door(root, hinge)
+    body = build_body(root)
+    door_parts.build(root, hinge)
     build_controls(root)
-    build_interior(root)
+    interior.build(root, body)
     build_feet(root)
     root["stage"] = stage
     root["hinge"] = hinge
@@ -155,7 +165,7 @@ def build(stage, hinge):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--stage", type=int, default=1)
+    parser.add_argument("--stage", type=int, default=2)
     parser.add_argument("--hinge", choices=("bottom", "left"), default="bottom")
     parser.add_argument("--angle", type=float, default=0)
     parser.add_argument("--out", default=os.path.join(C.BUILD, "oven.blend"))

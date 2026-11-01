@@ -33,6 +33,13 @@ VIEWS = {
     "refmatch_open": ((0.0, -1.20, 0.80), (0.0, -0.06, 0.14), 45, None, OPEN_ANGLE),
     "ortho_front": ((0.0, -2.0, 0.175), (0.0, 0.0, 0.175), None, 0.62, 0),
 }
+# Close-ups from Stage 2 on, to judge bevels and small parts.
+DETAIL_VIEWS = {
+    "detail_controls": ((0.48, -0.42, 0.34), (0.21, 0.0, 0.20), 90, None, 0),
+    "detail_cavity": ((0.22, -0.70, 0.40), (-0.05, 0.18, 0.17), 45, None, OPEN_ANGLE),
+    "detail_hinge": ((-0.50, -0.42, 0.16), (-0.24, -0.03, 0.05), 90, None, 60),
+    "detail_back": ((-0.55, 1.10, 0.62), (0.0, 0.25, 0.20), 55, None, 0),
+}
 
 
 # ------------------------------------------------------------------ scene setup
@@ -81,7 +88,7 @@ def apply_clay():
         if obj.type != "MESH" or obj.name == "Floor":
             continue
         obj.data.materials.clear()
-        obj.data.materials.append(glass if obj.name == "DoorGlass" else clay)
+        obj.data.materials.append(glass if "Glass" in obj.name else clay)
 
 
 def add_floor():
@@ -124,7 +131,7 @@ def clay_lighting():
 
 
 def camera(view):
-    location, target, lens, ortho, _ = VIEWS[view]
+    location, target, lens, ortho, _ = {**VIEWS, **DETAIL_VIEWS}[view]
     cam = bpy.data.objects.get("Camera")
     if cam is None:
         cam = bpy.data.objects.new("Camera", bpy.data.cameras.new("Camera"))
@@ -275,8 +282,9 @@ def main():
 
     report = {"stage": args.stage, "quality": args.quality}
     report["triangles"], _ = C.triangle_count([o for o in bpy.context.scene.objects if o.name != "Floor"])
-    for view in VIEWS:
-        set_door(VIEWS[view][4])
+    views = dict(VIEWS, **(DETAIL_VIEWS if args.stage >= 2 else {}))
+    for view in views:
+        set_door(views[view][4])
         camera(view)
         render(os.path.join(out_dir, f"{view}.png"), (1200, 900))
 

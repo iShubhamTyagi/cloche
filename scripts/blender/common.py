@@ -99,6 +99,7 @@ def boolean_difference(target, cutter):
     mod.operation = "DIFFERENCE"
     mod.solver = "EXACT"
     mod.object = cutter
+    mod.use_self = True
     with bpy.context.temp_override(object=target, active_object=target, selected_objects=[target]):
         bpy.ops.object.modifier_apply(modifier=mod.name)
     bpy.data.objects.remove(cutter, do_unlink=True)
@@ -145,3 +146,82 @@ def descendants(obj):
     for child in obj.children:
         out += descendants(child)
     return out
+
+
+# ---------------------------------------------------------------- detail helpers
+
+def add_sphere(bm, center, radius, segments=16):
+    geom = bmesh.ops.create_uvsphere(bm, u_segments=segments, v_segments=segments // 2, radius=radius)
+    bmesh.ops.translate(bm, vec=Vector(center), verts=geom["verts"])
+    return geom["verts"]
+
+
+def add_ring(bm, center, r_in, r_out, thickness, axis="Z", segments=64):
+    """Flat annulus (washer) centred on `center`, `thickness` along the axis."""
+    verts = []
+    rings = []
+    for z in (-thickness / 2, thickness / 2):
+        for r in (r_in, r_out):
+            ring = []
+            for i in range(segments):
+                a = 2 * math.pi * i / segments
+                ring.append(bm.verts.new((r * math.cos(a), r * math.sin(a), z)))
+            rings.append(ring)
+            verts += ring
+    bot_in, bot_out, top_in, top_out = rings
+    for i in range(segments):
+        j = (i + 1) % segments
+        bm.faces.new((top_in[i], top_out[i], top_out[j], top_in[j]))
+        bm.faces.new((bot_in[j], bot_out[j], bot_out[i], bot_in[i]))
+        bm.faces.new((bot_out[i], bot_out[j], top_out[j], top_out[i]))
+        bm.faces.new((bot_in[j], bot_in[i], top_in[i], top_in[j]))
+    rot = {"X": Matrix.Rotation(math.radians(90), 4, "Y"),
+           "Y": Matrix.Rotation(math.radians(90), 4, "X"),
+           "Z": Matrix.Identity(4)}[axis]
+    bmesh.ops.transform(bm, matrix=rot, verts=verts)
+    bmesh.ops.translate(bm, vec=Vector(center), verts=verts)
+    return verts
+
+
+def add_knurled_cylinder(bm, center, radius, length, axis="Y", ridges=60, depth=0.0006):
+    """Cylinder whose side alternates between two radii: fine straight knurling."""
+    segments = ridges * 2
+    geom = bmesh.ops.create_cone(bm, cap_ends=True, segments=segments, radius1=radius, radius2=radius, depth=length)
+    step = 2 * math.pi / segments
+    for v in geom["verts"]:
+        i = round(math.atan2(v.co.y, v.co.x) / step)
+        if i % 2:
+            k = (radius - depth) / radius
+            v.co.x *= k
+            v.co.y *= k
+    rot = {"X": Matrix.Rotation(math.radians(90), 4, "Y"),
+           "Y": Matrix.Rotation(math.radians(90), 4, "X"),
+           "Z": Matrix.Identity(4)}[axis]
+    bmesh.ops.transform(bm, matrix=rot, verts=geom["verts"])
+    bmesh.ops.translate(bm, vec=Vector(center), verts=geom["verts"])
+    return geom["verts"]
+
+
+def cut(target, bm):
+    """Boolean-subtract everything in `bm` (world coordinates) from `target`."""
+    cutter = mesh_object("cutter", bm)
+    boolean_difference(target, cutter)
+
+
+def finish(obj, bevel=0.0, segments=3, angle=30, smooth=True):
+    """Real-world rounded edges (bevel modifier, kept live) and smooth shading with sharp edges
+    above `angle`, so cylinders read round and boxes stay crisp but never razor-sharp."""
+    me = obj.data
+    if smooth:
+        me.shade_smooth()
+        me.set_sharp_from_angle(angle=math.radians(angle))
+    if bevel > 0:
+        mod = obj.modifiers.new("Bevel", "BEVEL")
+        mod.width = bevel
+        mod.segments = segments
+        mod.limit_method = "ANGLE"
+        mod.angle_limit = math.radians(angle)
+        mod.harden_normals = True
+        mod.use_clamp_overlap = True
+        mod.miter_outer = "MITER_ARC"
+    return obj

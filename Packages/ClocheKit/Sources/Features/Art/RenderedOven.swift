@@ -84,6 +84,13 @@ struct RenderedOven: View {
             let imageSize = CGSize(width: layout.size.width * scale, height: layout.size.height * scale)
             let display = layout.displayRect
             ZStack(alignment: .topLeading) {
+                // The stage slab the oven stands on, from the same camera (slab_export.py).
+                if let slab = OvenFrameCache.shared.image(named: "slab_oven") {
+                    Image(uiImage: slab)
+                        .resizable()
+                        .interpolation(.high)
+                        .frame(width: imageSize.width, height: imageSize.height)
+                }
                 frameImage
                     .resizable()
                     .interpolation(.high)

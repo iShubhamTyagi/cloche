@@ -45,7 +45,7 @@ public struct AppRootView: View {
         .task {
             // The shut door (the folded cover) and the fully open one: ready before any fold.
             if let layout = OvenRenderLayout.shared {
-                OvenFrameCache.shared.preload([layout.frameName(forAngle: 0), layout.frameName(forAngle: layout.maxAngle)])
+                OvenFrameCache.shared.preload([layout.frameName(forAngle: 0), layout.frameName(forAngle: layout.maxAngle), "slab_oven"])
             }
             try? await Task.sleep(for: SplashScreen.duration)
             // Reduce Motion: a straight cut instead of the cross-fade.

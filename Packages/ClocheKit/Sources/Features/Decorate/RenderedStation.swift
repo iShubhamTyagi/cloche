@@ -66,6 +66,7 @@ struct RenderedStation: View, Animatable {
             let (scale, origin) = Self.placement(layout: layout, in: slot.size, alignsHingeToFold: alignsHingeToFold)
             let size = CGSize(width: layout.size.width * scale, height: layout.size.height * scale)
             ZStack(alignment: .topLeading) {
+                image("slab_station", size: size)
                 image("station_base", size: size)
                 image("station_plate", size: size)
                 image(layout.clocheFrame(forLift: clocheLift), size: size)

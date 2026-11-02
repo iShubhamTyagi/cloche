@@ -1,0 +1,172 @@
+"""The stage slab under the oven and the turntable stand: build/slab.blend.
+
+    Blender -b -P scripts/blender/slab.py -- [--stage 1] [--slab-size 2.20 0.62 0.06]
+        [--oven-offset 0] [--stand-offset 0] [--marble carrara|calacatta|emperador]
+        [--preview | --final] [--res W H] [--samples N] [--force]
+
+One thick honed marble slab, floating (nothing under it), top at z = 0. Side by side (owner,
+2026-11-02): the oven on the left with its front at the slab's front edge, so its door swings to
+180 and hangs in front of the slab; the turntable stand on the right at layout.STATION; the
+camera slides along the slab between them. Edge: a 3 mm round on top, a 4 mm chamfer under it,
+so the thickness reads.
+
+Objects: StageSlab, and empties OvenAnchor, StandAnchor, RailStart, RailEnd, DropZone,
+SpatulaRest (world positions also in build/slab_anchors.json). Later stages: SlabRail (brass
+inlay), the shared marble, the clearance check and layout renders.
+--oven-offset / --stand-offset move the oven or the stand along x (metres) to change spacing.
+"""
+import argparse
+import json
+import math
+import os
+import sys
+
+import bmesh
+import bpy
+
+sys.path.insert(0, os.path.dirname(__file__))
+import cakestand as S  # noqa: E402
+import common as C  # noqa: E402
+import imaging as I  # noqa: E402
+import render as R  # noqa: E402
+import studio  # noqa: E402
+from layout import (DOOR_X1, OVEN_ANCHOR, SLAB_FRONT_Y, SLAB_LEFT_X, SLAB_SIZE, STATION, W)  # noqa: E402
+
+TOP_ROUND = 0.003         # radius on the top edge
+UNDER_CHAMFER = 0.004     # chamfer on the bottom edge
+RAIL_INSET = 0.05         # the rail's line, behind the front edge
+
+
+def edge_profile(t):
+    """(inset, z) round the slab's edge, from the top face down to the bottom face."""
+    pts = []
+    for k in range(9):
+        a = math.radians(90 * k / 8)
+        pts.append((TOP_ROUND - TOP_ROUND * math.sin(a), -TOP_ROUND + TOP_ROUND * math.cos(a)))
+    pts.append((0.0, -(t - UNDER_CHAMFER)))
+    pts.append((UNDER_CHAMFER, -t))
+    return pts
+
+
+def build_slab(w, d, t):
+    """Rings of inset rectangles following the edge profile, capped top and bottom. Square
+    corners in plan (mitred profile), the eased edge all round."""
+    x0, y0 = SLAB_LEFT_X, SLAB_FRONT_Y
+    bm = bmesh.new()
+    rings = []
+    for inset, z in edge_profile(t):
+        rings.append([bm.verts.new(c) for c in ((x0 + inset, y0 + inset, z), (x0 + w - inset, y0 + inset, z),
+                                                 (x0 + w - inset, y0 + d - inset, z), (x0 + inset, y0 + d - inset, z))])
+    bm.faces.new(rings[0])
+    for a, b in zip(rings, rings[1:]):
+        for k in range(4):
+            j = (k + 1) % 4
+            bm.faces.new((a[k], b[k], b[j], a[j]))
+    bm.faces.new(list(reversed(rings[-1])))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    slab = C.mesh_object("StageSlab", bm, origin=(x0 + w / 2, y0 + d / 2, 0.0))
+    slab.data.shade_smooth()
+    slab.data.set_sharp_from_angle(angle=math.radians(30))
+    slab["role"] = "floating honed marble stage; top at z = 0"
+    return slab
+
+
+def anchors(oven_offset, stand_offset):
+    ox = OVEN_ANCHOR[0] + oven_offset
+    sx, sy = STATION[0] + stand_offset, STATION[1]
+    rail_y = SLAB_FRONT_Y + RAIL_INSET
+    plate_r = S.PLATE["r"]
+    rim_x = sx - math.sqrt(max(plate_r ** 2 - (rail_y - sy) ** 2, 0.0))
+    start_x = DOOR_X1 + oven_offset
+    return {
+        "OvenAnchor": (ox, OVEN_ANCHOR[1], 0.0),
+        "StandAnchor": (sx, sy, 0.0),
+        "RailStart": (start_x, rail_y, 0.0),
+        "RailEnd": (rim_x, rail_y, 0.0),
+        "DropZone": (sx, sy, S.Z_PLATE_TOP),
+        "SpatulaRest": (((ox + W / 2) + (sx - plate_r)) / 2, rail_y + 0.16, 0.0),
+    }
+
+
+def place_anchors(points):
+    for name, p in points.items():
+        C.empty(name, p, size=0.05, kind="ARROWS" if name.endswith("Anchor") else "SPHERE")
+
+
+def append_all(path):
+    """Append every object from an asset file (one asset per file). Returns the new objects."""
+    if not os.path.exists(path):
+        return []
+    with bpy.data.libraries.load(path, link=False) as (src, dst):
+        dst.objects = list(src.objects)
+    objs = [o for o in dst.objects if o is not None]
+    for o in objs:
+        bpy.context.scene.collection.objects.link(o)
+    return objs
+
+
+def roots(objs):
+    return [o for o in objs if o.parent is None]
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--stage", type=int, default=1)
+    parser.add_argument("--slab-size", type=float, nargs=3, default=SLAB_SIZE, metavar=("W", "D", "T"))
+    parser.add_argument("--oven-offset", type=float, default=0.0)
+    parser.add_argument("--stand-offset", type=float, default=0.0)
+    parser.add_argument("--marble", choices=("carrara", "calacatta", "emperador"), default="carrara")
+    parser.add_argument("--out", default=os.path.join(C.BUILD, "slab.blend"))
+    studio.add_render_args(parser)
+    args = C.script_args(parser)
+    w, d, t = args.slab_size
+
+    # The asset file: the slab and its anchors only.
+    C.reset_scene()
+    slab = build_slab(w, d, t)
+    points = anchors(args.oven_offset, args.stand_offset)
+    place_anchors(points)
+    bpy.ops.wm.save_as_mainfile(filepath=args.out)
+    with open(os.path.join(C.BUILD, "slab_anchors.json"), "w") as f:
+        json.dump({k: [round(c, 4) for c in v] for k, v in points.items()}, f, indent=2)
+    print(f"[slab] saved {os.path.relpath(args.out, C.REPO)} and build/slab_anchors.json")
+
+    # The layout scene: slab + oven + stand + cloche, in the studio (the slab is the ground).
+    studio.use(ground=False, station=True)
+    oven = append_all(os.path.join(C.BUILD, "oven.blend"))
+    stand = append_all(os.path.join(C.BUILD, "cakestand.blend"))
+    cloche = append_all(os.path.join(C.BUILD, "cloche.blend"))
+    for o in roots(oven):
+        o.location.x += args.oven_offset
+    for o in roots(stand) + roots(cloche):
+        o.location.x += args.stand_offset
+    import cloche as CL
+    if cloche:
+        CL.set_lift(0.0)
+    bpy.context.view_layer.update()
+    lo, hi = C.world_bounds(["StageSlab"])
+    report = {"slab_mm": [round((hi - lo).x * 1000, 1), round((hi - lo).y * 1000, 1), round((hi - lo).z * 1000, 1)],
+              "anchors": {k: [round(c, 3) for c in v] for k, v in points.items()},
+              "missing": [n for n, objs in (("oven", oven), ("stand", stand), ("cloche", cloche)) if not objs]}
+    print(f"[slab] {json.dumps(report)}")
+
+    out_dir = os.path.join(C.BUILD, "renders", "slab", f"stage{args.stage}")
+    meshes = [o for o in bpy.context.scene.objects if o.type == "MESH" and not o.users_collection[0].name.startswith("Studio")]
+    if args.stage <= 1:
+        R.apply_clay(meshes)
+    studio.camera("topdown", subject=(lo, hi))
+    studio.render(os.path.join(out_dir, "layout_top.png"), args, view_res=(1600, 1000))
+    studio.camera("stage")
+    studio.render(os.path.join(out_dir, "layout_stage.png"), args)
+    # A close look at the eased edge and the chamfer, at the slab's front-left corner.
+    cam = bpy.context.scene.camera
+    cam.data.type, cam.data.lens = "PERSP", 100
+    cam.location = C.Vector((SLAB_LEFT_X - 0.25, SLAB_FRONT_Y - 0.45, 0.10))
+    studio.aim(cam, (SLAB_LEFT_X + 0.02, SLAB_FRONT_Y, -0.03))
+    studio.render(os.path.join(out_dir, "detail_edge.png"), args, view_res=(1000, 750))
+    with open(os.path.join(out_dir, "report.json"), "w") as f:
+        json.dump(report, f, indent=2)
+
+
+if __name__ == "__main__":
+    main()

@@ -40,6 +40,23 @@
         1200
       ]
     },
+    "stage": {
+      "location": [
+        2.15,
+        -2.35,
+        1.3
+      ],
+      "target": [
+        0.65,
+        0.22,
+        0.08
+      ],
+      "lens": 35,
+      "resolution": [
+        1600,
+        1200
+      ]
+    },
     "front_closed": {
       "location": [
         0.0,

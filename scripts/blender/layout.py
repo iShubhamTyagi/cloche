@@ -67,3 +67,11 @@ KNOB_DETENTS = {
 # The stand's base centre sits here; camera.json's "station" view is the "frames" view moved by
 # the same x, so the oven and the stand share lens, height, scale and resolution.
 STATION = (1.40, 0.15, 0.0)
+
+# The stage slab (owner, 2026-11-02): one honed marble slab under both stations, side by side.
+# The oven's front sits at the slab's front edge (the old counter edge) so its door still swings
+# to 180 and hangs in front of it; the stand stands to the right at STATION. Top at z = 0.
+SLAB_SIZE = (2.20, 0.62, 0.06)              # width (x), depth (y), thickness (z)
+SLAB_FRONT_Y = COUNTER_EDGE_Y               # just behind the oven door's hinge
+SLAB_LEFT_X = -0.45                          # 0.19 m beyond the oven's left side
+OVEN_ANCHOR = (0.0, D / 2, 0.0)             # the oven's footprint centre

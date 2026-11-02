@@ -39,6 +39,8 @@ CAMERAS = {
     # fit a door hanging below the counter; the stand with its cloche is ~49 cm tall instead).
     "station": {"location": [STATION[0], -2.30, 0.36], "target": [STATION[0], -0.05, 0.25], "lens": 110,
                 "resolution": [1000, 1200]},
+    # The whole stage: the slab with the oven and the stand, three-quarter from front-right.
+    "stage": {"location": [2.15, -2.35, 1.30], "target": [0.65, 0.22, 0.08], "lens": 35, "resolution": [1600, 1200]},
     # Oven review views.
     "front_closed": {"location": [0.0, -1.90, 0.42], "target": [0.0, 0.12, 0.17], "lens": 85, "resolution": [1200, 900]},
     "open_34": {"location": [1.05, -1.40, 0.62], "target": [0.0, -0.05, 0.13], "lens": 70, "resolution": [1200, 900]},

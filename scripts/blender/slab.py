@@ -124,6 +124,9 @@ def main():
     # The asset file: the slab and its anchors only.
     C.reset_scene()
     slab = build_slab(w, d, t)
+    if args.stage >= 2:
+        # The same marble as the stand (common.marble_material), honed, darker underneath.
+        slab.data.materials.append(C.marble_material(args.marble, "honed", darker_underside=True, large_warp=0.22))
     points = anchors(args.oven_offset, args.stand_offset)
     place_anchors(points)
     bpy.ops.wm.save_as_mainfile(filepath=args.out)
@@ -154,6 +157,10 @@ def main():
     meshes = [o for o in bpy.context.scene.objects if o.type == "MESH" and not o.users_collection[0].name.startswith("Studio")]
     if args.stage <= 1:
         R.apply_clay(meshes)
+    else:
+        # The cloche's glass comes with cake stand Stage 4; until then it renders as clay.
+        R.apply_clay([o for o in meshes if o.name.startswith("Cloche")])
+        studio.keep_oven_lights_off([o for o in meshes if o.name.startswith(("Stand", "Bearing", "Turntable", "Plate", "Cloche"))])
     studio.camera("topdown", subject=(lo, hi))
     studio.render(os.path.join(out_dir, "layout_top.png"), args, view_res=(1600, 1000))
     studio.camera("stage")
@@ -164,6 +171,11 @@ def main():
     cam.location = C.Vector((SLAB_LEFT_X - 0.25, SLAB_FRONT_Y - 0.45, 0.10))
     studio.aim(cam, (SLAB_LEFT_X + 0.02, SLAB_FRONT_Y, -0.03))
     studio.render(os.path.join(out_dir, "detail_edge.png"), args, view_res=(1000, 750))
+    # Raking light across the honed top: satin sheen, the faint scratches, veins through the edge.
+    cam.data.lens = 60
+    cam.location = C.Vector((0.70, SLAB_FRONT_Y - 0.55, 0.06))
+    studio.aim(cam, (0.75, SLAB_FRONT_Y + 0.30, 0.0))
+    studio.render(os.path.join(out_dir, "detail_surface.png"), args, view_res=(1000, 750))
     with open(os.path.join(out_dir, "report.json"), "w") as f:
         json.dump(report, f, indent=2)
 

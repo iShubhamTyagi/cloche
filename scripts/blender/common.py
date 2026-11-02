@@ -267,16 +267,34 @@ def _marble_veins(n, vector, scale, distortion, sharp, warp_amount=0.22):
     return n.remap(dist, 0.0, sharp, 0.0, 1.0)
 
 
-def marble_material(preset="carrara", finish="polished", darker_underside=False):
+def marble_material(preset="carrara", finish="polished", darker_underside=False, large_warp=0.0):
     """Marble in object space (veins run through the solid and round every edge), shared by
     the cake stand and the stage slab so they match exactly. `finish`: "polished" (the stand:
     mirror-ish, clear coat) or "honed" (the slab: satin, roughness 0.22-0.30, no coat).
-    `darker_underside`: faces pointing down are shaded darker, as unpolished slab bottoms are."""
+    `darker_underside`: faces pointing down are shaded darker, as unpolished slab bottoms are.
+    `large_warp` (metres, 0 for the stand): bends the vein field over half-metre spans, so on a
+    large piece the main veins wander and their spacing varies instead of repeating as stripes."""
     from materials import Nodes
     p = MARBLE[preset]
     honed = finish == "honed"
-    n = Nodes(f"Marble_{preset}" + ("_honed" if honed else "") + ("_under" if darker_underside else ""))
+    n = Nodes(f"Marble_{preset}" + ("_honed" if honed else "") + ("_under" if darker_underside else "")
+              + ("_large" if large_warp else ""))
     vec = n.coords((1, 1, 1))
+    if large_warp:
+        bend = n.node("ShaderNodeTexNoise")
+        bend.inputs["Scale"].default_value = 0.9
+        bend.inputs["Detail"].default_value = 2.0
+        n.link(vec, bend.inputs["Vector"])
+        centred = n.node("ShaderNodeVectorMath", operation="SUBTRACT")
+        n.link(bend.outputs["Color"], centred.inputs[0])
+        centred.inputs[1].default_value = (0.5, 0.5, 0.5)
+        scaled = n.node("ShaderNodeVectorMath", operation="SCALE")
+        n.link(centred.outputs["Vector"], scaled.inputs[0])
+        scaled.inputs["Scale"].default_value = large_warp * 2
+        warped = n.node("ShaderNodeVectorMath", operation="ADD")
+        n.link(vec, warped.inputs[0])
+        n.link(scaled.outputs["Vector"], warped.inputs[1])
+        vec = warped.outputs["Vector"]
     clouds = n.remap(n.noise(1.6, 4.0, vec, roughness=0.5), 0.35, 0.7, 0.0, 1.0)
     # A feathered halo round each main vein, its darker core, and fine secondary veins.
     halo = _marble_veins(n, vec, p["scale"], 3.5, p["halo"])
@@ -284,8 +302,14 @@ def marble_material(preset="carrara", finish="polished", darker_underside=False)
     fine = _marble_veins(n, n.coords((1.7, 1.3, 2.1)), p["scale"] * 2.6, 5.0, 0.025, warp_amount=0.3)
     # Veins fade in and out along their length, as real ones do.
     presence = n.remap(n.noise(2.2, 2.0, n.coords((1.3, 0.9, 1.1))), 0.38, 0.62, 0.15, 1.0)
+    if large_warp:
+        # On a large piece most of the vein field fades to a ghost; a few veins run strong.
+        presence = n.remap(n.noise(1.1, 2.0, n.coords((1.3, 0.9, 1.1))), 0.48, 0.62, 0.05, 1.0)
+        fine_scale = 0.55
+    else:
+        fine_scale = 1.0
     colour = n.mix_color(clouds, p["base"], p["cloud"])
-    colour = n.mix_color(n.math("MULTIPLY", n.math("SUBTRACT", 1.0, fine), 0.45 * p["contrast"]), colour, p["fine"])
+    colour = n.mix_color(n.math("MULTIPLY", n.math("SUBTRACT", 1.0, fine), 0.45 * p["contrast"] * fine_scale), colour, p["fine"])
     colour = n.mix_color(n.math("MULTIPLY", n.math("MULTIPLY", n.math("SUBTRACT", 1.0, halo), 0.35 * p["contrast"]), presence), colour, p["fine"])
     colour = n.mix_color(n.math("MULTIPLY", n.math("MULTIPLY", n.math("SUBTRACT", 1.0, core), p["contrast"]), presence), colour, p["vein"])
     if darker_underside:

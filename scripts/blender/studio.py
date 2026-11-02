@@ -35,7 +35,9 @@ CAMERAS = {
     # The app's camera: every door frame, knob sprite and in-oven dish render uses it.
     "frames": {"location": [0.0, -2.30, 0.36], "target": [0.0, -0.05, 0.05], "lens": 110, "resolution": [1000, 1200]},
     # The plating station: the "frames" camera slid along the counter to the cake stand.
-    "station": {"location": [STATION[0], -2.30, 0.36], "target": [STATION[0], -0.05, 0.05], "lens": 110,
+    # Same lens, distance and resolution as "frames", tilted up (the oven's view looks down to
+    # fit a door hanging below the counter; the stand with its cloche is ~49 cm tall instead).
+    "station": {"location": [STATION[0], -2.30, 0.36], "target": [STATION[0], -0.05, 0.25], "lens": 110,
                 "resolution": [1000, 1200]},
     # Oven review views.
     "front_closed": {"location": [0.0, -1.90, 0.42], "target": [0.0, 0.12, 0.17], "lens": 85, "resolution": [1200, 900]},

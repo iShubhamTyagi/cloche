@@ -250,6 +250,46 @@ def set_plate_angle(angle):
     bpy.context.view_layer.update()
 
 
+def render_cloche_stage(args, out_dir, objs, cloche_objs):
+    """Cloche seated: the station view and a three-quarter; lifted halfway and fully; and a
+    cut-away (front half removed) side view to check the real wall and the rim's seating."""
+    import cloche as CL
+    shots = []
+    CL.set_lift(0.0)
+    everything = [o.name for o in objs + cloche_objs]
+    bounds = C.world_bounds(everything)
+    for name, view, lift in (("seated_station", "station", 0.0), ("seated_three_quarter", "three_quarter", 0.0),
+                             ("lift_half_station", "station", 0.5), ("lifted_station", "station", 1.0)):
+        CL.set_lift(lift)
+        studio.camera(view, subject=None if view == "station" else bounds)
+        path = os.path.join(out_dir, f"cloche_{name}.png")
+        studio.render(path, args)
+        shots.append(path)
+    CL.set_lift(0.0)
+    # Cut-away: a boolean box removes everything in front of the stand's centre line.
+    cutter = C.box_object("Cutaway", at(-0.4, -0.5, -0.1), at(0.4, 0.0, 0.5))
+    cutter.hide_render = True
+    cutter.display_type = "WIRE"
+    for obj in [bpy.data.objects[n] for n in everything]:
+        if obj.type == "MESH":
+            mod = obj.modifiers.new("Cutaway", "BOOLEAN")
+            mod.operation, mod.solver, mod.object = "DIFFERENCE", "EXACT", cutter
+    cam = bpy.context.scene.camera
+    cam.data.type, cam.data.ortho_scale = "ORTHO", 0.40
+    cam.location = Vector(at(0, -2.0, 0.17))
+    studio.aim(cam, at(0, 0, 0.17))
+    studio.render(os.path.join(out_dir, "cloche_section.png"), args, view_res=(1000, 1000))
+    cam.data.ortho_scale = 0.03
+    cam.location = Vector(at(-0.134, -2.0, Z_PLATE_TOP + 0.004))
+    studio.aim(cam, at(-0.134, 0, Z_PLATE_TOP + 0.004))
+    studio.render(os.path.join(out_dir, "cloche_section_rim.png"), args, view_res=(800, 800))
+    for obj in [bpy.data.objects[n] for n in everything]:
+        if "Cutaway" in obj.modifiers:
+            obj.modifiers.remove(obj.modifiers["Cutaway"])
+    bpy.data.objects.remove(cutter)
+    I.grid(shots, os.path.join(out_dir, "sheet.png"), columns=4, cell_h=520)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--stage", type=int, default=1)
@@ -271,7 +311,12 @@ def main():
     plate = build_plate()
     switch, led = build_switch(base)
     objs = [base, pad, ring, plate, switch, led, bpy.data.objects["PlateMarker"]]
-    studio.keep_oven_lights_off(objs)
+    cloche_objs = []
+    if args.stage >= 3:
+        import cloche as CL
+        cl = CL.build()
+        cloche_objs = [cl, bpy.data.objects["ClocheRim"], bpy.data.objects["ClocheFinial"]]
+    studio.keep_oven_lights_off(objs + cloche_objs)
     report = checks(plate)
     report["triangles"] = C.triangle_count(objs)[0]
     set_plate_angle(args.plate_angle)
@@ -284,6 +329,20 @@ def main():
         import stand_materials as SM
         SM.assign(args.marble, args.brass == "on")
         SM.set_led(args.led == "on")
+    if cloche_objs:
+        report["cloche"] = CL.checks()
+        report["triangles"] = C.triangle_count(objs + cloche_objs)[0]
+        print(f"[cakestand] cloche {json.dumps(report['cloche'])}")
+        if args.stage == 3:
+            R.apply_clay(cloche_objs)
+        render_cloche_stage(args, out_dir, objs, cloche_objs)
+        with open(os.path.join(out_dir, "report.json"), "w") as f:
+            json.dump(report, f, indent=2)
+        lift = args.lift if args.lift is not None else (1.0 if args.cloche_state == "lifted" else 0.0)
+        CL.set_lift(lift)
+        bpy.ops.wm.save_as_mainfile(filepath=args.out)
+        print(f"[cakestand] saved {os.path.relpath(args.out, C.REPO)}")
+        return
     bounds = C.world_bounds([o.name for o in objs])
     shots = []
     for view in ("station", "three_quarter", "topdown"):

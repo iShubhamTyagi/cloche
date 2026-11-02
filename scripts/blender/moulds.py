@@ -10,7 +10,8 @@ coordinates, origin at the centre of each object's base: MuffinTin, Liner_1..4, 
 RoundTin, Cake, CakeTurnout. Sizes are fitted to the oven (owner, 2026-11-02): 60 mm cups on
 the slots' 72 mm pitch, and a 200 mm x 44 mm round tin so a full dome clears the top tubes.
 
-Stages: 1 tins and liners (clay). Later stages add the cakes, materials and browning.
+Stages: 1 tins and liners (clay); 2 cakes with rise (clay, cakes.py). Later: materials and
+browning, lit renders and contact sheet, fit check in the oven tray.
 Renders go to build/renders/moulds/stage<N>/, from camera.json's fitted views.
 """
 import argparse
@@ -304,24 +305,58 @@ def fit_report(oven, tin, round_tin):
     }
 
 
-def render_isolated(groups, out_dir, args, stage):
-    """Each dish on its own on the studio counter (dropped from oven height to z = 0)."""
-    floor_z = None
-    for name, objs in groups.items():
-        for other in bpy.context.scene.objects:
-            if other.type == "MESH" and other.name != "Floor":
-                other.hide_render = other not in objs
-        lo, hi = C.world_bounds([o.name for o in objs])
-        floor_z = lo.z
-        for o in objs:
-            o.location.z -= floor_z
+TOP_TUBE_BOTTOM = 0.2745   # from oven.blend: HeatingElement_Top* lowest point (layout ELEMENT_ZS)
+
+
+def set_rise(objs, rise, browning=None):
+    for o in objs:
+        if "rise" in o and o.data.shape_keys is not None:
+            o["rise"] = float(rise)
+        if browning is not None and "browning" in o:
+            o["browning"] = float(browning)
+    bpy.context.view_layer.update()
+
+
+def isolate(objs):
+    for other in bpy.context.scene.objects:
+        if other.type == "MESH" and other.name != "Floor":
+            other.hide_render = other not in objs
+
+
+class OnCounter:
+    """Temporarily drop a dish from oven height onto the studio counter for an isolated render."""
+
+    def __init__(self, objs):
+        self.objs = [o for o in objs if o.parent is None]
+        self.dz = C.world_bounds([o.name for o in objs if o.type == "MESH"])[0].z
+
+    def __enter__(self):
+        for o in self.objs:
+            o.location.z -= self.dz
         bpy.context.view_layer.update()
-        lo, hi = C.world_bounds([o.name for o in objs])
-        for view in ("three_quarter", "topdown"):
-            studio.camera(view, subject=(lo, hi))
-            studio.render(os.path.join(out_dir, f"{name}_{view}.png"), args)
-        for o in objs:
-            o.location.z += floor_z
+
+    def __exit__(self, *exc):
+        for o in self.objs:
+            o.location.z += self.dz
+        bpy.context.view_layer.update()
+
+
+def render_dish(name, objs, cakes, out_dir, args, states):
+    """Three-quarter view per state, top-down at the last state, all from camera.json."""
+    isolate(objs)
+    with OnCounter(objs):
+        set_rise(cakes, 1.0)
+        bounds = C.world_bounds([o.name for o in objs if o.type == "MESH"])
+        paths = []
+        for state in states:
+            set_rise(cakes, *STATES[state])
+            studio.camera("three_quarter", subject=bounds)
+            path = os.path.join(out_dir, f"{name}_{state}_three_quarter.png")
+            studio.render(path, args)
+            paths.append(path)
+        studio.camera("topdown", subject=bounds)
+        studio.render(os.path.join(out_dir, f"{name}_{states[-1]}_topdown.png"), args)
+    return paths
 
 
 def main():
@@ -331,7 +366,9 @@ def main():
     parser.add_argument("--rise", type=float, default=None)
     parser.add_argument("--browning", type=float, default=None)
     parser.add_argument("--seed", type=int, default=1)
-    parser.add_argument("--stage", type=int, default=1)
+    parser.add_argument("--stage", type=int, default=2)
+    parser.add_argument("--turnout", choices=("flipped", "upright"), default="flipped")
+    parser.add_argument("--states", default=",".join(STATES), help="comma list to render, e.g. golden")
     parser.add_argument("--out", default=None)
     studio.add_render_args(parser)
     args = C.script_args(parser)
@@ -339,6 +376,9 @@ def main():
     rise = args.rise if args.rise is not None else rise
     browning = args.browning if args.browning is not None else browning
 
+    import cakes  # noqa: E402  (imports this module; keep the import here)
+    import random
+    rng = random.Random(args.seed)
     oven = read_oven()
     C.reset_scene()
     studio.use()
@@ -346,19 +386,46 @@ def main():
     liners = [build_liner(i + 1, s) for i, s in enumerate(oven["slots"])]
     round_tin = build_round_tin(oven)
     report = fit_report(oven, tin, round_tin)
+    cupcakes, cake, turnout = [], None, None
+    if args.stage >= 2:
+        cupcakes = [cakes.build_cupcake(i + 1, s, rng, rise, browning) for i, s in enumerate(oven["slots"])]
+        cake = cakes.build_cake(oven["centre"], rng, rise, browning)
+        turnout = cakes.build_turnout(oven["centre"], rng, browning, flipped=args.turnout == "flipped")
+        set_rise(cupcakes + [cake], 1.0)
+        top_cup = C.world_bounds([o.name for o in cupcakes])[1].z
+        top_cake = C.world_bounds([cake.name])[1].z
+        report["full_rise_clearance_to_top_tubes_mm"] = {
+            "cupcakes": round((TOP_TUBE_BOTTOM - top_cup) * 1000, 1),
+            "cake": round((TOP_TUBE_BOTTOM - top_cake) * 1000, 1)}
+        set_rise(cupcakes + [cake], rise, browning)
+    everything = [tin, *liners, round_tin, *cupcakes] + ([cake, turnout] if cake else [])
     print(f"[moulds] fit {report}")
-    print(f"[moulds] triangles {C.triangle_count([tin, *liners, round_tin])[0]}")
+    print(f"[moulds] triangles {C.triangle_count(everything)[0]}")
 
-    out = args.out or os.path.join(C.BUILD, f"moulds_{args.state}.blend")
     out_dir = os.path.join(C.BUILD, "renders", "moulds", f"stage{args.stage}")
     if args.stage <= 2:
-        R.apply_clay([tin, *liners, round_tin])
-    groups = {}
+        R.apply_clay(everything)
+    states = args.states.split(",") if args.stage >= 2 else ["raw"]
+    strips = []
     if args.dish in ("cupcake", "both"):
-        groups["cupcake"] = [tin, *liners]
+        strips += render_dish("cupcake", [tin, *liners, *cupcakes], cupcakes, out_dir, args, states)
     if args.dish in ("cake", "both"):
-        groups["cake"] = [round_tin]
-    render_isolated(groups, out_dir, args, args.stage)
+        strips += render_dish("cake", [round_tin, cake] if cake else [round_tin], [cake] if cake else [],
+                              out_dir, args, states)
+        if turnout:
+            isolate([turnout])
+            with OnCounter([turnout]):
+                bounds = C.world_bounds([turnout.name])
+                for view in ("three_quarter", "topdown"):
+                    studio.camera(view, subject=bounds)
+                    studio.render(os.path.join(out_dir, f"cake_turnout_{view}.png"), args)
+    if strips:
+        import imaging as I
+        I.grid(strips, os.path.join(out_dir, "states.png"), columns=len(states), cell_h=300)
+    for o in bpy.context.scene.objects:
+        o.hide_render = False
+    set_rise([o for o in everything if "rise" in o], rise, browning)
+    out = args.out or os.path.join(C.BUILD, f"moulds_{args.state}.blend")
     bpy.ops.wm.save_as_mainfile(filepath=out)
     print(f"[moulds] saved {os.path.relpath(out, C.REPO)}")
 

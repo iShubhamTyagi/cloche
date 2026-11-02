@@ -49,14 +49,16 @@ ELEMENT_LIGHT_COLOR = (1.0, 0.42, 0.12)
 
 # Knobs turn in clicks (detents). Angle convention: degrees clockwise as seen from the front,
 # 0 = pointer notch at 12 o'clock; in Blender that is rotation_euler.y = radians(angle) on the
-# knob (its origin is on its axis). Knob1 is temperature: 140-240 C in 10 C clicks across a
-# 250 degree sweep. Knobs 2 and 3 turn too; their meaning is the app's to define, so they get a
-# placeholder of 12 clicks a turn. Sprites are rendered every KNOB_SPRITE_STEP degrees for a
-# full turn, so any later click layout on a multiple of 5 degrees needs no re-render.
-KNOB_SPRITE_STEP = 5
+# knob (its origin is on its axis). One set of 37 knob frames covers -135..+135 degrees in 7.5
+# degree steps (7:30 to 4:30 on a clock face) and is shared by all three knobs (owner,
+# 2026-11-02); every click must land on one of those frames.
+# Knob1 is temperature: 140-240 C in 10 C clicks, 22.5 degrees apart (a 225 degree sweep,
+# centred: 190 C points straight up). Knobs 2 and 3 turn too; their meaning is the app's to
+# define, so they get a placeholder of 10 clicks 30 degrees apart across the full sweep.
+KNOB_FRAMES = {"count": 37, "first_angle": -135.0, "step_angle": 7.5}
 KNOB_DETENTS = {
     "Knob1": {"role": "temperature", "unit": "C", "values": list(range(140, 241, 10)),
-              "first_angle": -125.0, "step_angle": 25.0},
-    "Knob2": {"role": None, "unit": None, "values": list(range(12)), "first_angle": 0.0, "step_angle": 30.0},
-    "Knob3": {"role": None, "unit": None, "values": list(range(12)), "first_angle": 0.0, "step_angle": 30.0},
+              "first_angle": -112.5, "step_angle": 22.5},
+    "Knob2": {"role": None, "unit": None, "values": list(range(10)), "first_angle": -135.0, "step_angle": 30.0},
+    "Knob3": {"role": None, "unit": None, "values": list(range(10)), "first_angle": -135.0, "step_angle": 30.0},
 }

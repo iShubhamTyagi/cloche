@@ -44,6 +44,22 @@ def brushed_brass(name="BrushedBrass", axis="Z"):
     return n.mat
 
 
+def brushed_brass_linear(name="BrushedBrassLinear"):
+    """Brass brushed in straight lines along object X (the slab's rail): the grain varies only
+    across the rail, so streaks run along it."""
+    n = Nodes(name)
+    n.set(Base_Color=(0.80, 0.58, 0.32, 1), Metallic=1.0, Anisotropic=0.7)
+    tangent = n.node("ShaderNodeCombineXYZ")
+    tangent.inputs[0].default_value = 1.0
+    world = n.node("ShaderNodeVectorTransform", vector_type="VECTOR", convert_from="OBJECT", convert_to="WORLD")
+    n.link(tangent.outputs["Vector"], world.inputs["Vector"])
+    n.link(world.outputs["Vector"], n.bsdf.inputs["Tangent"])
+    grain = n.noise(1.0, 3.0, n.coords((4, 1500, 1500)))
+    n.link(n.remap(grain, 0.35, 0.65, 0.24, 0.34), n.bsdf.inputs["Roughness"])
+    n.bump(grain, 0.004)
+    return n.mat
+
+
 def cork():
     n = Nodes("Cork")
     grain = n.noise(900.0, 2.0)

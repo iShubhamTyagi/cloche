@@ -35,6 +35,10 @@ from layout import (DOOR_X1, OVEN_ANCHOR, SLAB_FRONT_Y, SLAB_LEFT_X, SLAB_SIZE, 
 TOP_ROUND = 0.003         # radius on the top edge
 UNDER_CHAMFER = 0.004     # chamfer on the bottom edge
 RAIL_INSET = 0.05         # the rail's line, behind the front edge
+RAIL_W = 0.006            # brass inlay width
+RAIL_DEPTH = 0.004        # set this deep into the slab, top flush
+STOP_LEN = 0.030          # cross marks at the rail's ends, across it
+STOP_W = 0.004
 
 
 def edge_profile(t):
@@ -69,6 +73,57 @@ def build_slab(w, d, t):
     slab.data.set_sharp_from_angle(angle=math.radians(30))
     slab["role"] = "floating honed marble stage; top at z = 0"
     return slab
+
+
+def capsule(bm, x0, y0, x1, y1, width, depth, steps=12):
+    """A flat stadium (rounded ends) from (x0, y0) to (x1, y1), top at z = 0, `depth` deep."""
+    ang = math.atan2(y1 - y0, x1 - x0)
+    r = width / 2
+    outline = []
+    for cx, cy, a0 in ((x1, y1, ang - math.pi / 2), (x0, y0, ang + math.pi / 2)):
+        for k in range(steps + 1):
+            a = a0 + math.pi * k / steps
+            outline.append((cx + r * math.cos(a), cy + r * math.sin(a)))
+    top = [bm.verts.new((x, y, 0.0)) for x, y in outline]
+    bottom = [bm.verts.new((x, y, -depth)) for x, y in outline]
+    bm.faces.new(top)
+    bm.faces.new(list(reversed(bottom)))
+    n = len(outline)
+    for k in range(n):
+        j = (k + 1) % n
+        bm.faces.new((bottom[k], bottom[j], top[j], top[k]))
+
+
+def build_rail(slab, start, end):
+    """SlabRail: the rail and its two end stops as one brass inlay, flush with the slab top; the
+    slab gets the matching groove."""
+    (x0, y0, _), (x1, y1, _) = start, end
+    pieces = []
+    for kind in ("rail", "stop0", "stop1"):
+        bm = bmesh.new()
+        if kind == "rail":
+            capsule(bm, x0, y0, x1, y1, RAIL_W, RAIL_DEPTH)
+        else:
+            x = x0 if kind == "stop0" else x1
+            capsule(bm, x, y0 - STOP_LEN / 2, x, y0 + STOP_LEN / 2, STOP_W, RAIL_DEPTH)
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+        pieces.append(C.mesh_object(f"_rail_{kind}", bm, origin=((x0 + x1) / 2, y0, 0.0)))
+    rail = pieces[0]
+    for other in pieces[1:]:
+        mod = rail.modifiers.new("join", "BOOLEAN")
+        mod.operation, mod.solver, mod.object = "UNION", "EXACT", other
+        with bpy.context.temp_override(object=rail, active_object=rail, selected_objects=[rail]):
+            bpy.ops.object.modifier_apply(modifier=mod.name)
+        bpy.data.objects.remove(other, do_unlink=True)
+    rail.name = rail.data.name = "SlabRail"
+    # The groove: the same shape, cut from the slab.
+    cutter = rail.copy()
+    cutter.data = rail.data.copy()
+    C.link(cutter)
+    C.boolean_difference(slab, cutter)
+    C.finish(rail, bevel=0.0003, segments=2, angle=40)
+    rail["role"] = "brass inlay the tray slides along, RailStart to RailEnd, with end stops"
+    return rail
 
 
 def anchors(oven_offset, stand_offset):
@@ -129,6 +184,11 @@ def main():
         slab.data.materials.append(C.marble_material(args.marble, "honed", darker_underside=True, large_warp=0.22))
     points = anchors(args.oven_offset, args.stand_offset)
     place_anchors(points)
+    if args.stage >= 3:
+        import stand_materials as SM
+        rail = build_rail(slab, points["RailStart"], points["RailEnd"])
+        rail.data.materials.clear()
+        rail.data.materials.append(SM.brushed_brass_linear())
     bpy.ops.wm.save_as_mainfile(filepath=args.out)
     with open(os.path.join(C.BUILD, "slab_anchors.json"), "w") as f:
         json.dump({k: [round(c, 4) for c in v] for k, v in points.items()}, f, indent=2)
@@ -171,6 +231,17 @@ def main():
     cam.location = C.Vector((SLAB_LEFT_X - 0.25, SLAB_FRONT_Y - 0.45, 0.10))
     studio.aim(cam, (SLAB_LEFT_X + 0.02, SLAB_FRONT_Y, -0.03))
     studio.render(os.path.join(out_dir, "detail_edge.png"), args, view_res=(1000, 750))
+    if args.stage >= 3:
+        # The rail's end and its stop, close, with the oven in the background.
+        cam.data.lens = 100
+        end = points["RailEnd"]
+        cam.location = C.Vector((end[0] - 0.12, end[1] - 0.20, 0.07))
+        studio.aim(cam, (end[0] - 0.01, end[1], 0.0))
+        studio.render(os.path.join(out_dir, "detail_rail_end.png"), args, view_res=(1000, 750))
+        start = points["RailStart"]
+        cam.location = C.Vector((start[0] + 0.25, start[1] - 0.22, 0.06))
+        studio.aim(cam, (start[0] + 0.02, start[1], 0.0))
+        studio.render(os.path.join(out_dir, "detail_rail_start.png"), args, view_res=(1000, 750))
     # Raking light across the honed top: satin sheen, the faint scratches, veins through the edge.
     cam.data.lens = 60
     cam.location = C.Vector((0.70, SLAB_FRONT_Y - 0.55, 0.06))

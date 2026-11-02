@@ -12,6 +12,9 @@ extension EnvironmentValues {
     /// The content is laid on the open oven door's glass (the open Duo): screens tighten their
     /// spacing to fit it.
     @Entry var isOnDoorGlass = false
+    /// How hot the oven's tubes look, 0 cold (black rods) to 1 glowing. The app preheats from 0
+    /// to 1 over the first seconds after launch (`AppRootView`); visual only.
+    @Entry var ovenHeat: Double = 1
 }
 
 /// Which screen the folded Duo is showing, decided from two signals.

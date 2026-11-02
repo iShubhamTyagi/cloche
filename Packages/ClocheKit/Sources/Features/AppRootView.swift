@@ -21,6 +21,9 @@ public struct AppRootView: View {
     @State private var showsSplash = true
     /// The window's width, one of the two signals for the Duo's cover (`FoldSignal`).
     @State private var windowWidth: CGFloat = 0
+    /// The oven preheats on launch: black rods to full glow in about 3 s. Visual only; nothing
+    /// waits on it.
+    @State private var ovenHeat: Double = 0
     @State private var awayMonitor: AppAwayMonitor
 
     private let dependencies: FeatureDependencies
@@ -45,8 +48,13 @@ public struct AppRootView: View {
         .task {
             // The shut door (the folded cover) and the fully open one: ready before any fold.
             if let layout = OvenRenderLayout.shared {
-                OvenFrameCache.shared.preload([layout.frameName(forAngle: 0), layout.frameName(forAngle: layout.maxAngle), "slab_oven"])
+                let ends = [0.0, layout.maxAngle]
+                OvenFrameCache.shared.preload(ends.map { layout.frameName(forAngle: $0) }
+                    + ends.compactMap { layout.coldFrameName(forAngle: $0) } + ["slab_oven"])
             }
+            // Cold at first, then the tubes come up to temperature: slow to start, like elements
+            // warming, at full glow by about 3 s.
+            withAnimation(.timingCurve(0.55, 0.0, 0.35, 1.0, duration: 2.8).delay(0.2)) { ovenHeat = 1 }
             try? await Task.sleep(for: SplashScreen.duration)
             // Reduce Motion: a straight cut instead of the cross-fade.
             withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.35)) {
@@ -58,6 +66,7 @@ public struct AppRootView: View {
             windowWidth = width
         }
         .environment(\.isOnCover, isOnCover)
+        .environment(\.ovenHeat, ovenHeat)
         .environment(\.hingeDoorAngle, FoldSignal.doorAngle(sensor: dependencies.doorSensor, isOnCover: isOnCover))
         .background(HingeSensorAnchor(sensor: dependencies.doorSensor).accessibilityHidden(true))
         // Full screen everywhere: no time, network or battery over the oven (open screen and cover).

@@ -23,13 +23,15 @@ struct OvenRenderLayout: Decodable, Sendable {
     let hinge: [[Double]]
     /// The door's clear glass when it hangs fully open (180).
     let glassOpen: [Double]
+    /// Cold frames (tubes off) are bundled next to the glowing ones.
+    let hasCold: Bool?
     /// The upper tray, door shut.
     let tray: [Double]
     /// The counter's line under the oven (pixels): the plating station aligns to it.
     let counterY: Double
 
     enum CodingKeys: String, CodingKey {
-        case imageSize = "image_size", maxAngle = "max_angle", frames, body, display, hinge, glassOpen = "glass_open", tray, counterY = "counter_y"
+        case imageSize = "image_size", maxAngle = "max_angle", frames, body, display, hinge, glassOpen = "glass_open", tray, counterY = "counter_y", hasCold = "has_cold"
     }
 
     /// Nil when the rendered frames aren't in the bundle (they are generated, not committed);
@@ -55,6 +57,12 @@ struct OvenRenderLayout: Decodable, Sendable {
         frame(forAngle: angle).name
     }
 
+    /// The same frame with the tubes off, if bundled.
+    func coldFrameName(forAngle angle: Double) -> String? {
+        guard hasCold == true else { return nil }
+        return frame(forAngle: angle).name.replacingOccurrences(of: "oven_door_", with: "oven_door_cold_")
+    }
+
     func frame(forAngle angle: Double) -> Frame {
         let clamped = min(max(angle, 0), maxAngle)
         return frames.min { abs($0.angle - clamped) < abs($1.angle - clamped) } ?? frames[0]
@@ -78,6 +86,9 @@ struct RenderedOven: View {
     /// The open Duo: put the door's hinge line on the slot's bottom edge, which is the fold.
     var alignsHingeToFold = false
 
+    /// Preheat: the cold frame shows through as the glowing one fades in.
+    @Environment(\.ovenHeat) private var heat
+
     var body: some View {
         GeometryReader { slot in
             let (scale, origin) = Self.placement(layout: layout, in: slot.size, alignsHingeToFold: alignsHingeToFold)
@@ -91,10 +102,18 @@ struct RenderedOven: View {
                         .interpolation(.high)
                         .frame(width: imageSize.width, height: imageSize.height)
                 }
+                if heat < 1, let coldName = layout.coldFrameName(forAngle: frameAngle),
+                   let cold = OvenFrameCache.shared.image(named: coldName) {
+                    Image(uiImage: cold)
+                        .resizable()
+                        .interpolation(.high)
+                        .frame(width: imageSize.width, height: imageSize.height)
+                }
                 frameImage
                     .resizable()
                     .interpolation(.high)
                     .frame(width: imageSize.width, height: imageSize.height)
+                    .opacity(layout.hasCold == true ? heat : 1)
                 plate
                     .textStyle(isPlateItalic ? .voice(display.height * scale * 0.5) : .numeral(display.height * scale * 0.42))
                     .foregroundStyle(isPlateItalic ? Palette.sand : Palette.text)
@@ -149,8 +168,10 @@ struct RenderedOven: View {
         return (corners, frame.facing)
     }
 
+    private var frameAngle: Double { cutsAtHinge ? layout.maxAngle : angle }
+
     private var frameImage: Image {
-        let name = layout.frameName(forAngle: cutsAtHinge ? layout.maxAngle : angle)
+        let name = layout.frameName(forAngle: frameAngle)
         if let image = OvenFrameCache.shared.image(named: name) {
             return Image(uiImage: image)
         }

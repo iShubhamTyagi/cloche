@@ -33,11 +33,11 @@ OUT = os.path.join(C.BUILD, "renders", "stage5")
 KNOBS = ("Knob1", "Knob2", "Knob3")
 
 
-def setup():
-    """The oven in the studio from the app's camera, heat on, bloom on."""
+def setup(heat=1.0):
+    """The oven in the studio from the app's camera, at `heat` (1 glowing, 0 cold), bloom on."""
     bpy.ops.wm.open_mainfile(filepath=os.path.join(C.BUILD, "oven.blend"))
     studio.use()
-    materials.set_heat(1.0)
+    materials.set_heat(heat)
     materials.set_display_glow(0.08)
     studio.bloom(True)
     keep_studio_lights_off_glass()
@@ -76,10 +76,10 @@ def to_pixels(cam, point):
     return [round(v.x * w, 1), round((1 - v.y) * h, 1)]
 
 
-def render_frames(count, args):
+def render_frames(count, args, folder="door"):
     frames = []
     for i, angle in enumerate(angles(count)):
-        path = os.path.join(OUT, "door", f"door_{i:03d}.png")
+        path = os.path.join(OUT, folder, f"door_{i:03d}.png")
         R.set_door(angle)
         if studio.render(path, args, view_res=frames_res()):
             I.clean_transparent(path)
@@ -139,10 +139,20 @@ def main():
     parser.add_argument("--count", type=int, default=48)
     parser.add_argument("--test", action="store_true", help="three preview frames to check framing")
     parser.add_argument("--usdz-only", action="store_true")
+    parser.add_argument("--cold", action="store_true",
+                        help="the same frames with the tubes off (cold, black rods) into stage5/door_cold/")
     studio.add_render_args(parser, samples=96)
     args = C.script_args(parser)
 
     os.makedirs(os.path.join(OUT, "door"), exist_ok=True)
+    if args.cold:
+        # The app crossfades cold -> hot as the oven preheats; same camera, angles and lights.
+        os.makedirs(os.path.join(OUT, "door_cold"), exist_ok=True)
+        setup(heat=0.0)
+        # Knobs stay in, to match the hot frames in the app (rendered before the knob layer).
+        render_frames(args.count, args, folder="door_cold")
+        print("[frames] cold done")
+        return
     cam = setup()
     if args.usdz_only:
         print(f"[frames] usdz {export_usdz()}")

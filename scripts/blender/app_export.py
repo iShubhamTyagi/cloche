@@ -116,14 +116,19 @@ def main():
     for old in os.listdir(DST):
         os.remove(os.path.join(DST, old))
     kept = []
+    cold_dir = os.path.join(os.path.dirname(SRC), "door_cold")
+    has_cold = all(os.path.exists(os.path.join(cold_dir, f)) for f in files)
     for i in range(0, count, args.every):
         I.save(frames[i][y0:y1, x0:x1], os.path.join(DST, f"oven_door_{i:03d}.png"))
+        if has_cold:
+            # The same frame with the tubes off: the app crossfades cold -> hot while preheating.
+            I.save(I.load(os.path.join(cold_dir, files[i]))[y0:y1, x0:x1], os.path.join(DST, f"oven_door_cold_{i:03d}.png"))
         kept.append({"index": i, "name": f"oven_door_{i:03d}", "angle": round(DOOR_MAX_ANGLE * i / (count - 1), 4),
                      "glass": glass_quads[i]["corners"], "facing": glass_quads[i]["facing"]})
     layout = {
         "source": "scripts/blender/app_export.py from build/renders/stage5 (camera.json views.frames)",
         "image_size": [x1 - x0, y1 - y0], "pixel_origin": "top-left",
-        "max_angle": DOOR_MAX_ANGLE, "frames": kept,
+        "max_angle": DOOR_MAX_ANGLE, "frames": kept, "has_cold": has_cold,
         "body": body, "display": display, "cavity": cavity, "glass_open": glass_open, "tray": tray,
         "hinge": [px((DOOR_X0, HINGE_Y, HINGE_Z)), px((DOOR_X1, HINGE_Y, HINGE_Z))],
         "knobs": knobs,

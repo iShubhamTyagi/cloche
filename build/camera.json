@@ -23,6 +23,23 @@
         1200
       ]
     },
+    "station": {
+      "location": [
+        1.4,
+        -2.3,
+        0.36
+      ],
+      "target": [
+        1.4,
+        -0.05,
+        0.05
+      ],
+      "lens": 110,
+      "resolution": [
+        1000,
+        1200
+      ]
+    },
     "front_closed": {
       "location": [
         0.0,

@@ -23,7 +23,7 @@ import bpy
 
 sys.path.insert(0, os.path.dirname(__file__))
 import common as C  # noqa: E402
-from layout import COUNTER_EDGE_Y, COUNTER_T  # noqa: E402
+from layout import COUNTER_EDGE_Y, COUNTER_T, STATION  # noqa: E402
 
 STUDIO_BLEND = os.path.join(C.BUILD, "studio.blend")
 CAMERA_JSON = os.path.join(C.BUILD, "camera.json")
@@ -34,6 +34,9 @@ CAMERA_JSON = os.path.join(C.BUILD, "camera.json")
 CAMERAS = {
     # The app's camera: every door frame, knob sprite and in-oven dish render uses it.
     "frames": {"location": [0.0, -2.30, 0.36], "target": [0.0, -0.05, 0.05], "lens": 110, "resolution": [1000, 1200]},
+    # The plating station: the "frames" camera slid along the counter to the cake stand.
+    "station": {"location": [STATION[0], -2.30, 0.36], "target": [STATION[0], -0.05, 0.05], "lens": 110,
+                "resolution": [1000, 1200]},
     # Oven review views.
     "front_closed": {"location": [0.0, -1.90, 0.42], "target": [0.0, 0.12, 0.17], "lens": 85, "resolution": [1200, 900]},
     "open_34": {"location": [1.05, -1.40, 0.62], "target": [0.0, -0.05, 0.13], "lens": 70, "resolution": [1200, 900]},

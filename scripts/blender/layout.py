@@ -62,3 +62,8 @@ KNOB_DETENTS = {
     "Knob2": {"role": None, "unit": None, "values": list(range(10)), "first_angle": -135.0, "step_angle": 30.0},
     "Knob3": {"role": None, "unit": None, "values": list(range(10)), "first_angle": -135.0, "step_angle": 30.0},
 }
+
+# The plating station: along the same counter, to the right of the oven (one continuous shot).
+# The stand's base centre sits here; camera.json's "station" view is the "frames" view moved by
+# the same x, so the oven and the stand share lens, height, scale and resolution.
+STATION = (1.40, 0.15, 0.0)

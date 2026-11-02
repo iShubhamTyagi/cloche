@@ -1,9 +1,12 @@
-"""The glass cloche: Cloche (bell, real 3 mm wall), ClocheRim (rounded bead that seats in the
-plate's groove), ClocheFinial (knob on top; brushed brass or clear glass). Origin of Cloche at
-the centre of its base (the bead's lowest point, in the groove), so lifting is +Z only.
+"""The glass cloche: Cloche (a cylinder with straight walls, a softly rounded shoulder and a
+nearly flat top; real 3 mm wall), ClocheRim (rounded bead that seats in the plate's groove),
+ClocheFinial (knob on top; brushed brass or clear glass). Origin of Cloche at the centre of its
+base (the bead's lowest point, in the groove), so lifting is +Z only.
 
-Sizes (owner's brief): inner diameter ~26 cm, inner height ~24 cm, wall ~3 mm. It seats inboard
-on the 30 cm plate, in the groove (owner, 2026-11-02).
+Cylindrical (owner, 2026-11-02, replacing the bell) so the full width is usable at any height:
+a row of cupcakes or two 20 cm cake layers stacked. Sizes: inner diameter 26.5 cm (the straight
+wall stands centred on the bead in the groove, so it follows the groove), inner height 24 cm,
+wall 3 mm. It seats inboard on the 30 cm plate.
 """
 import math
 
@@ -14,13 +17,12 @@ import cakes
 import common as C
 import cakestand as S
 
-INNER_R = 0.1297          # inner radius of the body: 25.9 cm inner diameter
-# The skirt flares out so the wall's centre lands on the rim bead, which sits in the groove.
-INNER_H = 0.240           # inner height above the plate
 WALL = 0.003
 BEAD_R = 0.0022           # rim bead radius (seats in the 5 mm groove)
-FLARE = S.GROOVE["r"] - WALL / 2 - INNER_R   # 3.0 mm: the skirt's outward flare at the rim
-SHAPE_P = 2.3             # superellipse: higher is squarer shoulders
+INNER_R = S.GROOVE["r"] - WALL / 2   # 132.7 mm: the wall's centre stands on the bead
+INNER_H = 0.240           # inner height above the plate, at the top's centre
+SHOULDER_R = 0.022        # the rounded shoulder between wall and top
+CROWN = 0.003             # the top rises this much toward the centre: a hint of dome, not flat
 LIFT_HEIGHT = 0.60        # fully lifted: out of the station camera's frame
 FINIAL = {"collar_r": 0.011, "collar_h": 0.006, "neck_r": 0.0055, "neck_h": 0.010, "ball_r": 0.0145}
 
@@ -35,17 +37,24 @@ def bead_join_z():
     return BEAD_R + math.sqrt(BEAD_R ** 2 - (WALL / 2) ** 2)
 
 
-def inner_profile(n=140):
-    """Inner surface (r, z) from the rim (z = bead top) up to the top centre."""
+def inner_profile(step=0.002):
+    """Inner surface (r, z) from the rim (z = bead top) up the straight wall, round the
+    shoulder, and across the gently crowned top to the centre."""
     z0 = bead_join_z()
+    top_edge = INNER_H - CROWN                      # the top's height where the shoulder ends
+    wall_top = top_edge - SHOULDER_R
     pts = []
-    for k in range(n + 1):
-        t = k / n                                   # 0 at the rim, 1 at the top
-        a = t * math.pi / 2
-        r = INNER_R * math.cos(a) ** (2 / SHAPE_P)
-        z = z0 + (INNER_H - z0) * math.sin(a) ** (2 / SHAPE_P)
-        r += FLARE * (1 - min(t / 0.18, 1.0)) ** 2  # skirt flare near the rim
-        pts.append((max(r, 0.0006), z))
+    n = max(2, int((wall_top - z0) / step))
+    pts += [(INNER_R, z0 + (wall_top - z0) * k / n) for k in range(n + 1)]
+    for k in range(1, 25):
+        a = math.pi / 2 * k / 24
+        pts.append((INNER_R - SHOULDER_R + SHOULDER_R * math.cos(a), wall_top + SHOULDER_R * math.sin(a)))
+    flat_r = INNER_R - SHOULDER_R
+    n = max(2, int(flat_r / step))
+    for k in range(1, n + 1):
+        u = k / n                                   # 0 at the shoulder, 1 at the centre
+        r = flat_r * (1 - u)
+        pts.append((max(r, 0.0006), top_edge + CROWN * (1 - (r / flat_r) ** 2)))
     return pts
 
 
@@ -157,6 +166,22 @@ def set_lift(lift):
     bpy.context.view_layer.update()
 
 
+def fit_report(inner_height_at):
+    import moulds as M
+    t = M.TIN
+    layer_h = t["depth"] - t["rim_r"] - 0.0006 - (t["wall_t"] + 0.0002)     # CakeTurnout's height
+    cake_r = t["top_r"] - t["wall_t"]
+    cupcake_h = M.CUP["depth"] - 0.0008 + 0.021 * 1.07                      # rim + tallest dome
+    cupcake_r = M.CUP["top_r"] + 0.0036 * 1.15
+    gap = S.GROOVE["d"]                                                     # base sits in the groove
+    out = {}
+    for name, height, radius in (("two_cake_layers", 2 * layer_h, cake_r), ("cupcake", cupcake_h, cupcake_r)):
+        out[name] = {"height_mm": round(height * 1000, 1), "radius_mm": round(radius * 1000, 1),
+                     "clearance_above_at_edge_mm": round((inner_height_at(radius) - gap - height) * 1000, 1),
+                     "clearance_to_wall_mm": round((INNER_R - radius) * 1000, 1)}
+    return out
+
+
 def checks():
     """Real wall thickness, inner size, seating, and room for the dishes under the dome."""
     inner = inner_profile()
@@ -171,14 +196,14 @@ def checks():
     wall = min(math.hypot(o[0] - i[0], o[1] - i[1]) for i, o in zip(inner, outer))
     return {
         "inner_diameter_mm": round(INNER_R * 2000, 1),
-        "rim_opening_mm": round(inner[0][0] * 2000, 1),
+        "shape": "cylinder",
         "wall_centre_on_bead_mm": round(((inner[0][0] + WALL / 2) - S.GROOVE["r"]) * 1000, 2),
         "inner_height_mm": round(inner[-1][1] * 1000, 1),
         "wall_mm": round(wall * 1000, 2),
         "outer_diameter_mm": round((hi - lo).x * 1000, 1),
         "overall_height_mm": round((hi - lo).z * 1000, 1),
         "seats_in_groove": abs(lo.z - base_z()) < 1e-4,
-        # A 20 cm cake (r 100 mm) and a 70 mm cupcake: inner height available above them.
-        "headroom_at_cake_edge_mm": round(inner_height_at(0.100) * 1000, 1),
-        "headroom_at_cupcake_edge_mm": round(inner_height_at(0.035) * 1000, 1),
+        # What has to fit (from the moulds): two turned-out 20 cm cake layers stacked, and a
+        # risen cupcake in its liner; clearance left above each, at its edge and its centre.
+        "fits": fit_report(inner_height_at),
     }

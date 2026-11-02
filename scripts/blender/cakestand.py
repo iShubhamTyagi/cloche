@@ -266,27 +266,18 @@ def render_cloche_stage(args, out_dir, objs, cloche_objs):
         studio.render(path, args)
         shots.append(path)
     CL.set_lift(0.0)
-    # Cut-away: a boolean box removes everything in front of the stand's centre line.
-    cutter = C.box_object("Cutaway", at(-0.4, -0.5, -0.1), at(0.4, 0.0, 0.5))
-    cutter.hide_render = True
-    cutter.display_type = "WIRE"
-    for obj in [bpy.data.objects[n] for n in everything]:
-        if obj.type == "MESH":
-            mod = obj.modifiers.new("Cutaway", "BOOLEAN")
-            mod.operation, mod.solver, mod.object = "DIFFERENCE", "EXACT", cutter
+    # Cut-away: the camera clips everything in front of the stand's centre line (y = STATION y).
     cam = bpy.context.scene.camera
-    cam.data.type, cam.data.ortho_scale = "ORTHO", 0.40
-    cam.location = Vector(at(0, -2.0, 0.17))
-    studio.aim(cam, at(0, 0, 0.17))
+    cam.data.type, cam.data.ortho_scale = "ORTHO", 0.52
+    cam.data.clip_start = 2.0
+    cam.location = Vector(at(0, -2.0, 0.25))
+    studio.aim(cam, at(0, 0, 0.25))
     studio.render(os.path.join(out_dir, "cloche_section.png"), args, view_res=(1000, 1000))
     cam.data.ortho_scale = 0.03
     cam.location = Vector(at(-0.134, -2.0, Z_PLATE_TOP + 0.004))
     studio.aim(cam, at(-0.134, 0, Z_PLATE_TOP + 0.004))
     studio.render(os.path.join(out_dir, "cloche_section_rim.png"), args, view_res=(800, 800))
-    for obj in [bpy.data.objects[n] for n in everything]:
-        if "Cutaway" in obj.modifiers:
-            obj.modifiers.remove(obj.modifiers["Cutaway"])
-    bpy.data.objects.remove(cutter)
+    cam.data.clip_start = 0.005
     I.grid(shots, os.path.join(out_dir, "sheet.png"), columns=4, cell_h=520)
 
 

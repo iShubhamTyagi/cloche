@@ -5,21 +5,24 @@ public struct BakeRequest: Equatable, Sendable {
     public let recipe: Recipe
     public let length: BakeLength
     public let source: DoorSource
-    /// The 15 s demo bake from Settings: labelled, earns no stars (DR-6).
+    /// The 5 s demo bake from Settings: labelled, earns no stars (DR-6).
     public let isDemo: Bool
+    /// Replaces the length's bake time. Development builds only (the 5 s dev bake); nil in release.
+    public let durationOverride: TimeInterval?
 
-    public init(recipe: Recipe, length: BakeLength, source: DoorSource, isDemo: Bool = false) {
+    public init(recipe: Recipe, length: BakeLength, source: DoorSource, isDemo: Bool = false, durationOverride: TimeInterval? = nil) {
         self.recipe = recipe
         self.length = length
         self.source = source
         self.isDemo = isDemo
+        self.durationOverride = durationOverride
     }
 }
 
 /// One bake in progress. Time is stored as dates, never counted by ticking (BK-1).
 public struct Bake: Codable, Equatable, Sendable {
-    public static let demoDuration: TimeInterval = 15
-    public static let demoBreakDuration: TimeInterval = 60
+    public static let demoDuration: TimeInterval = 5
+    public static let demoBreakDuration: TimeInterval = 5 * 60
 
     public let recipeID: String
     public let length: BakeLength
@@ -33,7 +36,7 @@ public struct Bake: Codable, Equatable, Sendable {
     public init(_ request: BakeRequest) {
         recipeID = request.recipe.id
         length = request.length
-        duration = request.isDemo ? Self.demoDuration : TimeInterval(request.length.minutes * 60)
+        duration = request.durationOverride ?? (request.isDemo ? Self.demoDuration : TimeInterval(request.length.minutes * 60))
         breakDuration = request.isDemo ? Self.demoBreakDuration : TimeInterval(request.length.breakMinutes * 60)
         source = request.source
         isDemo = request.isDemo

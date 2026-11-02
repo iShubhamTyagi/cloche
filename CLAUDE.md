@@ -84,7 +84,8 @@ Full checklist with guideline numbers lives in `docs/PLAN.md §5`. The rules tha
 - Work in **vertical slices**, one per prompt (see `docs/PLAN.md`). Each slice ends building and visible in the simulator.
 - Before saying a slice is done, `./scripts/build.sh` must pass (xcodebuild build, iPhone simulator, warnings treated as errors). Report failures verbatim.
 - **Tests are off until we reach a stable dev build (owner's call, 2026-11-01).** Don't write or update tests. `./scripts/test.sh` is a no-op unless `RUN_TESTS=1`. Verify slices by running them in the simulator and checking screenshots instead.
-- Then launch on the simulator so the user can see it (`./scripts/run.sh "iPhone 17"` / `"iPhone Duo"`). Xcode 27's simulator app is **DeviceHub**, not Simulator.
+- Then launch on the simulators so the user can see it: `./scripts/run.sh all` installs the same build on every booted iPhone simulator (iPhone 17 and the Duo), so they never run different versions. Xcode 27's simulator app is **DeviceHub**, not Simulator.
+- **One screen per phase for every device.** The iPhone and the Duo use the same views; device differences are layout details passed in (e.g. `DoorStyle`), never a second screen.
 - Never move CLI derived data back inside the repo: the space in "My Dev" breaks package test loading (see `docs/DECISIONS.md`).
 - When tests return: they use `ScriptedFoldStateService` and a `TestTimeProvider`, never `sleep`, and every domain rule in this file gets a unit test.
 - **Commit and push only when the owner asks** (owner's call, 2026-11-01); then use a clear message and push to `origin` (github.com/iShubhamTyagi/cloche). Branch per phase (`phase-1-gate0`, …); never force-push `main`.

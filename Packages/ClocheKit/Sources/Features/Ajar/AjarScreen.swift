@@ -2,45 +2,61 @@ import DesignSystem
 import Domain
 import SwiftUI
 
-/// Board "S2 7 Door ajar" (iPhone): the phone was turned over mid-bake. The open oven sits dimmed
-/// behind a 15 s countdown; turning the phone back over within it keeps the bake going.
+/// Boards "S2 7 Door ajar" and "Duo 2 Door ajar", one screen for both: the door opened
+/// mid-bake. The top half is the oven (`OvenFrame` in `OvenStage`'s slot, door off), dimmed, with
+/// the 15 s countdown; the bottom half is its open door. On the Duo the door tilts with the real
+/// hinge (effect only, never layout) and the fold gets its crease; on the iPhone it lies flat and,
+/// for a bake started by hand, carries the "Close the door" button.
 struct AjarScreen: View {
     let bake: Bake
     let graceEndsAt: Date
+    let door: DoorStyle
     /// Shuts the door by hand when the bake was started without turning the phone over.
     var onClose: (() -> Void)?
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.25)) { context in
-            ZStack {
-                OvenView(plate: Text(CountdownFormat.seconds(graceEndsAt.timeIntervalSince(context.date))), heat: 0.8, doorOpen: 1, dishProgress: bake.progress(at: context.date), browning: .pale, dish: Dish(recipeID: bake.recipeID))
-                    .frame(maxWidth: 342)
-                    .opacity(0.38)
-                    .frame(maxHeight: .infinity, alignment: .top)
-                    .padding(.top, Spacing.margin)
-                    .accessibilityHidden(true)
-
-                LinearGradient(colors: [Palette.ground.opacity(0.2), Palette.ground.opacity(0.92), Palette.ground], startPoint: .top, endPoint: .center)
-                    .ignoresSafeArea()
-                    .accessibilityHidden(true)
-
-                AjarMessage(
-                    copy: AjarCopy(source: bake.source),
-                    remaining: graceEndsAt.timeIntervalSince(context.date),
-                    ringSize: 190,
-                    numeralSize: 88,
-                    headlineSize: 38
-                )
-                .padding(.horizontal, Spacing.margin)
-                .padding(.top, 140)
+            OvenStage(isContentFullBleed: true) {
+                EmptyView()
+            } oven: {
+                topHalf(at: context.date)
+            } content: {
+                DoorPanel(liftDegrees: door.liftDegrees) {
+                    if let onClose {
+                        ManualDoorButton(title: Text("Close the door", bundle: .module), identifier: "ajar.closeManually", action: onClose)
+                            .frame(maxHeight: .infinity)
+                    }
+                }
             }
+            .hingeCrease(door)
         }
-        .overlay(alignment: .bottom) {
-            if let onClose {
-                ManualDoorButton(title: Text("Close the door", bundle: .module), identifier: "ajar.closeManually", action: onClose)
-                    .padding(.bottom, Spacing.margin)
-            }
+        .background(Palette.black.ignoresSafeArea())
+    }
+
+    private func topHalf(at date: Date) -> some View {
+        ZStack {
+            OvenFrame(
+                plate: Text(CountdownFormat.seconds(graceEndsAt.timeIntervalSince(date))),
+                heat: 0.8,
+                dish: Dish(recipeID: bake.recipeID),
+                dishProgress: bake.progress(at: date),
+                browning: .pale,
+                showsDoor: false
+            )
+            .accessibilityHidden(true)
+            // 80% scrim over the cavity.
+            Palette.black.opacity(0.8)
+                .accessibilityHidden(true)
+            AjarMessage(
+                copy: AjarCopy(source: bake.source),
+                remaining: graceEndsAt.timeIntervalSince(date),
+                ringSize: 150,
+                numeralSize: 68,
+                headlineSize: 32
+            )
+            .padding(.horizontal, Spacing.margin)
+            .padding(.top, OvenFrame.topBand)
         }
-        .pocketScreenBackground()
+        .clipped()
     }
 }

@@ -12,30 +12,44 @@ struct PreheatScreen: View {
     var onStartWithoutTurning: (() -> Void)?
     let onBack: () -> Void
 
+    /// On the open Duo the content lies on the oven door's glass (`OvenStage`): keep only what
+    /// fits there.
+    @Environment(\.isOnDoorGlass) private var isOnDoorGlass
+
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: Spacing.s1) {
-                Button(action: onBack) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .regular))
-                        .frame(width: HitTarget.minimum, height: HitTarget.minimum)
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(Palette.text)
-                .accessibilityLabel(Text("Back", bundle: .module))
-                .accessibilityIdentifier("preheat.back")
-                EyebrowLabel(bake.isDemo ? Text("Demo bake · no stars", bundle: .module) : Text("Ready to bake", bundle: .module))
-                Spacer()
+        OvenStage {
+            header
+        } oven: {
+            OvenFrame(plate: Text("Ready", bundle: .module), heat: 0.7, dish: Dish(recipeID: recipe.id))
+                .accessibilityIdentifier("preheat.oven")
+        } content: {
+            content
+        }
+        .pocketScreenBackground()
+    }
+
+    private var header: some View {
+        HStack(spacing: Spacing.s1) {
+            Button(action: onBack) {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 18, weight: .regular))
+                    .frame(width: HitTarget.minimum, height: HitTarget.minimum)
             }
-            .padding(.leading, -Spacing.s3)
+            .buttonStyle(.plain)
+            .foregroundStyle(Palette.text)
+            .accessibilityLabel(Text("Back", bundle: .module))
+            .accessibilityIdentifier("preheat.back")
+            EyebrowLabel(bake.isDemo ? Text("Demo bake · no stars", bundle: .module) : Text("Ready to bake", bundle: .module))
+            Spacer()
+        }
+        .padding(.leading, -Spacing.s3)
+    }
 
-            OvenView(plate: Text("Ready", bundle: .module), heat: 0.7)
-                .frame(maxWidth: 342)
-                .padding(.top, Spacing.s4)
-
-            VStack(spacing: Spacing.s3) {
+    private var content: some View {
+        VStack(spacing: 0) {
+            VStack(spacing: isOnDoorGlass ? Spacing.s2 : Spacing.s3) {
                 Text("The oven is ready.", bundle: .module)
-                    .textStyle(.title)
+                    .textStyle(isOnDoorGlass ? .title.sized(24, lineHeight: 28) : .title)
                     .foregroundStyle(Palette.text)
                     .multilineTextAlignment(.center)
                     .accessibilityAddTraits(.isHeader)
@@ -48,13 +62,13 @@ struct PreheatScreen: View {
                 StatusPill(doorCopy.waitingPill)
                     .padding(.top, Spacing.s1)
             }
-            .padding(.top, Spacing.margin)
+            .padding(.top, isOnDoorGlass ? Spacing.s2 : Spacing.margin)
 
-            Spacer(minLength: Spacing.margin)
+            Spacer(minLength: isOnDoorGlass ? Spacing.s3 : Spacing.margin)
 
             summary
 
-            if let footer = doorCopy.preheatFooter {
+            if let footer = doorCopy.preheatFooter, !isOnDoorGlass {
                 footer
                     .textStyle(.note)
                     .foregroundStyle(Palette.subtle)
@@ -67,11 +81,6 @@ struct PreheatScreen: View {
                     .padding(.top, Spacing.s2)
             }
         }
-        .padding(.horizontal, Spacing.margin)
-        .padding(.bottom, Spacing.s2)
-        .frame(maxWidth: 440)
-        .frame(maxWidth: .infinity)
-        .pocketScreenBackground()
     }
 
     private var summary: some View {
@@ -80,7 +89,7 @@ struct PreheatScreen: View {
             divider
             cell(Text("Oven", bundle: .module), BakeLengthPicker.name(bake.length))
             divider
-            cell(Text("Bake", bundle: .module), bake.isDemo ? Text("15 sec", bundle: .module) : Text("\(bake.length.minutes) min", bundle: .module))
+            cell(Text("Bake", bundle: .module), bake.isDemo ? Text("5 sec", bundle: .module) : Text("\(bake.length.minutes) min", bundle: .module))
         }
         .padding(.vertical, Spacing.s3)
         .overlay(alignment: .top) { Rectangle().fill(Palette.line1).frame(height: 1) }

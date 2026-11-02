@@ -19,6 +19,8 @@ public struct AppRootView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showsSplash = true
+    /// The window's width, one of the two signals for the Duo's cover (`FoldSignal`).
+    @State private var windowWidth: CGFloat = 0
     @State private var awayMonitor: AppAwayMonitor
 
     private let dependencies: FeatureDependencies
@@ -33,7 +35,7 @@ public struct AppRootView: View {
     public var body: some View {
         ZStack {
             if showsSplash {
-                SplashScreen(isOnCover: dependencies.doorSensor.hingeReading?.status == .closed)
+                SplashScreen(isOnCover: isOnCover)
                     .transition(.opacity)
             } else {
                 content
@@ -47,6 +49,9 @@ public struct AppRootView: View {
                 showsSplash = false
             }
         }
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { windowWidth = $0 }
+        .environment(\.isOnCover, isOnCover)
+        .environment(\.hingeDoorAngle, FoldSignal.doorAngle(sensor: dependencies.doorSensor, isOnCover: isOnCover))
         .background(HingeSensorAnchor(sensor: dependencies.doorSensor).accessibilityHidden(true))
         // Full screen everywhere: no time, network or battery over the oven (open screen and cover).
         .statusBarHidden()
@@ -65,6 +70,10 @@ public struct AppRootView: View {
             }
         }
         #endif
+    }
+
+    private var isOnCover: Bool {
+        FoldSignal.isOnCover(sensor: dependencies.doorSensor, windowWidth: windowWidth)
     }
 
     @ViewBuilder

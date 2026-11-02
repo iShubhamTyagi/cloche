@@ -28,3 +28,7 @@ build/*.blend
 build/*.usdz
 build/renders/**/*.png
 build/renders/**/*.mp4
+
+# Generated from the Blender renders by scripts/blender/app_export.py (renders stay out of git)
+Packages/ClocheKit/Sources/Features/Resources/OvenRender/
+build/renders/**/report.json

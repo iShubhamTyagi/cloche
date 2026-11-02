@@ -127,7 +127,7 @@ Checked against Apple's App Review Guidelines (developer.apple.com/app-store/rev
 | SDK minimums | — | Build with Xcode 27.1 or later. This also meets the April 2027 requirement for the iOS 27 SDK. |
 | Name | "Cloche" not checked | Check App Store Connect name availability (30 characters max) before the store assets are made. |
 
-**Review notes template (fill in at 3.7):** what the app is (a baking and decorating game where the bake runs while you focus); how to test without a Duo (Settings → Demo bake, then place the phone face down for 15 s and flip it up); what the hinge does on a Duo; where the IAP is and how to restore it; and that no account, network or data collection is involved.
+**Review notes template (fill in at 3.7):** what the app is (a baking and decorating game where the bake runs while you focus); how to test without a Duo (Settings → Demo bake, then place the phone face down for 5 s and flip it up); what the hinge does on a Duo; where the IAP is and how to restore it; and that no account, network or data collection is involved.
 
 ## 6. Decisions still open (yours)
 

@@ -41,7 +41,7 @@ struct SettingsScreen: View {
                 section(Text("Try it", bundle: .module)) {
                     Button(action: onDemoBake) {
                         VStack(alignment: .leading, spacing: Spacing.s1) {
-                            Text("Demo bake · 15 seconds", bundle: .module)
+                            Text("Demo bake · 5 seconds", bundle: .module)
                                 .textStyle(.body.sized(16))
                                 .fontWeight(.medium)
                                 .foregroundStyle(Palette.text)

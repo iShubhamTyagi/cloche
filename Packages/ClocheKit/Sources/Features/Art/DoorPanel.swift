@@ -2,59 +2,39 @@ import DesignSystem
 import Domain
 import SwiftUI
 
-/// Board "Duo 2 Door ajar": the inner display split at the hinge. The top half is the same oven
-/// as on the cover (`OvenFrame` in `OvenStage`'s slot, door off), dimmed, with the countdown; the bottom half is the oven door, tilted by the real hinge
-/// angle (effect only, never layout). Nothing is placed across the hinge band.
-struct DuoAjarScreen: View {
-    let bake: Bake
-    let graceEndsAt: Date
-    /// Radians from UIKit, π when flat; nil before the hinge has reported.
-    let hingeAngle: Double?
+/// How a screen's open oven door is drawn, from where the bake's door signal comes from. The
+/// layout is the same everywhere (oven in the top half, its open door lying in the bottom half);
+/// only these details change.
+struct DoorStyle {
+    /// The door lifts with the real hinge and the fold gets its crease (iPhone Duo, unfolded).
+    let followsHinge: Bool
+    /// Degrees the door is lifted off flat.
+    let liftDegrees: Double
 
-    var body: some View {
-        TimelineView(.periodic(from: .now, by: 0.25)) { context in
-            OvenStage(isContentFullBleed: true) {
-                EmptyView()
-            } oven: {
-                topHalf(at: context.date)
-            } content: {
-                DuoDoorPanel(liftDegrees: hingeAngle.map(DoorGeometry.liftDegrees(hingeAngle:)) ?? DoorGeometry.defaultAjarLift)
-                    .accessibilityHidden(true)
-            }
-            .overlay { HingeCrease().ignoresSafeArea() }
-        }
-        .background(Palette.black.ignoresSafeArea())
+    /// - Parameters:
+    ///   - hingeAngle: radians from UIKit, nil before the hinge has reported or without one.
+    ///   - restingLift: the lift when the hinge hasn't reported (the iPhone's door lies flat).
+    init(source: DoorSource, hingeAngle: Double?, restingLift: Double = 0) {
+        followsHinge = source == .hinge
+        liftDegrees = followsHinge ? (hingeAngle.map(DoorGeometry.liftDegrees(hingeAngle:)) ?? restingLift) : 0
     }
+}
 
-    private func topHalf(at date: Date) -> some View {
-        ZStack {
-            OvenFrame(
-                plate: Text(CountdownFormat.seconds(graceEndsAt.timeIntervalSince(date))),
-                heat: 0.8,
-                dish: Dish(recipeID: bake.recipeID),
-                dishProgress: bake.progress(at: date),
-                browning: .pale,
-                showsDoor: false
-            )
-            // 80% scrim over the cavity.
-            Palette.black.opacity(0.8)
-                .accessibilityHidden(true)
-            AjarMessage(
-                copy: AjarCopy(source: bake.source),
-                remaining: graceEndsAt.timeIntervalSince(date),
-                ringSize: 150,
-                numeralSize: 68,
-                headlineSize: 32
-            )
-            .padding(.horizontal, Spacing.margin)
+extension View {
+    /// The hinge crease along the middle, on the Duo only.
+    @ViewBuilder
+    func hingeCrease(_ style: DoorStyle) -> some View {
+        if style.followsHinge {
+            overlay { HingeCrease().ignoresSafeArea() }
+        } else {
+            self
         }
-        .clipped()
     }
 }
 
 /// The open oven door lying on the bottom half, with optional content shown through its glass.
 /// Rotates about its top edge, which is the hinge.
-struct DuoDoorPanel<Content: View>: View {
+struct DoorPanel<Content: View>: View {
     let liftDegrees: Double
     @ViewBuilder var content: () -> Content
 

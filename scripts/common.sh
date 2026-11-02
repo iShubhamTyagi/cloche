@@ -14,3 +14,12 @@ DUO_SIM="iPhone Duo"
 destination() {
   echo "platform=iOS Simulator,name=$1"
 }
+
+# The hero oven is the Blender render; there is no drawn fallback. Its frames are generated
+# (and gitignored), so refuse to build an app without them.
+OVEN_RENDER="$ROOT/Packages/ClocheKit/Sources/Features/Resources/OvenRender"
+if [ ! -f "$OVEN_RENDER/oven_layout.json" ]; then
+  echo "❌ The rendered oven is missing ($OVEN_RENDER)." >&2
+  echo "   Run: /Applications/Blender.app/Contents/MacOS/Blender -b -P scripts/blender/app_export.py" >&2
+  exit 1
+fi

@@ -20,6 +20,78 @@ Read the **Current state** first; it says where the next session starts. Then ad
 
 ## Log
 
+### 2026-11-02: Cake stand and cloche in Blender, Stages 1–3 (committed per stage)
+
+- **Built:**
+  - `scripts/blender/cakestand.py`, `stand_materials.py`, `cloche.py`.
+  - The marble turntable stand: a static base, a brass bearing ring with a 3 mm floating gap, the rotating plate (origin at its exact centre, zero wobble) with its marker, cake slot and the cloche's seating groove, and the push switch with its LED.
+  - Marble presets (Carrara, Calacatta, Emperador) and brushed brass.
+  - A station light set and a "station" camera (the oven's "frames" camera slid along the counter) added to the one studio.
+  - The cloche, now a glass cylinder (owner's call; see DECISIONS).
+- **Verified:** the checks in each stage's `report.json`:
+  - the plate's origin offset is 0 and it doesn't wobble
+  - the gap is 3.0 mm
+  - the cloche is watertight with a 3.00 mm wall and seats in the groove
+  - two cake layers or a cupcake fit, with the clearances recorded
+- **Left over:** Stage 4 (glass and lighting), Stage 5 (layers, lift, hotspots, composite check), Stage 6 (tilt check, rotation validation).
+
+### 2026-11-02: The rendered oven is the only oven (uncommitted)
+
+- **Built:**
+  - Removed the 2D oven: `OvenView`/`OvenCavityView` (file deleted), `RackDishView`, and the drawn fallback inside `OvenFrame`.
+  - `OvenFrame` now only shows `RenderedOven`.
+  - Preheat, the screen that was still drawing the 2D oven, moved onto `OvenStage` with `OvenFrame`; on the Duo it lies on the door glass with tighter spacing.
+  - The decorate move lifts the serving from the rendered upper tray (`tray` in `oven_layout.json`).
+  - `scripts/common.sh` refuses to build when the generated frames are missing.
+  - On the open Duo, the oven's door hinge sits on the fold (`alignsHingeToFold`), and the bottom half's content lies inside the open door's glass (`glass_open`, `isOnDoorGlass`).
+- **Verified:** throwaway UI probe on iPhone 17 (deleted afterwards, scheme set back to skipped): Prep, Preheat and the move to decorating all show the rendered oven; the bake screen stays black by design. Duo unfolded: Prep inside the glass.
+- **Left over:**
+  - The trays are empty until the baked-dish renders land (moulds Stages 3–5).
+  - The serving lifted out on the way to decorating is still the 2D cupcake.
+
+### 2026-11-02: Rendered oven in the app; the Duo's fold works the oven door; cover orientation fix (uncommitted)
+
+- **Built:**
+  - `scripts/blender/app_export.py` copies the 48 door frames and `oven_layout.json` into `Features/Resources/OvenRender/`. That folder is generated and gitignored.
+  - `RenderedOven` draws them in the oven slot; `OvenFrame` uses it when the frames are bundled, and falls back to the drawn oven otherwise.
+  - On the open Duo, the oven door follows the hinge (0° shut to 180° fully unfolded, clipped to the top half) through the `hingeDoorAngle` environment value.
+  - The cover is now decided by `FoldSignal`: the hinge reading or, on a phone with a hinge, a window narrower than 560 pt.
+- **Found:** relaunched while folded, the Duo simulator's first hinge report was `fullyOpen` (log 12:40:28). The app trusted it, so the cover showed the open portrait layout sideways.
+- **Verified:**
+  - Duo unfolded: door hanging open, cavity lit.
+  - iPhone 17: unchanged, door shut.
+  - The folded cover after a relaunch, and the door during a partial fold, need folding by hand in DeviceHub.
+- **Left over:**
+  - The frames are 40 MB, so shrink them before shipping.
+  - The knobs are still baked into the door frames.
+  - The trays are empty in the renders.
+
+### 2026-11-02: Hero oven in Blender, five stages (committed per stage)
+
+- **Built:** `scripts/blender/` (`oven.py` + `layout.py`, `door.py`, `interior.py`, `materials.py`; `render.py`; `frames.py`; `watch.py` keeps an open Blender window in sync). Stage 1 blockout and Stage 2 detail (bevels, seams, vents, screws, gasket, double glazing with frit, hinge arms on knuckles, knurled knobs, wire racks, quartz tubes with ceramic caps, crumb tray, feet). Stage 3 procedural materials. Stage 4 glow (tubes plus a thin area light each), bloom as alpha-masked glare, final stills. Stage 5: 48 transparent door frames 0 to 180° at 1000 × 1200, `manifest.json` (angle per frame, camera, hinge-axis and body pixel positions), contact sheet, comparisons, `build/oven.usdz`. Owner changes on the way: a second rack, then a tray on each rack with both racks removable; the door opens to 180° like the Duo.
+- **Verified:** each stage rendered and compared with `reference/oven_ref.png` and `reference/oven_ref_closed.png` (front 1.40:1 vs 1.39). Hinge test at 0, 30, 60, 88, 120, 150 and 180°: no door vertex inside the body or the counter. Racks slide out through the gasket; cupcake headroom 72 and 86.5 mm. 68,658 triangles. USDZ is oven-only, Y-up, metres, with every part name.
+- **Commits:** Stage 1 `2de19c4`, Stage 2 `815f8c9`, Stage 3 `49e9bfe`, Stage 4 `7b3f920`, Stage 5 `697a050` (rewritten 2026-11-02 to drop .blend files and renders from git).
+- **Left over:** cupcakes aren't modelled (slots only); the side panel reads lighter than the front; procedural materials don't carry into the USDZ (bake them if live 3D wins); the app still draws the code oven (wiring the frames in is the next app slice).
+
+### 2026-11-01: One set of screens for the iPhone and the Duo (uncommitted)
+
+- **Found:** the owner saw decorating on the iPhone 17 but not the Duo. Cause: `scripts/run.sh` installed only on the simulator it was given, so the Duo was still running the 19:26 build. Separately, door ajar and reveal/grade had two different screens each (`AjarScreen` vs `DuoAjarScreen`, `RevealScreen` + `GradeScreen` card vs `DuoGradeScreen`).
+- **Built:** `scripts/run.sh all` builds once and installs and launches on every booted iPhone simulator (a named simulator still works, and also updates the other booted iPhones). Door ajar and reveal/grade are now one screen each, `AjarScreen` and `GradeScreen`, in the Duo's layout on every device: the oven in the top half (door off), its open door lying in the bottom half (`DoorPanel`, moved to `Art/DoorPanel.swift` with `HingeCrease`). The only per-device differences live in `DoorStyle`: on the Duo the door follows the hinge angle and the fold gets its crease; on the iPhone the door lies flat (ajar), or drops open from upright over 700 ms with the steam (reveal), and the manual-door button sits in the door's glass. The iPhone reveal's separate "See how it turned out" step is gone; the grade appears in the door as it opens. Removed `DuoAjarScreen`, `DuoGradeScreen`, `RevealScreen`/`GradedFlow`. Prep, Preheat and Decorate were already shared. Still per device by necessity: the bake itself (a face-down iPhone screen is never seen; the folded Duo shows its cover).
+- **Verified:** build green; both simulators got the same build. A throwaway UI test on the iPhone 17 (deleted afterwards, scheme set back to skipped) ran the demo bake by hand: door ajar (countdown over the dimmed oven, "Close the door" in the door), grade (door open, grade in its glass, Decorate and Serve plain), then the move to the plating station. The unfolded Duo wasn't re-shot (it boots folded; unfolding is by hand in DeviceHub).
+- **Left over:** UI tests that expect `reveal.continue` are out of date (tests are off).
+
+### 2026-11-01: The move to the plating station, and a 5 s demo bake (uncommitted)
+
+- **Built:** tapping Decorate (iPhone grade card, Duo grade, or the dev bake) now opens `DecorateScreen`, the break shell for board S2 1, in place of the interim placeholder. Its top half is `StationMoveView`: the open oven and a new `PlatingStationView` (counter, porcelain cake stand, glass cloche set aside, warm light) sit side by side; `TongsView` reaches into the oven and lifts the serving out (the middle cupcake of the three, or the whole cake), the view pans to the plating station, and the tongs set the dish on the stand and leave (about 4 s). The header is the spec's dish eyebrow, "Finishing table" and an always-visible "Serve now" (44 high, `line-3` capsule); the bottom half fades in a 168 pt break ring clock (amber in the last 30 s) and a one-line reassurance. Coming back to a break already running starts at the station with no move; Reduce Motion cross-fades to it. `OvenFrame`/`OvenCavityView`/`RackDishView` gained `isServingTaken` and `servingFrame(...)`, so the tongs grip exactly what disappears from the rack.
+- **Demo bake:** the Settings demo is now 5 s of baking (was 15 s) with a 5 min break (was 1 min); its labels and the review-notes line in PLAN.md follow.
+- **Verified:** build green. A throwaway UI test (deleted afterwards, scheme set back to skipped) ran the dev bake, captured the move frame by frame (oven, grip, lift, pan, dish on the stand, clock), then tapped Serve now and reached "Served · 2 stars".
+- **Left over:** the decorating tools themselves (Base, Toppings, Plate and finish tabs and tray, Phase 2.3) go in the bottom half; the cloche is there for the serve. The DemoBakeTests UI test still says 15 s (tests are off). Duo cover during decorating is unchanged.
+
+### 2026-11-01: Dev bake, 5 s to decorating (uncommitted)
+
+- **Built:** a "5s" button in the Prep header, in Debug builds only (`#if DEBUG`; absent from Release). It starts a real bake of the selected length that lasts 5 s (`BakeRequest.durationOverride`), shuts the door itself (manual door), opens it when ready, and skips the grade card straight into decorating with the length's normal break. It skips the notification pre-prompt. Earns stars like a real bake, unlike the 15 s Settings demo.
+- **Verified:** Debug build green; Release build green with the button's strings absent from the binary. A throwaway UI test (deleted afterwards, scheme set back to skipped) tapped "5s" on a fresh session and reached Decorating in 6.6 s.
+
 ### 2026-11-01: Splash screen (uncommitted)
 
 - **Built:** `SplashScreen` (shown for 2 s on every cold launch, then cross-fades to the app), after the owner's reference image: "Vanilla cupcakes" eyebrow and "Prêt." hero in sand over the oven, whose door drops open on its bottom hinge to show three finished cupcakes in a warm glow. It reuses `OvenFrame` (new `openAngle`, default 100°; the splash tips the door to 130° so its inside face shows). Reduce Motion: the door starts open and nothing moves.

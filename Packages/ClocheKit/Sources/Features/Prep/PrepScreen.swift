@@ -12,8 +12,12 @@ struct PrepScreen: View {
     /// Owned by the session root so the choice survives a fold to the cover screen and back.
     @Binding var length: BakeLength
     let onBake: (BakeLength) -> Void
+    /// Development builds only: a 5 s bake that runs itself into decorating. Nil hides the button.
+    var onDevBake: (() -> Void)?
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// On the open Duo the options lie on the oven door's glass (`OvenStage`): tighter spacing.
+    @Environment(\.isOnDoorGlass) private var isOnDoorGlass
 
     private var recipe: Recipe { StarterRecipes.recipe(for: length) }
 
@@ -40,9 +44,9 @@ struct PrepScreen: View {
 
     private var optionsHalf: some View {
         VStack(spacing: 0) {
-            VStack(spacing: 6) {
+            VStack(spacing: isOnDoorGlass ? Spacing.s1 : 6) {
                 Text(recipe.name)
-                    .textStyle(.name.sized(30, lineHeight: 34))
+                    .textStyle(isOnDoorGlass ? .name.sized(26, lineHeight: 30) : .name.sized(30, lineHeight: 34))
                     .foregroundStyle(Palette.text)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
@@ -50,16 +54,16 @@ struct PrepScreen: View {
                     .accessibilityIdentifier("prep.recipe")
                 EyebrowLabel(Text(recipe.region))
             }
-            .padding(.top, Spacing.margin)
+            .padding(.top, isOnDoorGlass ? Spacing.s2 : Spacing.margin)
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: length)
 
             VStack(alignment: .leading, spacing: 10) {
                 EyebrowLabel(Text("Oven", bundle: .module))
                 BakeLengthPicker(selection: $length)
             }
-            .padding(.top, 22)
+            .padding(.top, isOnDoorGlass ? Spacing.s3 : 22)
 
-            Spacer(minLength: Spacing.s4)
+            Spacer(minLength: isOnDoorGlass ? Spacing.s2 : Spacing.s4)
 
             Button {
                 onBake(length)
@@ -77,7 +81,7 @@ struct PrepScreen: View {
             doorCopy.afterPreheatNote
                 .textStyle(.note)
                 .foregroundStyle(Palette.muted)
-                .padding(.top, 10)
+                .padding(.top, isOnDoorGlass ? Spacing.s1 : 10)
         }
     }
 
@@ -89,6 +93,20 @@ struct PrepScreen: View {
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("prep.title")
             Spacer()
+            #if DEBUG
+            if let onDevBake {
+                // Debug-only, never shipped, so not localized.
+                Button(action: onDevBake) {
+                    Text(verbatim: "5s")
+                        .textStyle(.control)
+                        .frame(width: HitTarget.minimum, height: HitTarget.minimum)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(Palette.muted)
+                .accessibilityLabel(Text(verbatim: "Dev bake, 5 seconds, to decorating"))
+                .accessibilityIdentifier("prep.devBake")
+            }
+            #endif
             Button(action: onSettings) {
                 Image(systemName: "slider.horizontal.3")
                     .font(.system(size: 18, weight: .light))

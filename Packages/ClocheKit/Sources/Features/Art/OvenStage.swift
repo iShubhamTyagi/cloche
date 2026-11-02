@@ -11,9 +11,16 @@ struct OvenStage<Header: View, Oven: View, Content: View>: View {
 
     /// The unfolded Duo's door panel spans the whole bottom half; other content is inset and capped.
     var isContentFullBleed = false
+    /// Lay the content on the open door's glass on the open Duo. Off for screens whose top half
+    /// isn't the oven with its door (decorating moves to the plating station).
+    var isContentOnDoor = true
     @ViewBuilder let header: Header
     @ViewBuilder let oven: Oven
     @ViewBuilder let content: Content
+
+    /// On the open Duo the oven door hangs open into the bottom half (it follows the hinge), so
+    /// the content is laid over its glass like a HUD: centred on the door, as wide as its glass.
+    @Environment(\.hingeDoorAngle) private var hingeDoorAngle
 
     var body: some View {
         GeometryReader { screen in
@@ -38,6 +45,15 @@ struct OvenStage<Header: View, Oven: View, Content: View>: View {
                     content
                         .frame(maxWidth: .infinity)
                         .frame(height: fullHeight / 2)
+                } else if let glass = doorGlass(slot: CGSize(width: screen.size.width, height: fullHeight / 2)) {
+                    // The open Duo: the content sits inside the door's glass, like a HUD.
+                    content
+                        .environment(\.isOnDoorGlass, true)
+                        .padding(Spacing.s3)
+                        .frame(width: glass.width, height: glass.height)
+                        .offset(x: glass.minX, y: glass.minY - fullHeight / 2)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                        .frame(height: fullHeight / 2)
                 } else {
                     content
                         .padding(.horizontal, Spacing.margin)
@@ -49,5 +65,11 @@ struct OvenStage<Header: View, Oven: View, Content: View>: View {
             }
             .ignoresSafeArea()
         }
+    }
+
+    /// The open door's glass, when the door follows the Duo's hinge and the rendered oven is in.
+    private func doorGlass(slot: CGSize) -> CGRect? {
+        guard isContentOnDoor, hingeDoorAngle != nil, let layout = OvenRenderLayout.shared else { return nil }
+        return RenderedOven.openGlass(layout: layout, in: slot)
     }
 }

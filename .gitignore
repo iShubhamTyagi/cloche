@@ -33,3 +33,6 @@ build/renders/**/*.mp4
 Packages/ClocheKit/Sources/Features/Resources/OvenRender/
 build/renders/**/report.json
 Packages/ClocheKit/Sources/Features/Resources/StationRender/
+build/renders/**/*.log
+build/renders/**/composite_check.json
+build/renders/*.log

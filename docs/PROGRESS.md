@@ -20,6 +20,35 @@ Read the **Current state** first; it says where the next session starts. Then ad
 
 ## Log
 
+### 2026-11-02: Rendered plating station and cloche in the app
+
+- **Built:**
+  - `scripts/blender/station_export.py` copies the cake stand's station layers (generated and gitignored; `build.sh` stops without them). `RenderedStation` draws them at the oven's scale on the oven's counter line, so the slide from the oven to the stand is one continuous shot.
+  - The glass cloche waits seated on the empty stand, lifts away while the dish is carried over, and lowers over the dish on Serve now.
+  - The 2D `PlatingStationView` is removed.
+  - The moulds are split into one file per dish and state.
+  - Cake stand Stages 4 and 5 are done: the glass cloche at 16 cm, the app layers, the lift frames, the hotspots and the composite check (mean error 0.085%).
+- **Verified:** throwaway UI probes on the iPhone 17 (deleted afterwards, scheme set back to skipped) covering the dev bake, the slide to the stand, the cupcake set down, the cloche lowering on Serve now, and the served screen.
+- **Left over:**
+  - The dish on the stand is still the 2D drawing until moulds Stages 3–5.
+  - The top-down turntable layers aren't used yet; they're for the decorating canvas.
+
+### 2026-11-02: Stage slab in Blender, Stages 1–4 (committed per stage)
+
+- **Built:** `scripts/blender/slab.py` and `slab_checks.py`, producing `build/slab.blend` and `build/slab_anchors.json`:
+  - the `StageSlab` with an eased top edge and an underside chamfer
+  - the shared honed marble, with a darker underside and slab-only vein variation
+  - the `SlabRail` brass inlay with its end stops
+  - the anchors
+  - the clearance check, the outlined top-down layout, the stage view and the void shadow layer (`build/renders/slab/`)
+- **Verified:**
+  - door swept 0–180°: it never enters the slab and never touches the rail stops
+  - 1.10 m from the stand's plate at every angle
+  - 2.0 mm from the slab's front face at 180°
+  - the handle tucks 34.5 mm under the floating slab, 173 mm below it, at 180°
+  - the cake stand still renders pixel-identical after the marble moved to `common.py`
+- **Left over:** the cloche is still clay in the slab renders, until cake stand Stage 4 (its glass).
+
 ### 2026-11-02: HUD on the Duo's door glass; faster fold to the cover
 
 - **Built:**

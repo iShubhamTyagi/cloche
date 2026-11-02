@@ -49,7 +49,7 @@ struct StationMoveView: View {
                         doorOpen: 1
                     )
                     .frame(width: size.width, height: size.height)
-                    PlatingStationView()
+                    station
                         .frame(width: size.width, height: size.height)
                 }
 
@@ -78,11 +78,32 @@ struct StationMoveView: View {
 
     private var tongsAreAway: Bool { step == .atOven || step == .done }
 
+    /// The rendered marble stand, cloche lifted away (decorating happens with it off).
+    @ViewBuilder
+    private var station: some View {
+        if let layout = StationRenderLayout.shared {
+            RenderedStation(layout: layout, clocheLift: 1, alignsHingeToFold: hingeDoorAngle != nil)
+        } else {
+            Color.clear
+        }
+    }
+
+    /// Where the serving stands on the plate (a cupcake, or a cake nearly the plate's width).
+    private func standServingFrame(in size: CGSize) -> CGRect {
+        guard let layout = StationRenderLayout.shared else { return .zero }
+        let fraction: CGFloat = switch dish {
+        case .cupcakes: 0.32
+        case .smallCake: 0.6
+        case .largeCake: 0.72
+        }
+        return RenderedStation.servingFrame(layout: layout, fraction: fraction, in: size, alignsHingeToFold: hingeDoorAngle != nil)
+    }
+
     /// The serving's frame in the two-station strip (the station starts one width to the right).
     private func servingFrame(in size: CGSize) -> CGRect {
         let inOven = OvenFrame.servingFrame(dish: dish, in: size, alignsHingeToFold: hingeDoorAngle != nil)
-        let side = PlatingStationView.servingSide(in: size)
-        let onStand = PlatingStationView.servingFrame(side: side, in: size).offsetBy(dx: size.width, dy: 0)
+        let onStand = standServingFrame(in: size).offsetBy(dx: size.width, dy: 0)
+        let side = onStand.width
         // Lifted clear of the oven and brought forward, so it grows toward the stand size.
         let liftedSide = (inOven.width + side) / 2
         let liftedTop = size.height * 0.1

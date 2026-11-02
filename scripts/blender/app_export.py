@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 import common as C  # noqa: E402
 import imaging as I  # noqa: E402
 import studio  # noqa: E402
-from layout import (CAV_X0, CAV_X1, CAV_Z0, CAV_Z1, DOOR_MAX_ANGLE, DOOR_X0, DOOR_X1, HINGE_Y,  # noqa: E402
+from layout import (D, CAV_X0, CAV_X1, CAV_Z0, CAV_Z1, DOOR_MAX_ANGLE, DOOR_X0, DOOR_X1, HINGE_Y,  # noqa: E402
                     HINGE_Z)
 
 SRC = os.path.join(C.BUILD, "renders", "stage5", "door")
@@ -127,6 +127,8 @@ def main():
         "body": body, "display": display, "cavity": cavity, "glass_open": glass_open, "tray": tray,
         "hinge": [px((DOOR_X0, HINGE_Y, HINGE_Z)), px((DOOR_X1, HINGE_Y, HINGE_Z))],
         "knobs": knobs,
+        # The counter under the oven's centre: the plating station lines up on the same line.
+        "counter_y": px((0.0, D / 2, 0.0))[1],
     }
     with open(os.path.join(DST, "oven_layout.json"), "w") as f:
         json.dump(layout, f, indent=2)

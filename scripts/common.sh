@@ -23,3 +23,8 @@ if [ ! -f "$OVEN_RENDER/oven_layout.json" ]; then
   echo "   Run: /Applications/Blender.app/Contents/MacOS/Blender -b -P scripts/blender/app_export.py" >&2
   exit 1
 fi
+if [ ! -f "$ROOT/Packages/ClocheKit/Sources/Features/Resources/StationRender/station_layout.json" ]; then
+  echo "❌ The rendered plating station is missing." >&2
+  echo "   Run: /Applications/Blender.app/Contents/MacOS/Blender -b -P scripts/blender/station_export.py" >&2
+  exit 1
+fi

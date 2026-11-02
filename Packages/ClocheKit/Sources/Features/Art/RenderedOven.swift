@@ -25,9 +25,11 @@ struct OvenRenderLayout: Decodable, Sendable {
     let glassOpen: [Double]
     /// The upper tray, door shut.
     let tray: [Double]
+    /// The counter's line under the oven (pixels): the plating station aligns to it.
+    let counterY: Double
 
     enum CodingKeys: String, CodingKey {
-        case imageSize = "image_size", maxAngle = "max_angle", frames, body, display, hinge, glassOpen = "glass_open", tray
+        case imageSize = "image_size", maxAngle = "max_angle", frames, body, display, hinge, glassOpen = "glass_open", tray, counterY = "counter_y"
     }
 
     /// Nil when the rendered frames aren't in the bundle (they are generated, not committed);

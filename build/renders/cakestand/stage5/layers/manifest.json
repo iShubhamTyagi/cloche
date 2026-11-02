@@ -1,0 +1,229 @@
+{
+  "camera": {
+    "station": "camera.json views.station",
+    "topdown": "camera.json views.plate_topdown"
+  },
+  "layers": [
+    {
+      "name": "base_static",
+      "file": "base_static.png",
+      "view": "station",
+      "z": 0,
+      "blend": "normal"
+    },
+    {
+      "name": "base_led_on",
+      "file": "base_led_on.png",
+      "view": "station",
+      "z": 1,
+      "blend": "plusLighter",
+      "when": "StandLED on"
+    },
+    {
+      "name": "plate_rotating",
+      "file": "plate_rotating.png",
+      "view": "topdown",
+      "z": 2,
+      "blend": "normal",
+      "rotates": true,
+      "pivot": "image centre",
+      "angle_0": "PlateMarker at top (12 o'clock)"
+    },
+    {
+      "name": "cake_topdown",
+      "file": "cake_topdown.png",
+      "view": "topdown",
+      "z": 3,
+      "blend": "normal",
+      "rotates": true
+    },
+    {
+      "name": "plate_reflection",
+      "file": "plate_reflection.png",
+      "view": "topdown",
+      "z": 4,
+      "blend": "plusLighter",
+      "rotates": false
+    },
+    {
+      "name": "cloche",
+      "file": "cloche.png",
+      "view": "station",
+      "z": 5,
+      "blend": "normal"
+    },
+    {
+      "name": "cloche_lift",
+      "files": "cloche_lift/lift_NN.png",
+      "view": "station",
+      "z": 5,
+      "blend": "normal",
+      "frames": [
+        {
+          "index": 0,
+          "file": "cloche_lift/lift_00.png",
+          "lift": 0.0,
+          "height_m": 0.0
+        },
+        {
+          "index": 1,
+          "file": "cloche_lift/lift_01.png",
+          "lift": 0.1248,
+          "height_m": 0.0749
+        },
+        {
+          "index": 2,
+          "file": "cloche_lift/lift_02.png",
+          "lift": 0.2388,
+          "height_m": 0.1433
+        },
+        {
+          "index": 3,
+          "file": "cloche_lift/lift_03.png",
+          "lift": 0.3425,
+          "height_m": 0.2055
+        },
+        {
+          "index": 4,
+          "file": "cloche_lift/lift_04.png",
+          "lift": 0.4363,
+          "height_m": 0.2618
+        },
+        {
+          "index": 5,
+          "file": "cloche_lift/lift_05.png",
+          "lift": 0.5207,
+          "height_m": 0.3124
+        },
+        {
+          "index": 6,
+          "file": "cloche_lift/lift_06.png",
+          "lift": 0.5962,
+          "height_m": 0.3577
+        },
+        {
+          "index": 7,
+          "file": "cloche_lift/lift_07.png",
+          "lift": 0.6634,
+          "height_m": 0.398
+        },
+        {
+          "index": 8,
+          "file": "cloche_lift/lift_08.png",
+          "lift": 0.7226,
+          "height_m": 0.4336
+        },
+        {
+          "index": 9,
+          "file": "cloche_lift/lift_09.png",
+          "lift": 0.7745,
+          "height_m": 0.4647
+        },
+        {
+          "index": 10,
+          "file": "cloche_lift/lift_10.png",
+          "lift": 0.8194,
+          "height_m": 0.4917
+        },
+        {
+          "index": 11,
+          "file": "cloche_lift/lift_11.png",
+          "lift": 0.858,
+          "height_m": 0.5148
+        },
+        {
+          "index": 12,
+          "file": "cloche_lift/lift_12.png",
+          "lift": 0.8906,
+          "height_m": 0.5344
+        },
+        {
+          "index": 13,
+          "file": "cloche_lift/lift_13.png",
+          "lift": 0.9178,
+          "height_m": 0.5507
+        },
+        {
+          "index": 14,
+          "file": "cloche_lift/lift_14.png",
+          "lift": 0.9401,
+          "height_m": 0.5641
+        },
+        {
+          "index": 15,
+          "file": "cloche_lift/lift_15.png",
+          "lift": 0.9579,
+          "height_m": 0.5748
+        },
+        {
+          "index": 16,
+          "file": "cloche_lift/lift_16.png",
+          "lift": 0.9718,
+          "height_m": 0.5831
+        },
+        {
+          "index": 17,
+          "file": "cloche_lift/lift_17.png",
+          "lift": 0.9822,
+          "height_m": 0.5893
+        },
+        {
+          "index": 18,
+          "file": "cloche_lift/lift_18.png",
+          "lift": 0.9897,
+          "height_m": 0.5938
+        },
+        {
+          "index": 19,
+          "file": "cloche_lift/lift_19.png",
+          "lift": 0.9947,
+          "height_m": 0.5968
+        },
+        {
+          "index": 20,
+          "file": "cloche_lift/lift_20.png",
+          "lift": 0.9978,
+          "height_m": 0.5987
+        },
+        {
+          "index": 21,
+          "file": "cloche_lift/lift_21.png",
+          "lift": 0.9993,
+          "height_m": 0.5996
+        },
+        {
+          "index": 22,
+          "file": "cloche_lift/lift_22.png",
+          "lift": 0.9999,
+          "height_m": 0.6
+        },
+        {
+          "index": 23,
+          "file": "cloche_lift/lift_23.png",
+          "lift": 1.0,
+          "height_m": 0.6
+        }
+      ],
+      "lowering": "the same frames in reverse"
+    },
+    {
+      "name": "plate_station",
+      "file": "plate_station.png",
+      "view": "station",
+      "z": 2,
+      "blend": "normal",
+      "note": "reference for composite_check; the app tilts plate_rotating instead (Stage 6)"
+    }
+  ],
+  "resolution": {
+    "station": [
+      1000,
+      1200
+    ],
+    "topdown": [
+      1600,
+      1600
+    ]
+  },
+  "hotspots": "build/renders/cakestand_hotspots.json"
+}

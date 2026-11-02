@@ -420,9 +420,13 @@ def main():
         if args.stage == 3:
             R.apply_clay(cloche_objs)
             render_cloche_stage(args, out_dir, objs, cloche_objs)
-        else:
+        elif args.stage == 4:
             SM.assign_cloche(args.finial)
             render_glass_stage(args, out_dir, objs, cloche_objs)
+        else:
+            import stand_layers
+            SM.assign_cloche(args.finial)
+            report["hotspots"] = stand_layers.run(args, out_dir)
         with open(os.path.join(out_dir, "report.json"), "w") as f:
             json.dump(report, f, indent=2)
         save_assets(args)

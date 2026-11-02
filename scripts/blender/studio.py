@@ -39,6 +39,10 @@ CAMERAS = {
     # fit a door hanging below the counter; the stand with its cloche is ~49 cm tall instead).
     "station": {"location": [STATION[0], -2.30, 0.36], "target": [STATION[0], -0.05, 0.25], "lens": 110,
                 "resolution": [1000, 1200]},
+    # Straight down on the turntable plate, filling a 1600 px square (circular alpha): the
+    # rotating plate and the cake on it, for the app to rotate and tilt. +Y (12 o'clock) is up.
+    "plate_topdown": {"location": [STATION[0], STATION[1], 1.2], "target": [STATION[0], STATION[1], 0.0],
+                      "ortho_scale": 0.306, "resolution": [1600, 1600]},
     # The whole stage: the slab with the oven and the stand, three-quarter from front-right.
     "stage": {"location": [2.15, -2.35, 1.30], "target": [0.65, 0.22, 0.08], "lens": 35, "resolution": [1600, 1200]},
     # Oven review views.
@@ -265,6 +269,7 @@ def camera(view, subject=None):
             cam.data.type, cam.data.ortho_scale = "ORTHO", spec["ortho_scale"]
         else:
             cam.data.type, cam.data.lens = "PERSP", spec["lens"]
+        bpy.context.view_layer.update()       # projections read matrix_world right away
         return cam
     lo, hi = (C.Vector(v) for v in subject)
     centre = (lo + hi) / 2
@@ -284,6 +289,7 @@ def camera(view, subject=None):
         fov = 2 * math.atan(math.tan(wide / 2) * min(w, h) / max(w, h))
         cam.location = centre + direction * (radius / math.sin(fov / 2) * spec["margin"])
         aim(cam, centre)
+    bpy.context.view_layer.update()
     return cam
 
 

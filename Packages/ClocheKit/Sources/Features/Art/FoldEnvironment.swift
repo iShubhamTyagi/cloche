@@ -1,5 +1,6 @@
 import DoorSensing
 import os
+import Services
 import SwiftUI
 
 extension EnvironmentValues {
@@ -15,6 +16,8 @@ extension EnvironmentValues {
     /// How hot the oven's tubes look, 0 cold (black rods) to 1 glowing. The app preheats from 0
     /// to 1 over the first seconds after launch (`AppRootView`); visual only.
     @Entry var ovenHeat: Double = 1
+    /// The oven door's thud and haptic on shutting, fed with door angles.
+    @Entry var doorFeedback: OvenDoorFeedback?
 }
 
 /// Which screen the folded Duo is showing, decided from two signals.

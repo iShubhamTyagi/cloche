@@ -3,6 +3,8 @@ import Foundation
 /// Sound effects. All original (see LICENSES.md); no music.
 public enum Sound: String, Sendable, CaseIterable {
     case readyChime = "ready-chime"
+    /// The oven door shutting against the body (scripts/sounds/door_sounds.py).
+    case doorThud = "door-thud"
 }
 
 @MainActor

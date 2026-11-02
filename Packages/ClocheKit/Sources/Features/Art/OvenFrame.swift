@@ -1,5 +1,6 @@
 import DesignSystem
 import Domain
+import Services
 import SwiftUI
 
 /// The oven slot: the Blender-rendered hero oven (`RenderedOven`), filling whatever frame it is
@@ -111,8 +112,8 @@ struct OvenFrame: View {
 }
 
 /// The swipe that plays with the door: the door follows the finger (half the slot's height is
-/// a full swing to flat) and on release springs open or shut, with a light tap. VoiceOver gets
-/// "Open the door" / "Close the door" actions instead.
+/// a full swing to flat) and stays wherever it is let go. Shutting thuds with a haptic
+/// (`OvenDoorFeedback`). VoiceOver gets "Open the door" / "Close the door" actions.
 private struct PlayableDoor: ViewModifier {
     let isOn: Bool
     @Binding var angle: Double?
@@ -120,6 +121,7 @@ private struct PlayableDoor: ViewModifier {
     let base: Double
     let openAngle: Double
     let reduceMotion: Bool
+    @Environment(\.doorFeedback) private var doorFeedback
 
     private var current: Double { angle ?? base }
     private var isOpen: Bool { current > openAngle / 2 }
@@ -137,16 +139,13 @@ private struct PlayableDoor: ViewModifier {
                                 let travel = max(slot.size.height * 0.5, 1)
                                 angle = min(max(start + drag.translation.height / travel * openAngle, 0), openAngle)
                             }
-                            .onEnded { drag in
+                            .onEnded { _ in
+                                // The door stays wherever it was let go, like a real one.
                                 dragStart = nil
-                                // A flick decides on its own; otherwise whichever side of halfway.
-                                let fling = drag.predictedEndTranslation.height - drag.translation.height
-                                let open = abs(fling) > 60 ? fling > 0 : current > openAngle / 2
-                                settle(open: open)
                             }
                     )
             }
-            .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
+            .onChange(of: current) { _, angle in doorFeedback?.doorMoved(to: angle) }
             .accessibilityAction(named: isOpen ? Text("Close the door", bundle: .module) : Text("Open the door", bundle: .module)) {
                 settle(open: !isOpen)
             }

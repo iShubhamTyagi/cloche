@@ -34,10 +34,12 @@ final class AppEnvironment {
 
         let doorSensor = AdaptiveDoorSensor()
         let notifications = UserNotificationScheduler()
+        let haptics = UIKitHaptics()
+        let sounds = AVSoundPlayer()
         let router = SessionEffectRouter(
-            haptics: UIKitHaptics(),
+            haptics: haptics,
             announcer: VoiceOverAnnouncer(),
-            sounds: AVSoundPlayer(),
+            sounds: sounds,
             notifications: notifications,
             soundsEnabled: { [settings] in settings.soundsOn }
         )
@@ -51,7 +53,8 @@ final class AppEnvironment {
             doorSensor: doorSensor,
             settings: settings,
             screenAwake: IdleTimerScreenAwake(),
-            notifications: notifications
+            notifications: notifications,
+            doorFeedback: OvenDoorFeedback(sounds: sounds, haptics: haptics, soundsEnabled: { [settings] in settings.soundsOn })
         )
     }
 }

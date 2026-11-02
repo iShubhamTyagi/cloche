@@ -67,6 +67,12 @@ public struct AppRootView: View {
         }
         .environment(\.isOnCover, isOnCover)
         .environment(\.ovenHeat, ovenHeat)
+        .environment(\.doorFeedback, dependencies.doorFeedback)
+        // The Duo: the door follows the hinge, so the hinge drives its thud and haptic (here,
+        // once, not per oven on screen). The cover counts as shut.
+        .onChange(of: FoldSignal.doorAngle(sensor: dependencies.doorSensor, isOnCover: isOnCover) ?? (dependencies.doorSensor.hingePresent ? 0 : -1)) { _, angle in
+            if angle >= 0 { dependencies.doorFeedback?.doorMoved(to: angle) }
+        }
         .environment(\.hingeDoorAngle, FoldSignal.doorAngle(sensor: dependencies.doorSensor, isOnCover: isOnCover))
         .background(HingeSensorAnchor(sensor: dependencies.doorSensor).accessibilityHidden(true))
         // Full screen everywhere: no time, network or battery over the oven (open screen and cover).

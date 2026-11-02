@@ -72,10 +72,16 @@ struct OvenRenderLayout: Decodable, Sendable {
 /// The rendered oven in the oven slot: the frame for the door's angle, scaled so the oven body
 /// fills the slot between the header band and the bottom band, with the plate text drawn in the
 /// display window. The door may hang past the slot when open, as the drawn door did.
-struct RenderedOven: View {
+struct RenderedOven: View, Animatable {
     let layout: OvenRenderLayout
     /// Door angle in degrees: 0 shut, 88 flat toward the viewer, 180 hanging straight down.
-    let angle: Double
+    var angle: Double
+
+    /// Animating the angle steps through the rendered door frames (springing open or shut).
+    nonisolated var animatableData: Double {
+        get { angle }
+        set { angle = newValue }
+    }
     let plate: Text
     var isPlateItalic = false
     /// The door is shown elsewhere (the bottom half): cut the image off at the hinge line.

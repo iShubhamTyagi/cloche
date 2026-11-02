@@ -36,7 +36,8 @@ struct PrepScreen: View {
         OvenFrame(
             plate: Text(CountdownFormat.clock(TimeInterval(length.minutes * 60))),
             heat: 0.4,
-            dish: Dish(recipeID: recipe.id)
+            dish: Dish(recipeID: recipe.id),
+            isDoorPlayable: true
         )
         .animation(reduceMotion ? nil : .spring(duration: 0.5, bounce: 0.15), value: length)
         .accessibilityIdentifier("prep.oven")

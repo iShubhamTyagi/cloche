@@ -20,7 +20,7 @@ struct PreheatScreen: View {
         OvenStage {
             header
         } oven: {
-            OvenFrame(plate: Text("Ready", bundle: .module), heat: 0.7, dish: Dish(recipeID: recipe.id))
+            OvenFrame(plate: Text("Ready", bundle: .module), heat: 0.7, dish: Dish(recipeID: recipe.id), isDoorPlayable: true)
                 .accessibilityIdentifier("preheat.oven")
         } content: {
             content

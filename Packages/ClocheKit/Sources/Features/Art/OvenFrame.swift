@@ -29,6 +29,16 @@ struct OvenFrame: View {
     /// On the open Duo the door follows the fold instead of `doorOpen` (`FoldEnvironment`).
     @Environment(\.hingeDoorAngle) private var hingeDoorAngle
 
+    /// Just for fun, on phones without a hinge: swipe down on the oven to drop its door open,
+    /// up to shut it. Decoration only; the bake's door is the phone itself (face down).
+    var isDoorPlayable = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// The played door's angle while dragging or after a swipe; nil until played with.
+    @State private var playAngle: Double?
+    @State private var dragStart: Double?
+    /// How far it opens when swiped open: lying flat toward the viewer.
+    private static let playOpenAngle = 88.0
+
     /// Kept clear above the oven for the header on the open screen, and below it for the
     /// caption on the cover.
     static let topBand: CGFloat = HitTarget.minimum
@@ -54,11 +64,18 @@ struct OvenFrame: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("Oven", bundle: .module))
         .accessibilityValue(plate)
+        .modifier(PlayableDoor(isOn: isDoorPlayable && hingeDoorAngle == nil && showsDoor,
+                               angle: $playAngle, dragStart: $dragStart, base: baseAngle,
+                               openAngle: Self.playOpenAngle, reduceMotion: reduceMotion))
+    }
+
+    private var baseAngle: Double {
+        openAngle * min(max(doorOpen, 0), 1)
     }
 
     /// The door's angle in degrees: the hinge's on the open Duo, otherwise from `doorOpen`.
     private var doorAngle: Double {
-        hingeDoorAngle ?? openAngle * min(max(doorOpen, 0), 1)
+        hingeDoorAngle ?? playAngle ?? baseAngle
     }
 
     /// Where the lifted serving sits on the upper tray, in a slot of `size`: the tongs pick it
@@ -91,4 +108,55 @@ struct OvenFrame: View {
 #Preview("Door open") {
     OvenFrame(plate: Text(verbatim: "0:11"), heat: 0.8, dish: .cupcakes, dishProgress: 0.5, doorOpen: 0.6)
         .frame(width: 402, height: 437)
+}
+
+/// The swipe that plays with the door: the door follows the finger (half the slot's height is
+/// a full swing to flat) and on release springs open or shut, with a light tap. VoiceOver gets
+/// "Open the door" / "Close the door" actions instead.
+private struct PlayableDoor: ViewModifier {
+    let isOn: Bool
+    @Binding var angle: Double?
+    @Binding var dragStart: Double?
+    let base: Double
+    let openAngle: Double
+    let reduceMotion: Bool
+
+    private var current: Double { angle ?? base }
+    private var isOpen: Bool { current > openAngle / 2 }
+
+    func body(content: Content) -> some View {
+        if isOn {
+            GeometryReader { slot in
+                content
+                    .contentShape(Rectangle())
+                    .gesture(
+                        DragGesture(minimumDistance: 8)
+                            .onChanged { drag in
+                                let start = dragStart ?? current
+                                dragStart = start
+                                let travel = max(slot.size.height * 0.5, 1)
+                                angle = min(max(start + drag.translation.height / travel * openAngle, 0), openAngle)
+                            }
+                            .onEnded { drag in
+                                dragStart = nil
+                                // A flick decides on its own; otherwise whichever side of halfway.
+                                let fling = drag.predictedEndTranslation.height - drag.translation.height
+                                let open = abs(fling) > 60 ? fling > 0 : current > openAngle / 2
+                                settle(open: open)
+                            }
+                    )
+            }
+            .sensoryFeedback(.impact(weight: .light), trigger: isOpen)
+            .accessibilityAction(named: isOpen ? Text("Close the door", bundle: .module) : Text("Open the door", bundle: .module)) {
+                settle(open: !isOpen)
+            }
+        } else {
+            content
+        }
+    }
+
+    private func settle(open: Bool) {
+        let animation: Animation? = reduceMotion ? nil : .spring(duration: 0.45, bounce: open ? 0.25 : 0.1)
+        withAnimation(animation) { angle = open ? openAngle : 0 }
+    }
 }

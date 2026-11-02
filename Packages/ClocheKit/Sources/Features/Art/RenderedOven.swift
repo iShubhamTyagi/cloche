@@ -8,6 +8,11 @@ struct OvenRenderLayout: Decodable, Sendable {
     struct Frame: Decodable, Sendable {
         let name: String
         let angle: Double
+        /// The clear glass's corners on the door's inner face, in reading order: top-left,
+        /// top-right (hinge edge), bottom-right, bottom-left (handle edge). Pixels.
+        let glass: [[Double]]
+        /// How squarely that face looks at the camera: 1 head-on, 0 edge-on, < 0 turned away.
+        let facing: Double
     }
 
     let imageSize: [Double]
@@ -45,8 +50,12 @@ struct OvenRenderLayout: Decodable, Sendable {
 
     /// The frame whose door angle is closest to `angle` (degrees, 0 shut, 180 hanging down).
     func frameName(forAngle angle: Double) -> String {
+        frame(forAngle: angle).name
+    }
+
+    func frame(forAngle angle: Double) -> Frame {
         let clamped = min(max(angle, 0), maxAngle)
-        return frames.min { abs($0.angle - clamped) < abs($1.angle - clamped) }?.name ?? frames[0].name
+        return frames.min { abs($0.angle - clamped) < abs($1.angle - clamped) } ?? frames[0]
     }
 }
 
@@ -122,12 +131,66 @@ struct RenderedOven: View {
                       width: glass.width * scale, height: glass.height * scale)
     }
 
+    /// The glass on the door at `angle`, as four points in a slot of `size` (slot coordinates,
+    /// hinge on the fold), and how squarely it faces the viewer. The same frame as the image.
+    static func glassQuad(layout: OvenRenderLayout, angle: Double, in size: CGSize) -> (corners: [CGPoint], facing: Double) {
+        let (scale, origin) = placement(layout: layout, in: size, alignsHingeToFold: true)
+        let frame = layout.frame(forAngle: angle)
+        let corners = frame.glass.map { CGPoint(x: origin.x + $0[0] * scale, y: origin.y + $0[1] * scale) }
+        return (corners, frame.facing)
+    }
+
     private var frameImage: Image {
         let name = layout.frameName(forAngle: cutsAtHinge ? layout.maxAngle : angle)
-        if let path = Bundle.module.path(forResource: name, ofType: "png"), let image = UIImage(contentsOfFile: path) {
+        if let image = OvenFrameCache.shared.image(named: name) {
             return Image(uiImage: image)
         }
         return Image(systemName: "photo")
+    }
+}
+
+/// Decoded oven frames, so showing one never waits on PNG decoding. The shut and fully open
+/// frames (the folded cover and the unfolded Duo) are decoded in the background at launch and
+/// kept; others are cached as the hinge passes through them, a dozen at most (each is ~4.8 MB
+/// decoded).
+final class OvenFrameCache: @unchecked Sendable {
+    static let shared = OvenFrameCache()
+
+    private let cache: NSCache<NSString, UIImage> = {
+        let cache = NSCache<NSString, UIImage>()
+        cache.countLimit = 12
+        return cache
+    }()
+    private let lock = NSLock()
+    private var pinned: [String: UIImage] = [:]
+
+    func image(named name: String) -> UIImage? {
+        let kept = lock.withLock { pinned[name] }
+        if let kept { return kept }
+        if let cached = cache.object(forKey: name as NSString) { return cached }
+        guard let image = Self.decode(name) else { return nil }
+        cache.setObject(image, forKey: name as NSString)
+        return image
+    }
+
+    /// Decode and keep the frames that must appear instantly. Call once at launch.
+    func preload(_ names: [String]) {
+        Task.detached(priority: .userInitiated) {
+            for name in names {
+                guard let image = Self.decode(name) else { continue }
+                self.pin(image, as: name)
+            }
+        }
+    }
+
+    private func pin(_ image: UIImage, as name: String) {
+        lock.withLock { pinned[name] = image }
+    }
+
+    private static func decode(_ name: String) -> UIImage? {
+        guard let path = Bundle.module.path(forResource: name, ofType: "png"),
+              let image = UIImage(contentsOfFile: path) else { return nil }
+        return image.preparingForDisplay() ?? image
     }
 }
 

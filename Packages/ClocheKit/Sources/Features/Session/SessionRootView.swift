@@ -29,16 +29,22 @@ struct SessionRootView: View {
 
     var body: some View {
         let copy = DoorCopy(source: session.doorSource)
-        Group {
-            if isPhysicallyFolded {
-                // Folded shut, only the cover is visible: every phase gets its cover screen.
+        ZStack {
+            phaseScreen(copy: copy)
+                .opacity(isPhysicallyFolded ? 0 : 1)
+                .allowsHitTesting(!isPhysicallyFolded)
+                .accessibilityHidden(isPhysicallyFolded)
+            // The cover screen is always mounted on a phone with a hinge, so folding only flips
+            // which one shows: the oven is already drawn when the window moves to the cover.
+            if dependencies.doorSensor.hingePresent || isPhysicallyFolded {
                 CoverPhaseScreen(phase: session.phase, length: length)
-                    .transition(.opacity)
-            } else {
-                phaseScreen(copy: copy)
+                    .opacity(isPhysicallyFolded ? 1 : 0)
+                    .allowsHitTesting(isPhysicallyFolded)
+                    .accessibilityHidden(!isPhysicallyFolded)
             }
         }
         .onChange(of: isPhysicallyFolded) { _, folded in
+            FoldSignal.log.notice("layout \(folded ? "cover" : "open", privacy: .public)")
             guard folded else { return }
             // Sheets can't be used on the cover: Settings closes, and folding at the
             // notification pre-prompt counts as "Not now" (the bake goes ahead).
@@ -46,7 +52,6 @@ struct SessionRootView: View {
             if let pendingPreheat { finishPreheat(pendingPreheat) }
         }
         .animation(.easeInOut(duration: 0.25), value: phaseKey)
-        .animation(.easeInOut(duration: 0.25), value: isPhysicallyFolded)
         .onChange(of: phaseKey, initial: true) {
             updateKeepAwake()
             releaseManualDoorIfDone()

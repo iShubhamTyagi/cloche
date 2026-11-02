@@ -1,4 +1,5 @@
 import DoorSensing
+import os
 import SwiftUI
 
 extension EnvironmentValues {
@@ -22,10 +23,19 @@ extension EnvironmentValues {
 enum FoldSignal {
     /// Narrower than the Duo's inner screen and wider than any cover.
     static let coverMaxWidth: CGFloat = 560
+    /// Within this many degrees of shut (20: the inner screen is all but closed) the inner screen can't be seen any more: switch to the
+    /// cover's layout already, so it is drawn before the system moves the window to the cover.
+    static let preCloseDegrees = 20.0
+    /// Fold timing: hinge reports (category Hinge), the window moving between screens, and
+    /// the layout switching. Read with `log show --predicate 'subsystem == "com.shubhamtyagi.cloche"'`.
+    static let log = Logger(subsystem: "com.shubhamtyagi.cloche", category: "Fold")
 
     @MainActor
     static func isOnCover(sensor: AdaptiveDoorSensor, windowWidth: CGFloat) -> Bool {
-        if sensor.hingeReading?.status == .closed { return true }
+        if let reading = sensor.hingeReading {
+            if reading.status == .closed { return true }
+            if reading.status == .partiallyOpen, reading.angle * 180 / .pi <= preCloseDegrees { return true }
+        }
         return sensor.hingePresent && windowWidth > 0 && windowWidth < coverMaxWidth
     }
 

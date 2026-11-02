@@ -43,13 +43,20 @@ public struct AppRootView: View {
             }
         }
         .task {
+            // The shut door (the folded cover) and the fully open one: ready before any fold.
+            if let layout = OvenRenderLayout.shared {
+                OvenFrameCache.shared.preload([layout.frameName(forAngle: 0), layout.frameName(forAngle: layout.maxAngle)])
+            }
             try? await Task.sleep(for: SplashScreen.duration)
             // Reduce Motion: a straight cut instead of the cross-fade.
             withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.35)) {
                 showsSplash = false
             }
         }
-        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { windowWidth = $0 }
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width in
+            FoldSignal.log.notice("window width \(width, privacy: .public)")
+            windowWidth = width
+        }
         .environment(\.isOnCover, isOnCover)
         .environment(\.hingeDoorAngle, FoldSignal.doorAngle(sensor: dependencies.doorSensor, isOnCover: isOnCover))
         .background(HingeSensorAnchor(sensor: dependencies.doorSensor).accessibilityHidden(true))

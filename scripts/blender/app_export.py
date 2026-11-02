@@ -76,6 +76,29 @@ def main():
     glass_open = rect([(glo.x + FRIT_W, y_front, glo.z + FRIT_W), (ghi.x - FRIT_W, y_front, glo.z + FRIT_W),
                        (glo.x + FRIT_W, y_front, ghi.z - FRIT_W), (ghi.x - FRIT_W, y_front, ghi.z - FRIT_W)])
     R.set_door(0)
+    # The HUD plane for every frame: the four corners of the clear glass (inside the frit) on
+    # the door's inner face, the face the camera sees once the door is open. Ordered as the
+    # content reads: top-left and top-right on the hinge edge, then bottom-right, bottom-left on
+    # the handle edge. `facing` is how squarely that face looks at the camera (1 head-on, 0
+    # edge-on, negative turned away), for fading the HUD.
+    door = bpy.data.objects["Door"]
+    glo0, ghi0 = C.world_bounds(["DoorGlass"])
+    y_inner = ghi0.y                                   # inner pane's inner face (door shut)
+    inv = door.matrix_world.inverted()
+    local = [inv @ C.Vector(p) for p in (
+        (glo0.x + FRIT_W, y_inner, glo0.z + FRIT_W), (ghi0.x - FRIT_W, y_inner, glo0.z + FRIT_W),
+        (ghi0.x - FRIT_W, y_inner, ghi0.z - FRIT_W), (glo0.x + FRIT_W, y_inner, ghi0.z - FRIT_W))]
+    normal_local = inv.to_3x3() @ C.Vector((0, 1, 0))
+    glass_quads = []
+    for i in range(count):
+        R.set_door(DOOR_MAX_ANGLE * i / (count - 1))
+        mw = door.matrix_world
+        corners = [mw @ p for p in local]
+        centre = sum(corners, C.Vector()) / 4
+        to_cam = (cam.matrix_world.translation - centre).normalized()
+        facing = (mw.to_3x3() @ normal_local).normalized().dot(to_cam)
+        glass_quads.append({"corners": [px(c) for c in corners], "facing": round(facing, 4)})
+    R.set_door(0)
     # The upper tray's floor (where the dish sits), door shut: the lift point when the dish is
     # taken out for plating.
     tlo, thi = C.world_bounds(["Tray1"])
@@ -95,7 +118,8 @@ def main():
     kept = []
     for i in range(0, count, args.every):
         I.save(frames[i][y0:y1, x0:x1], os.path.join(DST, f"oven_door_{i:03d}.png"))
-        kept.append({"index": i, "name": f"oven_door_{i:03d}", "angle": round(DOOR_MAX_ANGLE * i / (count - 1), 4)})
+        kept.append({"index": i, "name": f"oven_door_{i:03d}", "angle": round(DOOR_MAX_ANGLE * i / (count - 1), 4),
+                     "glass": glass_quads[i]["corners"], "facing": glass_quads[i]["facing"]})
     layout = {
         "source": "scripts/blender/app_export.py from build/renders/stage5 (camera.json views.frames)",
         "image_size": [x1 - x0, y1 - y0], "pixel_origin": "top-left",

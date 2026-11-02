@@ -20,6 +20,16 @@ Read the **Current state** first; it says where the next session starts. Then ad
 
 ## Log
 
+### 2026-11-02: HUD on the Duo's door glass; faster fold to the cover
+
+- **Built:**
+  - The content on the open Duo's oven door is projected onto the glass at the hinge's angle with a homography. `app_export.py` exports the glass's four corners and its `facing` per door frame.
+  - The HUD fades out and ignores taps as the glass turns edge-on.
+  - HUD styling in the existing colours: `HUDGlassChrome` (corner brackets, scan lines, ticks), an outlined glowing primary button, and lit picker cells, driven by an `isHUD` environment value.
+  - Folding: the cover layout switches 20° before shut, the cover screen stays mounted (hidden) while open, there's no fade, and oven frames are decoded at launch and cached (`OvenFrameCache`). The `Fold` log category records fold timings.
+- **Verified:** Duo at a 129° hinge angle (content in perspective on the glass). The owner confirmed the fold to the cover is much faster in the simulator.
+- **Left over:** tapping the warped buttons at part-open angles and the 20° switch on a real Duo still need checking (the simulator's hinge jumps from ~160° to shut).
+
 ### 2026-11-02: Cake stand and cloche in Blender, Stages 1–3 (committed per stage)
 
 - **Built:**

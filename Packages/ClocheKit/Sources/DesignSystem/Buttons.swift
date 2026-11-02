@@ -7,6 +7,26 @@ public struct PrimaryButtonStyle: ButtonStyle {
     public init() {}
 
     public func makeBody(configuration: Configuration) -> some View {
+        PrimaryButtonBody(configuration: configuration, reduceMotion: reduceMotion)
+    }
+}
+
+/// The primary pill, or its HUD form on glass (`isHUD`).
+private struct PrimaryButtonBody: View {
+    let configuration: ButtonStyleConfiguration
+    let reduceMotion: Bool
+    @Environment(\.isHUD) private var isHUD
+
+    var body: some View {
+        if isHUD {
+            HUDPrimaryLook(label: configuration.label, isPressed: configuration.isPressed)
+                .scaleEffect(configuration.isPressed && !reduceMotion ? 0.98 : 1)
+        } else {
+            solid
+        }
+    }
+
+    private var solid: some View {
         configuration.label
             .textStyle(.button)
             .foregroundStyle(Palette.ground)

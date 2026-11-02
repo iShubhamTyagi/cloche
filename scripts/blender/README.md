@@ -37,6 +37,7 @@ $B -b -P scripts/blender/frames.py                   # door frames, manifest, US
   - Shared: `--res W H`, `--samples N`, `--preview` (= `--res 400 300 --samples 16`) and `--final` (256 samples).
   - OpenImageDenoise is always on.
 - **Stages:** work in stages. After each render, look at the images, list what still looks unrealistic against a real product photo, fix it, then show the owner and wait for approval.
+- **One asset per file:** each `.blend` holds one asset and nothing else (no studio, no other asset), so it can be appended by name. Assets keep their world positions, so appended together they line up.
 - **Git:**
   - Commit the scripts, `build/camera.json`, manifests and reports.
   - Keep `.blend` files, renders and exports out of git (see `.gitignore`).
@@ -51,6 +52,7 @@ $B -b -P scripts/blender/frames.py                   # door frames, manifest, US
 | `oven.py`, `door.py`, `interior.py`, `materials.py` | Builds `build/oven.blend` |
 | `render.py` | Oven review renders per stage, the hinge test (0 to 180°), rack clearance, reference comparisons |
 | `frames.py` | 48 door frames (0 to 180°), `manifest.json`, the contact sheet, `oven.usdz` |
+| `cakestand.py`, `stand_materials.py`, `cloche.py` | The marble turntable stand → `build/cakestand.blend`, and the glass cloche → `build/cloche.blend`. Each file holds only its own asset, positioned at the plating station; renders bring both into the studio |
 | `imaging.py` | PNG tools (load, save, composite, compare, grid) |
 | `watch.py` | Keeps an open Blender window in sync with `build/oven.blend` |
 | `common.py` | Mesh helpers, arguments, stats |

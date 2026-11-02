@@ -3,6 +3,7 @@
     Blender -b -P scripts/blender/cakestand.py -- [--stage 1] [--marble carrara|calacatta|emperador]
         [--brass on|off] [--finial brass|glass] [--plate-angle 0] [--led off|on]
         [--cloche-state on|lifted] [--lift 0..1] [--out build/cakestand.blend]
+        [--out-cloche build/cloche.blend]
         [--preview | --final] [--res W H] [--samples N] [--force]
 
 French pâtisserie, quiet luxury; no text, engraving or marks. Metres, Z up, camera along +Y.
@@ -281,6 +282,39 @@ def render_cloche_stage(args, out_dir, objs, cloche_objs):
     I.grid(shots, os.path.join(out_dir, "sheet.png"), columns=4, cell_h=520)
 
 
+def build_stand():
+    base, pad = build_base()
+    ring = build_ring()
+    plate = build_plate()
+    switch, led = build_switch(base)
+    return [base, pad, ring, plate, switch, led, bpy.data.objects["PlateMarker"]]
+
+
+def save_assets(args):
+    """Each asset in its own file, holding only that asset (no studio, no other asset), the way
+    oven.blend does: build/cakestand.blend (the turntable stand) and build/cloche.blend. Both
+    keep their world positions at the plating station, so appended together they fit."""
+    C.reset_scene()
+    build_stand()
+    if args.stage >= 2:
+        import stand_materials as SM
+        SM.assign(args.marble, args.brass == "on")
+        SM.set_led(args.led == "on")
+    set_plate_angle(args.plate_angle)
+    bpy.context.scene["asset"] = "cakestand"
+    bpy.ops.wm.save_as_mainfile(filepath=args.out)
+    print(f"[cakestand] saved {os.path.relpath(args.out, C.REPO)}")
+    if args.stage >= 3:
+        import cloche as CL
+        C.reset_scene()
+        CL.build()
+        lift = args.lift if args.lift is not None else (1.0 if args.cloche_state == "lifted" else 0.0)
+        CL.set_lift(lift)
+        bpy.context.scene["asset"] = "cloche"
+        bpy.ops.wm.save_as_mainfile(filepath=args.out_cloche)
+        print(f"[cakestand] saved {os.path.relpath(args.out_cloche, C.REPO)}")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--stage", type=int, default=1)
@@ -291,17 +325,15 @@ def main():
     parser.add_argument("--led", choices=("off", "on"), default="off")
     parser.add_argument("--cloche-state", choices=("on", "lifted"), default="lifted")
     parser.add_argument("--lift", type=float, default=None)
-    parser.add_argument("--out", default=os.path.join(C.BUILD, "cakestand.blend"))
+    parser.add_argument("--out", default=os.path.join(C.BUILD, "cakestand.blend"), help="the stand alone")
+    parser.add_argument("--out-cloche", default=os.path.join(C.BUILD, "cloche.blend"), help="the cloche alone")
     studio.add_render_args(parser)
     args = C.script_args(parser)
 
     C.reset_scene()
     studio.use(station=True)
-    base, pad = build_base()
-    ring = build_ring()
-    plate = build_plate()
-    switch, led = build_switch(base)
-    objs = [base, pad, ring, plate, switch, led, bpy.data.objects["PlateMarker"]]
+    objs = build_stand()
+    plate = bpy.data.objects["TurntablePlate"]
     cloche_objs = []
     if args.stage >= 3:
         import cloche as CL
@@ -329,10 +361,7 @@ def main():
         render_cloche_stage(args, out_dir, objs, cloche_objs)
         with open(os.path.join(out_dir, "report.json"), "w") as f:
             json.dump(report, f, indent=2)
-        lift = args.lift if args.lift is not None else (1.0 if args.cloche_state == "lifted" else 0.0)
-        CL.set_lift(lift)
-        bpy.ops.wm.save_as_mainfile(filepath=args.out)
-        print(f"[cakestand] saved {os.path.relpath(args.out, C.REPO)}")
+        save_assets(args)
         return
     bounds = C.world_bounds([o.name for o in objs])
     shots = []
@@ -354,8 +383,7 @@ def main():
     I.grid(shots, os.path.join(out_dir, f"sheet_{args.marble}.png" if args.stage >= 2 else "sheet.png"), columns=3, cell_h=500)
     with open(os.path.join(out_dir, "report.json"), "w") as f:
         json.dump(report, f, indent=2)
-    bpy.ops.wm.save_as_mainfile(filepath=args.out)
-    print(f"[cakestand] saved {os.path.relpath(args.out, C.REPO)}")
+    save_assets(args)
 
 
 if __name__ == "__main__":

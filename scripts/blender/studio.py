@@ -142,6 +142,16 @@ def build():
     _area("SoftboxKey", (-1.1, -1.3, 1.3), (0, 0.1, 0.15), (1.6, 1.0), 120, lights)
     _area("SoftboxFill", (1.4, -0.9, 0.7), (0, 0.1, 0.15), (1.6, 1.6), 16, lights)
     _area("Rim", (1.3, 0.9, 0.55), (0, 0.2, 0.2), (1.2, 0.3), 110, lights)
+    # The plating station along the counter gets the same kind of light, aimed at the stand:
+    # a large soft key from the front-left above (long clean highlights on marble and glass),
+    # a dim fill from the right, and a narrow rim behind. Loaded only for station renders.
+    station = bpy.data.collections.new("StudioStationLights")
+    bpy.context.scene.collection.children.link(station)
+    sx, sy = STATION[0], STATION[1]
+    _area("StationKey", (sx - 0.9, sy - 1.1, 1.2), (sx, sy, 0.15), (1.4, 0.9), 8, station)
+    _area("StationFill", (sx + 1.0, sy - 0.8, 0.5), (sx, sy, 0.15), (1.4, 1.4), 1.5, station)
+    _area("StationRim", (sx + 0.4, sy + 1.0, 0.7), (sx, sy, 0.2), (1.0, 0.25), 12, station)
+    _area("StationTop", (sx, sy, 1.4), (sx, sy, 0.0), (0.9, 0.9), 5, station)
     # Counter: shadow catcher, top at z = 0, front edge just behind the oven door's hinge.
     bm = C.bmesh.new()
     C.add_box(bm, (-3, COUNTER_EDGE_Y, -COUNTER_T), (3, 3, 0))
@@ -174,12 +184,13 @@ def views():
         return json.load(f)["views"]
 
 
-def use(ground=True):
-    """Bring studio.blend's lights, world, ground and bloom into the current scene."""
+def use(ground=True, station=False):
+    """Bring studio.blend's lights, world, ground and bloom into the current scene. `station`
+    adds the plating station's lights (the cake stand and cloche)."""
     if not os.path.exists(STUDIO_BLEND):
         raise SystemExit("build/studio.blend is missing: run scripts/blender/studio.py first")
     with bpy.data.libraries.load(STUDIO_BLEND, link=False) as (src, dst):
-        dst.collections = ["StudioLights", "StudioGround"]
+        dst.collections = ["StudioLights", "StudioGround"] + (["StudioStationLights"] if station else [])
         dst.worlds = ["Studio"]
         dst.node_groups = ["Bloom"]
     scene = bpy.context.scene
@@ -306,3 +317,17 @@ def render(path, args, view_res=None):
 
 if __name__ == "__main__":
     build()
+
+
+def keep_oven_lights_off(objects):
+    """Light linking: the oven's softboxes and rim (aimed at the oven; the rim stands right
+    beside the plating station) don't light these objects; the station lights do."""
+    receivers = bpy.data.collections.new("OvenLightsExclude")
+    for obj in objects:
+        receivers.objects.link(obj)
+    for item in receivers.collection_objects:
+        item.light_linking.link_state = "EXCLUDE"
+    for name in ("SoftboxKey", "SoftboxFill", "Rim"):
+        light = bpy.data.objects.get(name)
+        if light is not None:
+            light.light_linking.receiver_collection = receivers

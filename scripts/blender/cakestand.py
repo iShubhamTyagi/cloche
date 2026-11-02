@@ -265,12 +265,13 @@ def main():
     args = C.script_args(parser)
 
     C.reset_scene()
-    studio.use()
+    studio.use(station=True)
     base, pad = build_base()
     ring = build_ring()
     plate = build_plate()
     switch, led = build_switch(base)
     objs = [base, pad, ring, plate, switch, led, bpy.data.objects["PlateMarker"]]
+    studio.keep_oven_lights_off(objs)
     report = checks(plate)
     report["triangles"] = C.triangle_count(objs)[0]
     set_plate_angle(args.plate_angle)
@@ -279,11 +280,16 @@ def main():
     out_dir = os.path.join(C.BUILD, "renders", "cakestand", f"stage{args.stage}")
     if args.stage <= 1:
         R.apply_clay(objs)
+    else:
+        import stand_materials as SM
+        SM.assign(args.marble, args.brass == "on")
+        SM.set_led(args.led == "on")
     bounds = C.world_bounds([o.name for o in objs])
     shots = []
     for view in ("station", "three_quarter", "topdown"):
         studio.camera(view, subject=None if view == "station" else bounds)
-        path = os.path.join(out_dir, f"stand_{view}.png")
+        tag = f"{args.marble}_" if args.stage >= 2 else ""
+        path = os.path.join(out_dir, f"stand_{tag}{view}.png")
         studio.render(path, args)
         shots.append(path)
     # A close look at the floating gap and the switch.
@@ -295,7 +301,7 @@ def main():
     cam.location = Vector(at(0.05, -0.30, 0.06))
     studio.aim(cam, at(0, -FOOT["r"], Z_FOOT + FOOT["h"] * 0.45))
     studio.render(os.path.join(out_dir, "detail_switch.png"), args, view_res=(1000, 750))
-    I.grid(shots, os.path.join(out_dir, "sheet.png"), columns=3, cell_h=500)
+    I.grid(shots, os.path.join(out_dir, f"sheet_{args.marble}.png" if args.stage >= 2 else "sheet.png"), columns=3, cell_h=500)
     with open(os.path.join(out_dir, "report.json"), "w") as f:
         json.dump(report, f, indent=2)
     bpy.ops.wm.save_as_mainfile(filepath=args.out)

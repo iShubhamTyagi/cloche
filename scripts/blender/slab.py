@@ -221,10 +221,24 @@ def main():
         # The cloche's glass comes with cake stand Stage 4; until then it renders as clay.
         R.apply_clay([o for o in meshes if o.name.startswith("Cloche")])
         studio.keep_oven_lights_off([o for o in meshes if o.name.startswith(("Stand", "Bearing", "Turntable", "Plate", "Cloche"))])
+    overlays = []
+    if args.stage >= 4:
+        import slab_checks as K
+        report["clearance"] = K.clearance(points, (w, d, t), (RAIL_W, RAIL_DEPTH, STOP_LEN))
+        print(f"[slab] clearance {json.dumps(report['clearance'])}")
+        overlays = K.outlines(points, (w, d, t))
     studio.camera("topdown", subject=(lo, hi))
     studio.render(os.path.join(out_dir, "layout_top.png"), args, view_res=(1600, 1000))
+    for o in overlays:
+        o.hide_render = True
     studio.camera("stage")
     studio.render(os.path.join(out_dir, "layout_stage.png"), args)
+    if args.stage >= 4:
+        K.void_shadow(out_dir, args, (w, d, t), [("stage", "stage", None), ("top", "topdown", (lo, hi))])
+        # The brief's final paths: renders/slab/layout_top.png and layout_stage.png.
+        import shutil
+        for name in ("layout_top.png", "layout_stage.png", "void_shadow_stage.png", "void_shadow_top.png"):
+            shutil.copy(os.path.join(out_dir, name), os.path.join(os.path.dirname(out_dir), name))
     # A close look at the eased edge and the chamfer, at the slab's front-left corner.
     cam = bpy.context.scene.camera
     cam.data.type, cam.data.lens = "PERSP", 100

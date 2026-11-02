@@ -5,7 +5,8 @@ base (the bead's lowest point, in the groove), so lifting is +Z only.
 
 Cylindrical (owner, 2026-11-02, replacing the bell) so the full width is usable at any height:
 a row of cupcakes or two 20 cm cake layers stacked. Sizes: inner diameter 26.5 cm (the straight
-wall stands centred on the bead in the groove, so it follows the groove), inner height 24 cm,
+wall stands centred on the bead in the groove, so it follows the groove), inner height 16 cm
+(two cake layers plus 40 mm of toppings; a perfect hemisphere would leave 8 mm at the cake's edge),
 wall 3 mm. It seats inboard on the 30 cm plate.
 """
 import math
@@ -20,7 +21,9 @@ import cakestand as S
 WALL = 0.003
 BEAD_R = 0.0022           # rim bead radius (seats in the 5 mm groove)
 INNER_R = S.GROOVE["r"] - WALL / 2   # 132.7 mm: the wall's centre stands on the bead
-INNER_H = 0.240           # inner height above the plate, at the top's centre
+INNER_H = 0.160           # inner height above the plate, at the top's centre (owner, 2026-11-02:
+                          # high enough for two cake layers and their toppings, not more)
+TOPPINGS = 0.040          # what decorating adds on top: piped swirls, berries, a candle stub
 SHOULDER_R = 0.022        # the rounded shoulder between wall and top
 CROWN = 0.003             # the top rises this much toward the centre: a hint of dome, not flat
 LIFT_HEIGHT = 0.60        # fully lifted: out of the station camera's frame
@@ -176,9 +179,11 @@ def fit_report(inner_height_at):
     gap = S.GROOVE["d"]                                                     # base sits in the groove
     out = {}
     for name, height, radius in (("two_cake_layers", 2 * layer_h, cake_r), ("cupcake", cupcake_h, cupcake_r)):
+        above = inner_height_at(radius) - gap - height
         out[name] = {"height_mm": round(height * 1000, 1), "radius_mm": round(radius * 1000, 1),
-                     "clearance_above_at_edge_mm": round((inner_height_at(radius) - gap - height) * 1000, 1),
-                     "clearance_to_wall_mm": round((INNER_R - radius) * 1000, 1)}
+                     "clearance_above_at_edge_mm": round(above * 1000, 1),
+                     "clearance_to_wall_mm": round((INNER_R - radius) * 1000, 1),
+                     "fits_with_toppings": above >= TOPPINGS}
     return out
 
 

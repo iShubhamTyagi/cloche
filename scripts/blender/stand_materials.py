@@ -60,6 +60,40 @@ def brushed_brass_linear(name="BrushedBrassLinear"):
     return n.mat
 
 
+def cloche_glass(name="ClocheGlass", rim=False):
+    """Clear soda-lime glass, 3 mm: transmission 1, IOR 1.5, roughness 0.02 (the rim's contact
+    band 0.12, lightly ground), a faint green edge tint from a little volume absorption (so it
+    shows where light runs through the glass edge-on, as real glass does), no haze. Shadow-ray
+    trick: shadow rays see a pale, nearly clear filter instead of the refracting glass, so its
+    shadow is soft and light and renders fast."""
+    n = Nodes(name)
+    n.set(Base_Color=(0.97, 0.99, 0.98, 1), Transmission_Weight=1.0, IOR=1.5,
+          Roughness=0.12 if rim else 0.02)
+    shadow = n.node("ShaderNodeBsdfTransparent")
+    shadow.inputs["Color"].default_value = (0.90, 0.93, 0.92, 1)
+    path = n.node("ShaderNodeLightPath")
+    mix = n.node("ShaderNodeMixShader")
+    n.link(path.outputs["Is Shadow Ray"], mix.inputs["Fac"])
+    n.link(n.bsdf.outputs["BSDF"], mix.inputs[1])
+    n.link(shadow.outputs["BSDF"], mix.inputs[2])
+    n.link(mix.outputs["Shader"], n.out.inputs["Surface"])
+    absorb = n.node("ShaderNodeVolumeAbsorption")
+    absorb.inputs["Color"].default_value = (0.80, 0.95, 0.90, 1)
+    absorb.inputs["Density"].default_value = 6.0
+    n.link(absorb.outputs["Volume"], n.out.inputs["Volume"])
+    return n.mat
+
+
+def assign_cloche(finial="brass"):
+    table = {"Cloche": cloche_glass(), "ClocheRim": cloche_glass("ClocheGlassRim", rim=True),
+             "ClocheFinial": brushed_brass("FinialBrass", axis="Z") if finial == "brass" else cloche_glass()}
+    for name, mat in table.items():
+        obj = bpy.data.objects.get(name)
+        if obj is not None:
+            obj.data.materials.clear()
+            obj.data.materials.append(mat)
+
+
 def cork():
     n = Nodes("Cork")
     grain = n.noise(900.0, 2.0)

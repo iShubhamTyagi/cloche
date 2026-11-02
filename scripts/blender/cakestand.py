@@ -282,6 +282,64 @@ def render_cloche_stage(args, out_dir, objs, cloche_objs):
     I.grid(shots, os.path.join(out_dir, "sheet.png"), columns=4, cell_h=520)
 
 
+def cake_props():
+    """Two stacked turned-out cake layers on the plate (a test load for the glass; not saved
+    in the asset), in a plain golden sponge."""
+    import random
+    import cakes
+    rng = random.Random(1)
+    mat = bpy.data.materials.new("PropSponge")
+    mat.use_nodes = True
+    bsdf = mat.node_tree.nodes["Principled BSDF"]
+    bsdf.inputs["Base Color"].default_value = (0.72, 0.45, 0.20, 1)
+    bsdf.inputs["Roughness"].default_value = 0.8
+    bsdf.inputs["Subsurface Weight"].default_value = 0.15
+    props = []
+    z = Z_PLATE_TOP
+    for _ in range(2):
+        layer = cakes.build_turnout(at(z=z), rng, 0.62)
+        layer.data.materials.append(mat)
+        props.append(layer)
+        bpy.context.view_layer.update()
+        z = C.world_bounds([layer.name])[1].z
+    return props
+
+
+def render_glass_stage(args, out_dir, objs, cloche_objs):
+    """The glass cloche over two cake layers: station view, three-quarter, the glass edge and
+    rim close, half lifted, and lifted."""
+    import cloche as CL
+    # Glass that sees the empty background becomes transparent in the alpha, so the cloche
+    # layer composites over the app as glass, not over a black backdrop.
+    scene = bpy.context.scene
+    scene.cycles.film_transparent_glass = True
+    scene.cycles.film_transparent_roughness = 0.15
+    props = cake_props()
+    studio.keep_oven_lights_off(props)
+    CL.set_lift(0.0)
+    bounds = C.world_bounds([o.name for o in objs + cloche_objs])
+    shots = []
+    for name, view, lift in (("seated_station", "station", 0.0), ("seated_three_quarter", "three_quarter", 0.0),
+                             ("lift_half_station", "station", 0.5), ("lifted_station", "station", 1.0)):
+        CL.set_lift(lift)
+        studio.camera(view, subject=None if view == "station" else bounds)
+        path = os.path.join(out_dir, f"glass_{name}.png")
+        studio.render(path, args)
+        shots.append(path)
+    CL.set_lift(0.0)
+    cam = bpy.context.scene.camera
+    cam.data.type, cam.data.lens = "PERSP", 90
+    cam.location = Vector(at(0.18, -0.36, Z_PLATE_TOP + 0.03))
+    studio.aim(cam, at(0.10, -0.08, Z_PLATE_TOP + 0.02))
+    studio.render(os.path.join(out_dir, "glass_detail_rim.png"), args, view_res=(1000, 750))
+    cam.location = Vector(at(0.10, -0.30, Z_PLATE_TOP + 0.24))
+    studio.aim(cam, at(0, 0, Z_PLATE_TOP + 0.17))
+    studio.render(os.path.join(out_dir, "glass_detail_finial.png"), args, view_res=(1000, 750))
+    I.grid(shots, os.path.join(out_dir, "sheet.png"), columns=4, cell_h=520)
+    for p in props:
+        bpy.data.objects.remove(p)
+
+
 def build_stand():
     base, pad = build_base()
     ring = build_ring()
@@ -308,6 +366,9 @@ def save_assets(args):
         import cloche as CL
         C.reset_scene()
         CL.build()
+        if args.stage >= 4:
+            import stand_materials as SM
+            SM.assign_cloche(args.finial)
         lift = args.lift if args.lift is not None else (1.0 if args.cloche_state == "lifted" else 0.0)
         CL.set_lift(lift)
         bpy.context.scene["asset"] = "cloche"
@@ -358,7 +419,10 @@ def main():
         print(f"[cakestand] cloche {json.dumps(report['cloche'])}")
         if args.stage == 3:
             R.apply_clay(cloche_objs)
-        render_cloche_stage(args, out_dir, objs, cloche_objs)
+            render_cloche_stage(args, out_dir, objs, cloche_objs)
+        else:
+            SM.assign_cloche(args.finial)
+            render_glass_stage(args, out_dir, objs, cloche_objs)
         with open(os.path.join(out_dir, "report.json"), "w") as f:
             json.dump(report, f, indent=2)
         save_assets(args)

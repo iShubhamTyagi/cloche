@@ -33,6 +33,9 @@ struct OvenFrame: View {
     /// Just for fun, on phones without a hinge: swipe down on the oven to drop its door open,
     /// up to shut it. Decoration only; the bake's door is the phone itself (face down).
     var isDoorPlayable = false
+    /// Prep: the dish load flies in from the left when it appears or changes.
+    var dishFliesIn = false
+    @State private var dishArrival: Double = 1
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// The played door's angle while dragging or after a swipe; nil until played with.
     @State private var playAngle: Double?
@@ -51,6 +54,10 @@ struct OvenFrame: View {
                 RenderedOven(
                     layout: layout,
                     angle: doorAngle,
+                    dish: dish,
+                    dishProgress: dishProgress,
+                    browning: browning,
+                    dishArrival: dishArrival,
                     plate: plate,
                     isPlateItalic: isPlateItalic,
                     cutsAtHinge: !showsDoor,
@@ -65,9 +72,23 @@ struct OvenFrame: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("Oven", bundle: .module))
         .accessibilityValue(plate)
+        .task(id: dishFliesIn ? dish : nil) {
+            guard dishFliesIn else { return }
+            await flyDishIn()
+        }
         .modifier(PlayableDoor(isOn: isDoorPlayable && hingeDoorAngle == nil && showsDoor,
                                angle: $playAngle, dragStart: $dragStart, base: baseAngle,
                                openAngle: Self.playOpenAngle, reduceMotion: reduceMotion))
+    }
+
+    /// Off-screen left, then a spring onto the racks.
+    private func flyDishIn() async {
+        var reset = Transaction()
+        reset.disablesAnimations = true
+        withTransaction(reset) { dishArrival = 0 }
+        try? await Task.sleep(for: .milliseconds(30))
+        guard !Task.isCancelled else { return }
+        withAnimation(reduceMotion ? .easeInOut(duration: 0.25) : .spring(duration: 0.9, bounce: 0.18)) { dishArrival = 1 }
     }
 
     private var baseAngle: Double {

@@ -1,4 +1,5 @@
 import DesignSystem
+import Domain
 import SwiftUI
 import UIKit
 
@@ -63,6 +64,11 @@ struct OvenRenderLayout: Decodable, Sendable {
         return frame(forAngle: angle).name.replacingOccurrences(of: "oven_door_", with: "oven_door_cold_")
     }
 
+    func frameIndex(forAngle angle: Double) -> Int {
+        let clamped = min(max(angle, 0), maxAngle)
+        return frames.indices.min { abs(frames[$0].angle - clamped) < abs(frames[$1].angle - clamped) } ?? 0
+    }
+
     func frame(forAngle angle: Double) -> Frame {
         let clamped = min(max(angle, 0), maxAngle)
         return frames.min { abs($0.angle - clamped) < abs($1.angle - clamped) } ?? frames[0]
@@ -76,11 +82,18 @@ struct RenderedOven: View, Animatable {
     let layout: OvenRenderLayout
     /// Door angle in degrees: 0 shut, 88 flat toward the viewer, 180 hanging straight down.
     var angle: Double
+    /// The dish load on the racks, how far through its bake, and how it browns.
+    var dish: Dish?
+    var dishProgress: Double = 0
+    var browning: Browning = .golden
+    /// 0 the dish is off-screen left, 1 placed on the racks (it flies in on Prep).
+    var dishArrival: Double = 1
 
-    /// Animating the angle steps through the rendered door frames (springing open or shut).
-    nonisolated var animatableData: Double {
-        get { angle }
-        set { angle = newValue }
+    /// Animating steps through the rendered door frames (springing open or shut) and flies the
+    /// dish in.
+    nonisolated var animatableData: AnimatablePair<Double, Double> {
+        get { AnimatablePair(angle, dishArrival) }
+        set { angle = newValue.first; dishArrival = newValue.second }
     }
     let plate: Text
     var isPlateItalic = false
@@ -120,6 +133,13 @@ struct RenderedOven: View, Animatable {
                     .interpolation(.high)
                     .frame(width: imageSize.width, height: imageSize.height)
                     .opacity(layout.hasCold == true ? heat : 1)
+                if let dish, let dishes = OvenDishesLayout.shared {
+                    OvenDishLayer(
+                        layout: dishes, dish: dish, progress: dishProgress, browning: browning, arrival: dishArrival,
+                        doorFrameIndex: cutsAtHinge ? nil : layout.frameIndex(forAngle: frameAngle),
+                        isBehindGlass: !cutsAtHinge && frameAngle < 60, size: imageSize
+                    )
+                }
                 plate
                     .textStyle(isPlateItalic ? .voice(display.height * scale * 0.5) : .numeral(display.height * scale * 0.42))
                     .foregroundStyle(isPlateItalic ? Palette.sand : Palette.text)

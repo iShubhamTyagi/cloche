@@ -10,6 +10,19 @@ $B -b -P scripts/blender/render.py -- --stage 4      # oven review renders + che
 $B -b -P scripts/blender/frames.py                   # door frames, manifest, USDZ
 ```
 
+## Getting the renders into the app
+
+The app's oven, slab, stand and dishes are pre-rendered images (generated, gitignored). After
+changing any asset, regenerate them in this order (each export clears its folder first):
+
+```sh
+$B -b -P scripts/blender/frames.py && $B -b -P scripts/blender/frames.py -- --cold   # door frames, hot + cold
+$B -b -P scripts/blender/app_export.py        # -> Features/Resources/OvenRender
+$B -b -P scripts/blender/station_export.py    # -> Features/Resources/StationRender
+$B -b -P scripts/blender/slab_export.py       # slab under both
+$B -b -P scripts/blender/dish_layers.py       # cupcakes / one cake / two cakes along the bake + door masks
+```
+
 ## Rules (owner, 2026-11-02)
 
 - **Units and axes:** metres, Z up, the camera looks along +Y, the oven front is the y = 0 plane.
@@ -55,6 +68,7 @@ $B -b -P scripts/blender/frames.py                   # door frames, manifest, US
 | `cakestand.py`, `stand_materials.py`, `cloche.py` | The marble turntable stand → `build/cakestand.blend`, and the glass cloche → `build/cloche.blend`. Each file holds only its own asset, positioned at the plating station; renders bring both into the studio |
 | `moulds.py`, `cakes.py` | The bakeware and its cakes, one file per dish and state: `build/muffin_tin_<state>.blend` (tin, liners, cupcakes), `build/cake_tin_<state>.blend` (round tin, cake), `build/cake_turnout.blend` (the turned-out golden cake), all in oven coordinates on Tray1 |
 | `slab.py`, `slab_checks.py` | The stage slab → `build/slab.blend` and `build/slab_anchors.json`, the door clearance check, layout and void-shadow renders |
+| `dish_layers.py`, `bake_materials.py` | The baking loads on the racks (Quick cupcakes, Medium one cake, Long two cakes) at 6 bake states plus over-baked, a raw fly-in image, and 48 door masks; batter, liner and tin materials |
 | `imaging.py` | PNG tools (load, save, composite, compare, grid) |
 | `watch.py` | Keeps an open Blender window in sync with `build/oven.blend` |
 | `common.py` | Mesh helpers, arguments, stats |

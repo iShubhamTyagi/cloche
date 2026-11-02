@@ -49,9 +49,15 @@ struct StationRenderLayout: Decodable, Sendable {
 /// with its glass cloche at `clocheLift` (0 seated, 1 lifted away). Drawn at the oven's scale
 /// (both renders share lens, distance and resolution) with the counter at the oven's counter
 /// line, so the slide from the oven to here reads as one continuous shot.
-struct RenderedStation: View {
+struct RenderedStation: View, Animatable {
     let layout: StationRenderLayout
     var clocheLift: Double = 1
+
+    /// Animating the lift steps through the rendered lift frames.
+    nonisolated var animatableData: Double {
+        get { clocheLift }
+        set { clocheLift = newValue }
+    }
     /// The open Duo places the oven hinge-on-fold; the station follows the same placement.
     var alignsHingeToFold = false
 

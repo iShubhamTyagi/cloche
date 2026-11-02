@@ -12,19 +12,27 @@ struct StationMoveView: View {
     let dish: Dish
     let progress: Double
     let browning: Browning
+    /// Serving: the cloche lowers back over the dish.
+    var isServing = false
     /// Called once the dish is on the stand.
     var onSettled: () -> Void = {}
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.hingeDoorAngle) private var hingeDoorAngle
     @State private var step: Step
+    /// 0 the cloche seated on the plate, 1 lifted out of frame. It waits seated over the empty
+    /// stand, lifts away while the dish is carried over, and lowers again on the serve.
+    @State private var clocheLift: Double
 
-    init(dish: Dish, progress: Double, browning: Browning, playsIntro: Bool, onSettled: @escaping () -> Void = {}) {
+    init(dish: Dish, progress: Double, browning: Browning, playsIntro: Bool, isServing: Bool = false,
+         onSettled: @escaping () -> Void = {}) {
+        self.isServing = isServing
         self.dish = dish
         self.progress = progress
         self.browning = browning
         self.onSettled = onSettled
         _step = State(initialValue: playsIntro ? .atOven : .done)
+        _clocheLift = State(initialValue: playsIntro ? 0 : 1)
     }
 
     enum Step: Int, Comparable {
@@ -74,6 +82,10 @@ struct StationMoveView: View {
             .clipped()
         }
         .task { await play() }
+        .onChange(of: isServing) { _, serving in
+            guard serving else { return }
+            withAnimation(reduceMotion ? nil : .easeIn(duration: Self.lowerDuration)) { clocheLift = 0 }
+        }
     }
 
     private var tongsAreAway: Bool { step == .atOven || step == .done }
@@ -82,7 +94,7 @@ struct StationMoveView: View {
     @ViewBuilder
     private var station: some View {
         if let layout = StationRenderLayout.shared {
-            RenderedStation(layout: layout, clocheLift: 1, alignsHingeToFold: hingeDoorAngle != nil)
+            RenderedStation(layout: layout, clocheLift: clocheLift, alignsHingeToFold: hingeDoorAngle != nil)
         } else {
             Color.clear
         }
@@ -122,6 +134,7 @@ struct StationMoveView: View {
     private func play() async {
         guard step == .atOven else { return }
         if reduceMotion {
+            clocheLift = 1
             withAnimation(.easeInOut(duration: 0.35)) { step = .done }
             onSettled()
             return
@@ -141,11 +154,18 @@ struct StationMoveView: View {
         for (next, duration, curve) in moves {
             guard !Task.isCancelled else { return }
             withAnimation(curve.animation(duration)) { step = next }
+            if next == .carry {
+                // The cloche lifts away as the dish comes across, clear before it is set down.
+                withAnimation(.easeOut(duration: duration * 0.8)) { clocheLift = 1 }
+            }
             try? await Task.sleep(for: .seconds(duration))
         }
         guard !Task.isCancelled else { return }
         onSettled()
     }
+
+    /// How long the cloche takes to lower on the serve.
+    static let lowerDuration = 0.8
 
     private enum Curve {
         case easeIn, easeOut, easeInOut

@@ -15,6 +15,8 @@ struct DecorateScreen: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isSettled: Bool
+    /// Serve tapped: the cloche lowers over the dish, then the serve goes through.
+    @State private var isServing = false
 
     init(recipe: Recipe, outcome: BakeOutcome, breakEndsAt: Date, playsIntro: Bool, onServeNow: @escaping () -> Void) {
         self.recipe = recipe
@@ -34,7 +36,8 @@ struct DecorateScreen: View {
                 dish: Dish(recipeID: recipe.id),
                 progress: grade.isHalfBaked ? max(outcome.doneness * 0.5, 0.3) : 1,
                 browning: grade.browning,
-                playsIntro: playsIntro
+                playsIntro: playsIntro,
+                isServing: isServing
             ) {
                 withAnimation(reduceMotion ? nil : .easeOut(duration: 0.4)) { isSettled = true }
             }
@@ -58,7 +61,7 @@ struct DecorateScreen: View {
             }
             Spacer(minLength: Spacing.s2)
             // Always visible, from the first frame: serving early loses nothing.
-            Button(action: onServeNow) {
+            Button(action: serve) {
                 Text("Serve now", bundle: .module)
                     .textStyle(.control)
                     .foregroundStyle(Palette.text)
@@ -68,7 +71,21 @@ struct DecorateScreen: View {
                     .contentShape(Capsule())
             }
             .buttonStyle(.plain)
+            .disabled(isServing)
             .accessibilityIdentifier("decorate.serveNow")
+        }
+    }
+
+    private func serve() {
+        guard !isServing else { return }
+        isServing = true
+        if reduceMotion {
+            onServeNow()
+            return
+        }
+        Task {
+            try? await Task.sleep(for: .seconds(StationMoveView.lowerDuration + 0.15))
+            onServeNow()
         }
     }
 

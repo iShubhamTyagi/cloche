@@ -53,6 +53,8 @@ $B -b -P scripts/blender/frames.py                   # door frames, manifest, US
 | `render.py` | Oven review renders per stage, the hinge test (0 to 180°), rack clearance, reference comparisons |
 | `frames.py` | 48 door frames (0 to 180°), `manifest.json`, the contact sheet, `oven.usdz` |
 | `cakestand.py`, `stand_materials.py`, `cloche.py` | The marble turntable stand → `build/cakestand.blend`, and the glass cloche → `build/cloche.blend`. Each file holds only its own asset, positioned at the plating station; renders bring both into the studio |
+| `moulds.py`, `cakes.py` | The bakeware and its cakes, one file per dish and state: `build/muffin_tin_<state>.blend` (tin, liners, cupcakes), `build/cake_tin_<state>.blend` (round tin, cake), `build/cake_turnout.blend` (the turned-out golden cake), all in oven coordinates on Tray1 |
+| `slab.py`, `slab_checks.py` | The stage slab → `build/slab.blend` and `build/slab_anchors.json`, the door clearance check, layout and void-shadow renders |
 | `imaging.py` | PNG tools (load, save, composite, compare, grid) |
 | `watch.py` | Keeps an open Blender window in sync with `build/oven.blend` |
 | `common.py` | Mesh helpers, arguments, stats |

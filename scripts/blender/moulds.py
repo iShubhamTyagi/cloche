@@ -1,7 +1,7 @@
 """Baking moulds with their cakes, fitted to the oven's Tray1, in any bake state.
 
     Blender -b -P scripts/blender/moulds.py -- --dish cupcake|cake|both --state raw|half|golden|dark
-        [--rise 0..1] [--browning 0..1] [--seed 1] [--stage 1] [--out build/moulds_<state>.blend]
+        [--rise 0..1] [--browning 0..1] [--seed 1] [--stage 1] [--out-dir build]
         [--preview | --final] [--res W H] [--samples N] [--force]
 
 Reads build/oven.blend first: Tray1's floor and the CakeSlot_A..D empties place everything (the
@@ -359,6 +359,56 @@ def render_dish(name, objs, cakes, out_dir, args, states):
     return paths
 
 
+def dish_rng(seed, dish):
+    """One seeded generator per dish, so a dish built on its own matches the combined build."""
+    import random
+    return random.Random(f"{seed}-{dish}")
+
+
+def build_cupcakes(oven, seed, rise, browning):
+    import cakes
+    rng = dish_rng(seed, "cupcakes")
+    return [cakes.build_cupcake(i + 1, s, rng, rise, browning) for i, s in enumerate(oven["slots"])]
+
+
+def save_assets(oven, args, rise, browning):
+    """One asset per file (owner, 2026-11-02), each rebuilt alone in an empty scene, no studio:
+      muffin_tin_<state>.blend   MuffinTin, Liner_1..4, Cupcake_1..4
+      cake_tin_<state>.blend     RoundTin, Cake
+      cake_turnout.blend         CakeTurnout (always the golden bake)
+    Positions stay in oven coordinates (on Tray1), so appended together they line up."""
+    import cakes
+    files = []
+
+    def save(name):
+        path = os.path.join(args.out_dir, name)
+        bpy.context.scene["asset"] = name.split(".")[0]
+        bpy.ops.wm.save_as_mainfile(filepath=path)
+        files.append(os.path.relpath(path, C.REPO))
+
+    if args.dish in ("cupcake", "both"):
+        C.reset_scene()
+        build_muffin_tin(oven)
+        for i, slot in enumerate(oven["slots"]):
+            build_liner(i + 1, slot)
+        if args.stage >= 2:
+            build_cupcakes(oven, args.seed, rise, browning)
+        save(f"muffin_tin_{args.state}.blend")
+    if args.dish in ("cake", "both"):
+        C.reset_scene()
+        build_round_tin(oven)
+        if args.stage >= 2:
+            cakes.build_cake(oven["centre"], dish_rng(args.seed, "cake"), rise, browning)
+        save(f"cake_tin_{args.state}.blend")
+        if args.stage >= 2:
+            C.reset_scene()
+            baked = STATES["golden"][1]          # one turnout: the golden bake
+            cakes.build_turnout(oven["centre"], dish_rng(args.seed, "turnout"), baked,
+                                flipped=args.turnout == "flipped")
+            save("cake_turnout.blend")
+    print(f"[moulds] saved {', '.join(files)}")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dish", choices=("cupcake", "cake", "both"), default="both")
@@ -369,7 +419,7 @@ def main():
     parser.add_argument("--stage", type=int, default=2)
     parser.add_argument("--turnout", choices=("flipped", "upright"), default="flipped")
     parser.add_argument("--states", default=",".join(STATES), help="comma list to render, e.g. golden")
-    parser.add_argument("--out", default=None)
+    parser.add_argument("--out-dir", default=C.BUILD, help="where the per-dish .blend files go")
     studio.add_render_args(parser)
     args = C.script_args(parser)
     rise, browning = STATES[args.state]
@@ -377,8 +427,6 @@ def main():
     browning = args.browning if args.browning is not None else browning
 
     import cakes  # noqa: E402  (imports this module; keep the import here)
-    import random
-    rng = random.Random(args.seed)
     oven = read_oven()
     C.reset_scene()
     studio.use()
@@ -388,9 +436,10 @@ def main():
     report = fit_report(oven, tin, round_tin)
     cupcakes, cake, turnout = [], None, None
     if args.stage >= 2:
-        cupcakes = [cakes.build_cupcake(i + 1, s, rng, rise, browning) for i, s in enumerate(oven["slots"])]
-        cake = cakes.build_cake(oven["centre"], rng, rise, browning)
-        turnout = cakes.build_turnout(oven["centre"], rng, browning, flipped=args.turnout == "flipped")
+        cupcakes = build_cupcakes(oven, args.seed, rise, browning)
+        cake = cakes.build_cake(oven["centre"], dish_rng(args.seed, "cake"), rise, browning)
+        turnout = cakes.build_turnout(oven["centre"], dish_rng(args.seed, "turnout"), browning,
+                                      flipped=args.turnout == "flipped")
         set_rise(cupcakes + [cake], 1.0)
         top_cup = C.world_bounds([o.name for o in cupcakes])[1].z
         top_cake = C.world_bounds([cake.name])[1].z
@@ -425,9 +474,7 @@ def main():
     for o in bpy.context.scene.objects:
         o.hide_render = False
     set_rise([o for o in everything if "rise" in o], rise, browning)
-    out = args.out or os.path.join(C.BUILD, f"moulds_{args.state}.blend")
-    bpy.ops.wm.save_as_mainfile(filepath=out)
-    print(f"[moulds] saved {os.path.relpath(out, C.REPO)}")
+    save_assets(oven, args, rise, browning)
 
 
 if __name__ == "__main__":

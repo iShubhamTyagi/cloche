@@ -35,6 +35,8 @@ struct OvenFrame: View {
     var isDoorPlayable = false
     /// Prep: the dish load flies in from the left when it appears or changes.
     var dishFliesIn = false
+    /// The tongs have lifted the serving out (on the way to decorating).
+    var isServingTaken = false
     @State private var dishArrival: Double = 1
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// The played door's angle while dragging or after a swipe; nil until played with.
@@ -58,6 +60,7 @@ struct OvenFrame: View {
                     dishProgress: dishProgress,
                     browning: browning,
                     dishArrival: dishArrival,
+                    isServingTaken: isServingTaken,
                     plate: plate,
                     isPlateItalic: isPlateItalic,
                     cutsAtHinge: !showsDoor,
@@ -151,7 +154,11 @@ private struct PlayableDoor: ViewModifier {
         if isOn {
             GeometryReader { slot in
                 content
-                    .contentShape(Rectangle())
+                    // Below the header band only: the header's buttons sit over the slot's top
+                    // and the swipe would swallow their taps.
+                    .contentShape(Path(CGRect(x: 0, y: OvenFrame.topBand + Spacing.s3,
+                                              width: slot.size.width,
+                                              height: max(slot.size.height - OvenFrame.topBand - Spacing.s3, 0))))
                     .gesture(
                         DragGesture(minimumDistance: 8)
                             .onChanged { drag in

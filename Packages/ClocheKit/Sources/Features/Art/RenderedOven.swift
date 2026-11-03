@@ -88,6 +88,7 @@ struct RenderedOven: View, Animatable {
     var browning: Browning = .golden
     /// 0 the dish is off-screen left, 1 placed on the racks (it flies in on Prep).
     var dishArrival: Double = 1
+    var isServingTaken = false
 
     /// Animating steps through the rendered door frames (springing open or shut) and flies the
     /// dish in.
@@ -137,7 +138,8 @@ struct RenderedOven: View, Animatable {
                     OvenDishLayer(
                         layout: dishes, dish: dish, progress: dishProgress, browning: browning, arrival: dishArrival,
                         doorFrameIndex: cutsAtHinge ? nil : layout.frameIndex(forAngle: frameAngle),
-                        isBehindGlass: !cutsAtHinge && frameAngle < 60, size: imageSize
+                        isBehindGlass: !cutsAtHinge && frameAngle < 60, size: imageSize,
+                        isServingTaken: isServingTaken
                     )
                 }
                 plate
@@ -192,6 +194,15 @@ struct RenderedOven: View, Animatable {
         let frame = layout.frame(forAngle: angle)
         let corners = frame.glass.map { CGPoint(x: origin.x + $0[0] * scale, y: origin.y + $0[1] * scale) }
         return (corners, frame.facing)
+    }
+
+    /// Where the serving sits in a slot of `size`, from its box in the frames image.
+    static func servingFrame(dish: Dish, in size: CGSize, alignsHingeToFold: Bool) -> CGRect? {
+        guard let oven = OvenRenderLayout.shared, let serving = OvenDishesLayout.shared?.serving(for: dish) else { return nil }
+        let (scale, origin) = placement(layout: oven, in: size, alignsHingeToFold: alignsHingeToFold)
+        let box = serving.boxRect
+        return CGRect(x: origin.x + box.minX * scale, y: origin.y + box.minY * scale,
+                      width: box.width * scale, height: box.height * scale)
     }
 
     private var frameAngle: Double { cutsAtHinge ? layout.maxAngle : angle }

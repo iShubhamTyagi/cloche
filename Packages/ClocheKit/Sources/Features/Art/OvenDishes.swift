@@ -9,6 +9,30 @@ struct OvenDishesLayout: Decodable, Sendable {
         let states: [String]
         let dark: String
         let free: String
+        /// The load with the serving lifted out (servings.py).
+        let taken: [String]?
+        let takenDark: String?
+        let serving: String?
+
+        enum CodingKeys: String, CodingKey {
+            case states, dark, free, taken, takenDark = "taken_dark", serving
+        }
+    }
+
+    /// One serving (a cupcake in its liner, or a whole cake) alone, per bake state, and its box
+    /// in the frames image (x, y, w, h).
+    struct Serving: Decodable, Sendable {
+        let states: [String]
+        let dark: String
+        let box: [Double]
+
+        var boxRect: CGRect { CGRect(x: box[0], y: box[1], width: box[2], height: box[3]) }
+
+        func name(progress: Double, browning: Browning) -> String {
+            let p = min(max(progress, 0), 1)
+            if browning == .dark, p >= 1 { return dark }
+            return states[Int((p * Double(states.count - 1)).rounded())]
+        }
     }
 
     struct Masks: Decodable, Sendable {
@@ -17,8 +41,14 @@ struct OvenDishesLayout: Decodable, Sendable {
 
     let kinds: [String: Kind]
     let doorMasks: Masks
+    let servings: [String: Serving]?
 
-    enum CodingKeys: String, CodingKey { case kinds, doorMasks = "door_masks" }
+    enum CodingKeys: String, CodingKey { case kinds, doorMasks = "door_masks", servings }
+
+    func serving(for dish: Dish) -> Serving? {
+        guard let name = kinds[Self.kind(for: dish)]?.serving else { return nil }
+        return servings?[name]
+    }
 
     static let shared: OvenDishesLayout? = {
         guard let url = Bundle.module.url(forResource: "oven_dishes", withExtension: "json"),
@@ -52,6 +82,8 @@ struct OvenDishLayer: View {
     /// The door is shut-ish: the dish is seen through its smoked glass.
     let isBehindGlass: Bool
     let size: CGSize
+    /// The tongs have lifted the serving out: show the load without it.
+    var isServingTaken = false
 
     var body: some View {
         if let kind = layout.kinds[OvenDishesLayout.kind(for: dish)] {
@@ -74,16 +106,18 @@ struct OvenDishLayer: View {
     @ViewBuilder
     private func baked(_ kind: OvenDishesLayout.Kind) -> some View {
         let p = min(max(progress, 0), 1)
+        let taken = isServingTaken ? kind.taken : nil
+        let states = taken ?? kind.states
         if browning == .dark, p >= 1 {
-            image(kind.dark)
+            image(isServingTaken ? (kind.takenDark ?? kind.dark) : kind.dark)
         } else {
-            let position = p * Double(kind.states.count - 1)
+            let position = p * Double(states.count - 1)
             let lower = Int(position.rounded(.down))
-            let upper = min(lower + 1, kind.states.count - 1)
+            let upper = min(lower + 1, states.count - 1)
             ZStack(alignment: .topLeading) {
-                image(kind.states[lower])
+                image(states[lower])
                 if upper != lower {
-                    image(kind.states[upper]).opacity(position - Double(lower))
+                    image(states[upper]).opacity(position - Double(lower))
                 }
             }
         }
@@ -112,5 +146,28 @@ struct OvenDishLayer: View {
             }
         }
         .frame(width: size.width, height: size.height)
+    }
+}
+
+/// The rendered serving, drawn so its box fills `frame` (the tongs carry it; it lands on the
+/// stand at the same size, since the oven and station cameras share lens and distance).
+struct ServingSprite: View {
+    let serving: OvenDishesLayout.Serving
+    let progress: Double
+    let browning: Browning
+    let frame: CGRect
+
+    var body: some View {
+        let box = serving.boxRect
+        let scale = frame.width / max(box.width, 1)
+        if let image = OvenFrameCache.shared.image(named: serving.name(progress: progress, browning: browning)) {
+            Image(uiImage: image)
+                .resizable()
+                .interpolation(.high)
+                .frame(width: image.size.width * scale, height: image.size.height * scale)
+                .offset(x: frame.minX - box.minX * scale, y: frame.minY - box.minY * scale)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .allowsHitTesting(false)
+        }
     }
 }

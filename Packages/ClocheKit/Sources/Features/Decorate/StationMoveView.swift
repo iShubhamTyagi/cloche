@@ -54,7 +54,8 @@ struct StationMoveView: View {
                         dish: dish,
                         dishProgress: progress,
                         browning: browning,
-                        doorOpen: 1
+                        doorOpen: 1,
+                        isServingTaken: step >= .grip
                     )
                     .frame(width: size.width, height: size.height)
                     station
@@ -63,9 +64,7 @@ struct StationMoveView: View {
 
                 let serving = servingFrame(in: size)
                 if step >= .grip {
-                    DishView(dish: dish, progress: progress, browning: browning)
-                        .frame(width: serving.width, height: serving.height)
-                        .position(x: serving.midX, y: serving.midY)
+                    servingArt(frame: serving, slotWidth: size.width)
                         .accessibilityHidden(true)
                 }
 
@@ -100,6 +99,28 @@ struct StationMoveView: View {
         }
     }
 
+    /// The rendered serving when bundled (servings.py), else the drawn one.
+    @ViewBuilder
+    private func servingArt(frame: CGRect, slotWidth: CGFloat) -> some View {
+        if let serving = OvenDishesLayout.shared?.serving(for: dish) {
+            ServingSprite(serving: serving, progress: progress, browning: browning, frame: frame)
+                .frame(width: slotWidth * 2, alignment: .topLeading)
+        } else {
+            DishView(dish: dish, progress: progress, browning: browning)
+                .frame(width: frame.width, height: frame.height)
+                .position(x: frame.midX, y: frame.midY)
+        }
+    }
+
+    /// The rendered serving's frame on the plate: its real size, centred, its base on the plate.
+    private func renderedStandFrame(in size: CGSize, oven: CGRect) -> CGRect? {
+        guard let layout = StationRenderLayout.shared else { return nil }
+        let (scale, origin) = RenderedStation.placement(layout: layout, in: size, alignsHingeToFold: hingeDoorAngle != nil)
+        let centreX = origin.x + layout.plateTop.centre[0] * scale
+        let topY = origin.y + layout.plateTop.centre[1] * scale
+        return CGRect(x: centreX - oven.width / 2, y: topY - oven.height * 0.97, width: oven.width, height: oven.height)
+    }
+
     /// Where the serving stands on the plate (a cupcake, or a cake nearly the plate's width).
     private func standServingFrame(in size: CGSize) -> CGRect {
         guard let layout = StationRenderLayout.shared else { return .zero }
@@ -113,19 +134,22 @@ struct StationMoveView: View {
 
     /// The serving's frame in the two-station strip (the station starts one width to the right).
     private func servingFrame(in size: CGSize) -> CGRect {
-        let inOven = OvenFrame.servingFrame(dish: dish, in: size, alignsHingeToFold: hingeDoorAngle != nil)
-        let onStand = standServingFrame(in: size).offsetBy(dx: size.width, dy: 0)
-        let side = onStand.width
-        // Lifted clear of the oven and brought forward, so it grows toward the stand size.
-        let liftedSide = (inOven.width + side) / 2
+        let rendered = RenderedOven.servingFrame(dish: dish, in: size, alignsHingeToFold: hingeDoorAngle != nil)
+        let inOven = rendered ?? OvenFrame.servingFrame(dish: dish, in: size, alignsHingeToFold: hingeDoorAngle != nil)
+        let onStand = (rendered.flatMap { renderedStandFrame(in: size, oven: $0) } ?? standServingFrame(in: size))
+            .offsetBy(dx: size.width, dy: 0)
+        // Lifted clear of the oven and carried at its own size (the rendered serving is to scale
+        // in both views; the drawn one grows toward the stand size).
+        let liftedSize = rendered != nil ? inOven.size
+            : CGSize(width: (inOven.width + onStand.width) / 2, height: (inOven.width + onStand.width) / 2)
         let liftedTop = size.height * 0.1
         switch step {
         case .atOven, .reach, .grip:
             return inOven
         case .lift:
-            return CGRect(x: inOven.midX - liftedSide / 2, y: liftedTop, width: liftedSide, height: liftedSide)
+            return CGRect(origin: CGPoint(x: inOven.midX - liftedSize.width / 2, y: liftedTop), size: liftedSize)
         case .carry:
-            return CGRect(x: onStand.midX - side / 2, y: liftedTop, width: side, height: side)
+            return CGRect(origin: CGPoint(x: onStand.midX - onStand.width / 2, y: liftedTop), size: onStand.size)
         case .setDown, .release, .done:
             return onStand
         }

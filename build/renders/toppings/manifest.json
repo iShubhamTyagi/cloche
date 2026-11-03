@@ -1,0 +1,64 @@
+{
+  "icons": {
+    "berries": {
+      "icon": "icons/berries.png",
+      "models": [
+        "raspberry",
+        "blueberry"
+      ],
+      "extent_mm": 68.0
+    },
+    "mint": {
+      "icon": "icons/mint.png",
+      "models": [
+        "mint_leaf"
+      ],
+      "extent_mm": 68.0
+    },
+    "chocolate_shavings": {
+      "icon": "icons/chocolate_shavings.png",
+      "models": [
+        "chocolate_curl",
+        "chocolate_shard"
+      ],
+      "extent_mm": 68.0
+    },
+    "gold_flakes": {
+      "icon": "icons/gold_flakes.png",
+      "models": [
+        "gold_flake"
+      ],
+      "extent_mm": 68.0
+    },
+    "sprinkles": {
+      "icon": "icons/sprinkles.png",
+      "models": [
+        "sprinkle"
+      ],
+      "extent_mm": 68.0
+    },
+    "sugar_pearls": {
+      "icon": "icons/sugar_pearls.png",
+      "models": [
+        "sugar_pearl"
+      ],
+      "extent_mm": 68.0
+    },
+    "crushed_pistachio": {
+      "icon": "icons/crushed_pistachio.png",
+      "models": [
+        "pistachio_crumb"
+      ],
+      "extent_mm": 68.0
+    },
+    "flower_petals": {
+      "icon": "icons/flower_petals.png",
+      "models": [
+        "flower_petal"
+      ],
+      "extent_mm": 68.0
+    }
+  },
+  "size_mb": 0.55,
+  "budget_mb": 5
+}

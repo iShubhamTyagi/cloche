@@ -1,0 +1,41 @@
+{
+  "dishes": {
+    "cake_golden": {
+      "dir": "cake_golden",
+      "maps": [
+        "top_albedo",
+        "top_roughness",
+        "top_normal",
+        "top_ao",
+        "side_albedo",
+        "side_roughness",
+        "side_normal",
+        "side_ao",
+        "height"
+      ],
+      "profile": "profile.json"
+    },
+    "cupcake_golden": {
+      "dir": "cupcake_golden",
+      "maps": [
+        "top_albedo",
+        "top_roughness",
+        "top_normal",
+        "top_ao",
+        "side_albedo",
+        "side_roughness",
+        "side_normal",
+        "side_ao",
+        "height"
+      ],
+      "profile": "profile.json"
+    }
+  },
+  "plate": "plate/",
+  "marble_tile": "marble_tile/albedo.png",
+  "environment": "env.hdr",
+  "scene": "viewer_scene.json",
+  "size_mb": 19.01,
+  "budget_mb": 45,
+  "states": "golden only; the app tints for half and dark (see DECISIONS 2026-11-03)"
+}

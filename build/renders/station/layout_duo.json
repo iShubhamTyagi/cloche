@@ -1,0 +1,707 @@
+{
+  "shape": "duo",
+  "size_px": [
+    1500,
+    2130
+  ],
+  "px_per_pt": 3,
+  "mm_per_px": 0.25,
+  "cake_window_px": [
+    300,
+    640,
+    1200,
+    1900
+  ],
+  "cake_window": [
+    0.2,
+    0.30047,
+    0.8,
+    0.89202
+  ],
+  "safe_areas_px": {
+    "status": [
+      0,
+      0,
+      1500,
+      140
+    ],
+    "header": [
+      0,
+      140,
+      1500,
+      200
+    ],
+    "home": [
+      0,
+      2080,
+      1500,
+      2130
+    ],
+    "strip": [
+      300,
+      610,
+      1200,
+      640
+    ]
+  },
+  "fold_band_px": [
+    0,
+    1005,
+    1500,
+    1125
+  ],
+  "scroll_groups": {},
+  "items": [
+    {
+      "name": "ivory",
+      "kind": "seat_pot",
+      "group": "ingredients",
+      "centre_px": [
+        175.0,
+        270
+      ],
+      "size_px": [
+        150,
+        150
+      ],
+      "tap_radius_px": 75.0,
+      "centre": [
+        0.11667,
+        0.12676
+      ],
+      "anchor": "Seat_Pot_01"
+    },
+    {
+      "name": "rose",
+      "kind": "seat_pot",
+      "group": "ingredients",
+      "centre_px": [
+        405.0,
+        270
+      ],
+      "size_px": [
+        150,
+        150
+      ],
+      "tap_radius_px": 75.0,
+      "centre": [
+        0.27,
+        0.12676
+      ],
+      "anchor": "Seat_Pot_02"
+    },
+    {
+      "name": "pistachio",
+      "kind": "seat_pot",
+      "group": "ingredients",
+      "centre_px": [
+        635.0,
+        270
+      ],
+      "size_px": [
+        150,
+        150
+      ],
+      "tap_radius_px": 75.0,
+      "centre": [
+        0.42333,
+        0.12676
+      ],
+      "anchor": "Seat_Pot_03"
+    },
+    {
+      "name": "chocolate",
+      "kind": "seat_pot",
+      "group": "ingredients",
+      "centre_px": [
+        865.0,
+        270
+      ],
+      "size_px": [
+        150,
+        150
+      ],
+      "tap_radius_px": 75.0,
+      "centre": [
+        0.57667,
+        0.12676
+      ],
+      "anchor": "Seat_Pot_04"
+    },
+    {
+      "name": "caramel",
+      "kind": "seat_pot",
+      "group": "ingredients",
+      "centre_px": [
+        1095.0,
+        270
+      ],
+      "size_px": [
+        150,
+        150
+      ],
+      "tap_radius_px": 75.0,
+      "centre": [
+        0.73,
+        0.12676
+      ],
+      "anchor": "Seat_Pot_05"
+    },
+    {
+      "name": "white",
+      "kind": "seat_pot",
+      "group": "ingredients",
+      "centre_px": [
+        1325.0,
+        270
+      ],
+      "size_px": [
+        150,
+        150
+      ],
+      "tap_radius_px": 75.0,
+      "centre": [
+        0.88333,
+        0.12676
+      ],
+      "anchor": "Seat_Pot_06"
+    },
+    {
+      "name": "raspberry",
+      "kind": "seat_pot",
+      "group": "ingredients",
+      "centre_px": [
+        175.0,
+        430
+      ],
+      "size_px": [
+        150,
+        150
+      ],
+      "tap_radius_px": 75.0,
+      "centre": [
+        0.11667,
+        0.20188
+      ],
+      "anchor": "Seat_Pot_07"
+    },
+    {
+      "name": "bluegrey",
+      "kind": "seat_pot",
+      "group": "ingredients",
+      "centre_px": [
+        405.0,
+        430
+      ],
+      "size_px": [
+        150,
+        150
+      ],
+      "tap_radius_px": 75.0,
+      "centre": [
+        0.27,
+        0.20188
+      ],
+      "anchor": "Seat_Pot_08"
+    },
+    {
+      "name": "ganache_dark",
+      "kind": "seat_pot",
+      "group": "ingredients",
+      "centre_px": [
+        635.0,
+        430
+      ],
+      "size_px": [
+        150,
+        150
+      ],
+      "tap_radius_px": 75.0,
+      "centre": [
+        0.42333,
+        0.20188
+      ],
+      "anchor": "Seat_Pot_09"
+    },
+    {
+      "name": "ganache_milk",
+      "kind": "seat_pot",
+      "group": "ingredients",
+      "centre_px": [
+        865.0,
+        430
+      ],
+      "size_px": [
+        150,
+        150
+      ],
+      "tap_radius_px": 75.0,
+      "centre": [
+        0.57667,
+        0.20188
+      ],
+      "anchor": "Seat_Pot_10"
+    },
+    {
+      "name": "ganache_white",
+      "kind": "seat_pot",
+      "group": "ingredients",
+      "centre_px": [
+        1095.0,
+        430
+      ],
+      "size_px": [
+        150,
+        150
+      ],
+      "tap_radius_px": 75.0,
+      "centre": [
+        0.73,
+        0.20188
+      ],
+      "anchor": "Seat_Pot_11"
+    },
+    {
+      "name": "ganache_caramel",
+      "kind": "seat_pot",
+      "group": "ingredients",
+      "centre_px": [
+        1325.0,
+        430
+      ],
+      "size_px": [
+        150,
+        150
+      ],
+      "tap_radius_px": 75.0,
+      "centre": [
+        0.88333,
+        0.20188
+      ],
+      "anchor": "Seat_Pot_12"
+    },
+    {
+      "name": "NozzleRound",
+      "kind": "seat_nozzle",
+      "group": "nozzles",
+      "centre_px": [
+        610.0,
+        560
+      ],
+      "size_px": [
+        120,
+        120
+      ],
+      "tap_radius_px": 66.0,
+      "centre": [
+        0.40667,
+        0.26291
+      ],
+      "anchor": "Seat_Nozzle_1"
+    },
+    {
+      "name": "NozzleStar",
+      "kind": "seat_nozzle",
+      "group": "nozzles",
+      "centre_px": [
+        750.0,
+        560
+      ],
+      "size_px": [
+        120,
+        120
+      ],
+      "tap_radius_px": 66.0,
+      "centre": [
+        0.5,
+        0.26291
+      ],
+      "anchor": "Seat_Nozzle_2"
+    },
+    {
+      "name": "NozzlePetal",
+      "kind": "seat_nozzle",
+      "group": "nozzles",
+      "centre_px": [
+        890.0,
+        560
+      ],
+      "size_px": [
+        120,
+        120
+      ],
+      "tap_radius_px": 66.0,
+      "centre": [
+        0.59333,
+        0.26291
+      ],
+      "anchor": "Seat_Nozzle_3"
+    },
+    {
+      "name": "berries",
+      "kind": "seat_bowl",
+      "group": "toppings",
+      "centre_px": [
+        160,
+        700
+      ],
+      "size_px": [
+        170,
+        170
+      ],
+      "tap_radius_px": 85.0,
+      "centre": [
+        0.10667,
+        0.32864
+      ],
+      "anchor": "Seat_Bowl_01"
+    },
+    {
+      "name": "mint",
+      "kind": "seat_bowl",
+      "group": "toppings",
+      "centre_px": [
+        160,
+        880
+      ],
+      "size_px": [
+        170,
+        170
+      ],
+      "tap_radius_px": 85.0,
+      "centre": [
+        0.10667,
+        0.41315
+      ],
+      "anchor": "Seat_Bowl_02"
+    },
+    {
+      "name": "chocolate_shavings",
+      "kind": "seat_bowl",
+      "group": "toppings",
+      "centre_px": [
+        1340,
+        700
+      ],
+      "size_px": [
+        170,
+        170
+      ],
+      "tap_radius_px": 85.0,
+      "centre": [
+        0.89333,
+        0.32864
+      ],
+      "anchor": "Seat_Bowl_03"
+    },
+    {
+      "name": "gold_flakes",
+      "kind": "seat_bowl",
+      "group": "toppings",
+      "centre_px": [
+        1340,
+        880
+      ],
+      "size_px": [
+        170,
+        170
+      ],
+      "tap_radius_px": 85.0,
+      "centre": [
+        0.89333,
+        0.41315
+      ],
+      "anchor": "Seat_Bowl_04"
+    },
+    {
+      "name": "sprinkles",
+      "kind": "seat_bowl",
+      "group": "toppings",
+      "centre_px": [
+        160,
+        1250
+      ],
+      "size_px": [
+        170,
+        170
+      ],
+      "tap_radius_px": 85.0,
+      "centre": [
+        0.10667,
+        0.58685
+      ],
+      "anchor": "Seat_Bowl_05"
+    },
+    {
+      "name": "sugar_pearls",
+      "kind": "seat_bowl",
+      "group": "toppings",
+      "centre_px": [
+        160,
+        1430
+      ],
+      "size_px": [
+        170,
+        170
+      ],
+      "tap_radius_px": 85.0,
+      "centre": [
+        0.10667,
+        0.67136
+      ],
+      "anchor": "Seat_Bowl_06"
+    },
+    {
+      "name": "crushed_pistachio",
+      "kind": "seat_bowl",
+      "group": "toppings",
+      "centre_px": [
+        1340,
+        1250
+      ],
+      "size_px": [
+        170,
+        170
+      ],
+      "tap_radius_px": 85.0,
+      "centre": [
+        0.89333,
+        0.58685
+      ],
+      "anchor": "Seat_Bowl_07"
+    },
+    {
+      "name": "flower_petals",
+      "kind": "seat_bowl",
+      "group": "toppings",
+      "centre_px": [
+        1340,
+        1430
+      ],
+      "size_px": [
+        170,
+        170
+      ],
+      "tap_radius_px": 85.0,
+      "centre": [
+        0.89333,
+        0.67136
+      ],
+      "anchor": "Seat_Bowl_08"
+    },
+    {
+      "name": "PipingCone",
+      "kind": "cradle",
+      "group": "tools",
+      "centre_px": [
+        198.0,
+        1960
+      ],
+      "size_px": [
+        192.0,
+        128.0
+      ],
+      "tap_radius_px": 80.0,
+      "centre": [
+        0.132,
+        0.92019
+      ],
+      "anchor": "Cradle_Cone"
+    },
+    {
+      "name": "OffsetSpatula",
+      "kind": "cradle",
+      "group": "tools",
+      "centre_px": [
+        474.0,
+        1960
+      ],
+      "size_px": [
+        192.0,
+        128.0
+      ],
+      "tap_radius_px": 80.0,
+      "centre": [
+        0.316,
+        0.92019
+      ],
+      "anchor": "Cradle_Spatula"
+    },
+    {
+      "name": "PourPan",
+      "kind": "cradle",
+      "group": "tools",
+      "centre_px": [
+        750.0,
+        1960
+      ],
+      "size_px": [
+        192.0,
+        128.0
+      ],
+      "tap_radius_px": 80.0,
+      "centre": [
+        0.5,
+        0.92019
+      ],
+      "anchor": "Cradle_Pan"
+    },
+    {
+      "name": "DrizzleBottle",
+      "kind": "cradle",
+      "group": "tools",
+      "centre_px": [
+        1026.0,
+        1960
+      ],
+      "size_px": [
+        192.0,
+        128.0
+      ],
+      "tap_radius_px": 80.0,
+      "centre": [
+        0.684,
+        0.92019
+      ],
+      "anchor": "Cradle_Bottle"
+    },
+    {
+      "name": "Sieve",
+      "kind": "cradle",
+      "group": "tools",
+      "centre_px": [
+        1302.0,
+        1960
+      ],
+      "size_px": [
+        192.0,
+        128.0
+      ],
+      "tap_radius_px": 80.0,
+      "centre": [
+        0.868,
+        0.92019
+      ],
+      "anchor": "Cradle_Sieve"
+    },
+    {
+      "name": "undo",
+      "kind": "control",
+      "group": "controls",
+      "centre_px": [
+        160,
+        1560
+      ],
+      "size_px": [
+        132,
+        132
+      ],
+      "tap_radius_px": 66.0,
+      "centre": [
+        0.10667,
+        0.73239
+      ],
+      "anchor": "undo"
+    },
+    {
+      "name": "clear",
+      "kind": "control",
+      "group": "controls",
+      "centre_px": [
+        160,
+        1710
+      ],
+      "size_px": [
+        132,
+        132
+      ],
+      "tap_radius_px": 66.0,
+      "centre": [
+        0.10667,
+        0.80282
+      ],
+      "anchor": "clear"
+    },
+    {
+      "name": "turntable",
+      "kind": "control",
+      "group": "controls",
+      "centre_px": [
+        160,
+        1860
+      ],
+      "size_px": [
+        132,
+        132
+      ],
+      "tap_radius_px": 66.0,
+      "centre": [
+        0.10667,
+        0.87324
+      ],
+      "anchor": "turntable"
+    },
+    {
+      "name": "speed",
+      "kind": "control",
+      "group": "controls",
+      "centre_px": [
+        1340,
+        1560
+      ],
+      "size_px": [
+        132,
+        132
+      ],
+      "tap_radius_px": 66.0,
+      "centre": [
+        0.89333,
+        0.73239
+      ],
+      "anchor": "speed"
+    },
+    {
+      "name": "plate",
+      "kind": "control",
+      "group": "controls",
+      "centre_px": [
+        1340,
+        1710
+      ],
+      "size_px": [
+        132,
+        132
+      ],
+      "tap_radius_px": 66.0,
+      "centre": [
+        0.89333,
+        0.80282
+      ],
+      "anchor": "plate"
+    },
+    {
+      "name": "backdrop",
+      "kind": "control",
+      "group": "controls",
+      "centre_px": [
+        1340,
+        1860
+      ],
+      "size_px": [
+        132,
+        132
+      ],
+      "tap_radius_px": 66.0,
+      "centre": [
+        0.89333,
+        0.87324
+      ],
+      "anchor": "backdrop"
+    }
+  ],
+  "selected": {
+    "lift_scale": 1.06,
+    "glow": "brass"
+  },
+  "light": "top-left, shadows to the bottom-right"
+}

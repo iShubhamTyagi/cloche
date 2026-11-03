@@ -1,0 +1,30 @@
+{
+  "frames": [
+    {
+      "frame": 0,
+      "path_vs_blender_px": 0.0,
+      "path_vs_render_bbox_px": 16.49
+    },
+    {
+      "frame": 4,
+      "path_vs_blender_px": 0.0,
+      "path_vs_render_bbox_px": 18.88
+    },
+    {
+      "frame": 8,
+      "path_vs_blender_px": 0.01,
+      "path_vs_render_bbox_px": 26.56
+    },
+    {
+      "frame": 12,
+      "path_vs_blender_px": 0.0,
+      "path_vs_render_bbox_px": 24.2
+    },
+    {
+      "frame": 17,
+      "path_vs_blender_px": 0.02,
+      "path_vs_render_bbox_px": 0.15
+    }
+  ],
+  "max_path_vs_blender_px": 0.02
+}

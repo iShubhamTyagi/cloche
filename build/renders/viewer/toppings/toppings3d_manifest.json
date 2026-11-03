@@ -1,0 +1,266 @@
+{
+  "models": {
+    "raspberry_0": {
+      "file": "raspberry_0.usdz",
+      "triangles": 1260,
+      "radius_mm": 10.19,
+      "height_mm": 21.88,
+      "pivot": "contact point, +Y normal"
+    },
+    "raspberry_1": {
+      "file": "raspberry_1.usdz",
+      "triangles": 1260,
+      "radius_mm": 10.1,
+      "height_mm": 21.61,
+      "pivot": "contact point, +Y normal"
+    },
+    "raspberry_2": {
+      "file": "raspberry_2.usdz",
+      "triangles": 1260,
+      "radius_mm": 10.11,
+      "height_mm": 21.69,
+      "pivot": "contact point, +Y normal"
+    },
+    "blueberry_0": {
+      "file": "blueberry_0.usdz",
+      "triangles": 252,
+      "radius_mm": 5.57,
+      "height_mm": 8.56,
+      "pivot": "contact point, +Y normal"
+    },
+    "blueberry_1": {
+      "file": "blueberry_1.usdz",
+      "triangles": 252,
+      "radius_mm": 5.47,
+      "height_mm": 8.4,
+      "pivot": "contact point, +Y normal"
+    },
+    "blueberry_2": {
+      "file": "blueberry_2.usdz",
+      "triangles": 252,
+      "radius_mm": 5.53,
+      "height_mm": 8.5,
+      "pivot": "contact point, +Y normal"
+    },
+    "strawberry_slice_0": {
+      "file": "strawberry_slice_0.usdz",
+      "triangles": 108,
+      "radius_mm": 13.0,
+      "height_mm": 3.5,
+      "pivot": "contact point, +Y normal"
+    },
+    "strawberry_slice_1": {
+      "file": "strawberry_slice_1.usdz",
+      "triangles": 108,
+      "radius_mm": 13.0,
+      "height_mm": 3.5,
+      "pivot": "contact point, +Y normal"
+    },
+    "strawberry_slice_2": {
+      "file": "strawberry_slice_2.usdz",
+      "triangles": 108,
+      "radius_mm": 13.0,
+      "height_mm": 3.5,
+      "pivot": "contact point, +Y normal"
+    },
+    "cherry_0": {
+      "file": "cherry_0.usdz",
+      "triangles": 424,
+      "radius_mm": 11.0,
+      "height_mm": 50.95,
+      "pivot": "contact point, +Y normal"
+    },
+    "cherry_1": {
+      "file": "cherry_1.usdz",
+      "triangles": 424,
+      "radius_mm": 11.0,
+      "height_mm": 50.95,
+      "pivot": "contact point, +Y normal"
+    },
+    "cherry_2": {
+      "file": "cherry_2.usdz",
+      "triangles": 424,
+      "radius_mm": 11.0,
+      "height_mm": 50.95,
+      "pivot": "contact point, +Y normal"
+    },
+    "mint_leaf_0": {
+      "file": "mint_leaf_0.usdz",
+      "triangles": 124,
+      "radius_mm": 12.54,
+      "height_mm": 2.79,
+      "pivot": "contact point, +Y normal"
+    },
+    "mint_leaf_1": {
+      "file": "mint_leaf_1.usdz",
+      "triangles": 124,
+      "radius_mm": 12.54,
+      "height_mm": 2.79,
+      "pivot": "contact point, +Y normal"
+    },
+    "mint_leaf_2": {
+      "file": "mint_leaf_2.usdz",
+      "triangles": 124,
+      "radius_mm": 12.54,
+      "height_mm": 2.79,
+      "pivot": "contact point, +Y normal"
+    },
+    "chocolate_shard_0": {
+      "file": "chocolate_shard_0.usdz",
+      "triangles": 24,
+      "radius_mm": 11.21,
+      "height_mm": 1.8,
+      "pivot": "contact point, +Y normal"
+    },
+    "chocolate_shard_1": {
+      "file": "chocolate_shard_1.usdz",
+      "triangles": 16,
+      "radius_mm": 11.87,
+      "height_mm": 1.8,
+      "pivot": "contact point, +Y normal"
+    },
+    "chocolate_shard_2": {
+      "file": "chocolate_shard_2.usdz",
+      "triangles": 24,
+      "radius_mm": 10.41,
+      "height_mm": 1.8,
+      "pivot": "contact point, +Y normal"
+    },
+    "chocolate_curl_0": {
+      "file": "chocolate_curl_0.usdz",
+      "triangles": 324,
+      "radius_mm": 6.0,
+      "height_mm": 8.05,
+      "pivot": "contact point, +Y normal"
+    },
+    "chocolate_curl_1": {
+      "file": "chocolate_curl_1.usdz",
+      "triangles": 324,
+      "radius_mm": 6.0,
+      "height_mm": 8.1,
+      "pivot": "contact point, +Y normal"
+    },
+    "chocolate_curl_2": {
+      "file": "chocolate_curl_2.usdz",
+      "triangles": 324,
+      "radius_mm": 6.0,
+      "height_mm": 8.25,
+      "pivot": "contact point, +Y normal"
+    },
+    "gold_flake_0": {
+      "file": "gold_flake_0.usdz",
+      "triangles": 32,
+      "radius_mm": 3.68,
+      "height_mm": 0.35,
+      "pivot": "contact point, +Y normal"
+    },
+    "gold_flake_1": {
+      "file": "gold_flake_1.usdz",
+      "triangles": 32,
+      "radius_mm": 3.52,
+      "height_mm": 0.37,
+      "pivot": "contact point, +Y normal"
+    },
+    "gold_flake_2": {
+      "file": "gold_flake_2.usdz",
+      "triangles": 32,
+      "radius_mm": 3.51,
+      "height_mm": 0.33,
+      "pivot": "contact point, +Y normal"
+    },
+    "sugar_pearl_0": {
+      "file": "sugar_pearl_0.usdz",
+      "triangles": 120,
+      "radius_mm": 1.95,
+      "height_mm": 4.0,
+      "pivot": "contact point, +Y normal"
+    },
+    "sugar_pearl_1": {
+      "file": "sugar_pearl_1.usdz",
+      "triangles": 120,
+      "radius_mm": 2.24,
+      "height_mm": 4.6,
+      "pivot": "contact point, +Y normal"
+    },
+    "sugar_pearl_2": {
+      "file": "sugar_pearl_2.usdz",
+      "triangles": 120,
+      "radius_mm": 2.53,
+      "height_mm": 5.2,
+      "pivot": "contact point, +Y normal"
+    },
+    "pistachio_crumb_0": {
+      "file": "pistachio_crumb_0.usdz",
+      "triangles": 20,
+      "radius_mm": 2.51,
+      "height_mm": 3.58,
+      "pivot": "contact point, +Y normal"
+    },
+    "pistachio_crumb_1": {
+      "file": "pistachio_crumb_1.usdz",
+      "triangles": 20,
+      "radius_mm": 2.65,
+      "height_mm": 4.25,
+      "pivot": "contact point, +Y normal"
+    },
+    "pistachio_crumb_2": {
+      "file": "pistachio_crumb_2.usdz",
+      "triangles": 20,
+      "radius_mm": 2.61,
+      "height_mm": 3.6,
+      "pivot": "contact point, +Y normal"
+    },
+    "almond_flake_0": {
+      "file": "almond_flake_0.usdz",
+      "triangles": 76,
+      "radius_mm": 9.0,
+      "height_mm": 1.46,
+      "pivot": "contact point, +Y normal"
+    },
+    "almond_flake_1": {
+      "file": "almond_flake_1.usdz",
+      "triangles": 76,
+      "radius_mm": 9.0,
+      "height_mm": 1.46,
+      "pivot": "contact point, +Y normal"
+    },
+    "almond_flake_2": {
+      "file": "almond_flake_2.usdz",
+      "triangles": 76,
+      "radius_mm": 9.0,
+      "height_mm": 1.46,
+      "pivot": "contact point, +Y normal"
+    },
+    "flower_petal_0": {
+      "file": "flower_petal_0.usdz",
+      "triangles": 92,
+      "radius_mm": 11.61,
+      "height_mm": 2.96,
+      "pivot": "contact point, +Y normal"
+    },
+    "flower_petal_1": {
+      "file": "flower_petal_1.usdz",
+      "triangles": 92,
+      "radius_mm": 11.61,
+      "height_mm": 2.96,
+      "pivot": "contact point, +Y normal"
+    },
+    "flower_petal_2": {
+      "file": "flower_petal_2.usdz",
+      "triangles": 92,
+      "radius_mm": 11.61,
+      "height_mm": 2.96,
+      "pivot": "contact point, +Y normal"
+    },
+    "sprinkle_0": {
+      "file": "sprinkle_0.usdz",
+      "triangles": 68,
+      "radius_mm": 3.0,
+      "height_mm": 1.04,
+      "pivot": "contact point, +Y normal"
+    }
+  },
+  "over_triangle_budget": {},
+  "size_mb": 0.43,
+  "budget_mb": 8
+}

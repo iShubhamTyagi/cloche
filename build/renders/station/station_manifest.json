@@ -1,0 +1,21 @@
+{
+  "layouts": [
+    "layout_iphone.json",
+    "layout_duo.json"
+  ],
+  "panels": [
+    "panels_iphone.png",
+    "panels_duo.png"
+  ],
+  "vessel_states": {
+    "resting": "<name>.png + <name>_shadow.png",
+    "lifted": "<name>.png at lift_scale + <name>_shadow_lifted.png",
+    "empty": "no sprite: the panel shows the empty seat"
+  },
+  "checks": {
+    "iphone": [],
+    "duo": []
+  },
+  "size_mb": 10.45,
+  "budget_mb": 15
+}

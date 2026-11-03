@@ -1,0 +1,22 @@
+{
+  "groups_mb": {
+    "viewer": 1.39,
+    "tools": 1.36,
+    "topping_icons": 0.55,
+    "station": 9.54,
+    "focus": 0.54
+  },
+  "group_budgets_mb": {
+    "viewer": 45,
+    "tools": 15,
+    "topping_icons": 5,
+    "station": 15,
+    "focus": 12
+  },
+  "over_group_budget": {},
+  "existing_resources_mb": 97.98,
+  "total_resources_mb": 111.36,
+  "budget_mb": 150,
+  "files": 214,
+  "missing": []
+}

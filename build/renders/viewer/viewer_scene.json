@@ -1,0 +1,171 @@
+{
+  "units": "metres; plate-local: origin at the plate's top centre, +Z up, front of the station = -Y",
+  "exposure": -0.6,
+  "view_transform": "AgX",
+  "look": "AgX - Medium High Contrast",
+  "lights": [
+    {
+      "name": "StationTop",
+      "type": "AREA",
+      "direction": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "position_plate_local": [
+        0.0,
+        0.0,
+        1.1945
+      ],
+      "energy_w": 5.0,
+      "colour": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "size": [
+        0.8999999761581421,
+        0.8999999761581421
+      ]
+    },
+    {
+      "name": "StationRim",
+      "type": "AREA",
+      "direction": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "position_plate_local": [
+        0.4,
+        1.0,
+        0.4945
+      ],
+      "energy_w": 12.0,
+      "colour": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "size": [
+        1.0,
+        0.25
+      ]
+    },
+    {
+      "name": "StationKey",
+      "type": "AREA",
+      "direction": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "position_plate_local": [
+        -0.9,
+        -1.1,
+        0.9945
+      ],
+      "energy_w": 8.0,
+      "colour": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "size": [
+        1.399999976158142,
+        0.8999999761581421
+      ]
+    },
+    {
+      "name": "StationFill",
+      "type": "AREA",
+      "direction": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "position_plate_local": [
+        1.0,
+        -0.8,
+        0.2945
+      ],
+      "energy_w": 1.5,
+      "colour": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "size": [
+        1.399999976158142,
+        1.399999976158142
+      ]
+    }
+  ],
+  "environment": "env.hdr",
+  "cameras": {
+    "stage_wide": {
+      "position": [
+        0.0,
+        -2.45,
+        0.1545
+      ],
+      "target": [
+        0.0,
+        -0.2,
+        0.0445
+      ],
+      "lens_mm": 110,
+      "sensor_mm": 36,
+      "resolution": [
+        1000,
+        1200
+      ]
+    },
+    "top": {
+      "position": [
+        0.0,
+        -0.0,
+        0.5279
+      ],
+      "target": [
+        0.0,
+        0.0,
+        0.02
+      ],
+      "elevation_deg": 90,
+      "fov_deg": 30.0
+    },
+    "angle": {
+      "position": [
+        0.0,
+        -0.3028,
+        0.4325
+      ],
+      "target": [
+        0.0,
+        0.0,
+        0.02
+      ],
+      "elevation_deg": 55,
+      "fov_deg": 30.0
+    },
+    "side": {
+      "position": [
+        0.0,
+        -0.5199,
+        0.0917
+      ],
+      "target": [
+        0.0,
+        0.0,
+        0.02
+      ],
+      "elevation_deg": 10,
+      "fov_deg": 30.0
+    }
+  },
+  "elevation_range_deg": [
+    10,
+    90
+  ]
+}

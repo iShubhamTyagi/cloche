@@ -1,0 +1,10 @@
+{
+  "cake_golden": {
+    "mean_abs_error": 0.003,
+    "side_seam_error": 0.0295
+  },
+  "cupcake_golden": {
+    "mean_abs_error": 0.0038,
+    "side_seam_error": 0.0074
+  }
+}

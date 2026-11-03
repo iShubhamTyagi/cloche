@@ -4,6 +4,14 @@ Choices made during the build that the PRD or design handoff don't settle. Newes
 
 | Date | Decision | Why |
 | --- | --- | --- |
+| 2026-11-03 | **Viewer maps for the golden state only; the dark state darkens them (×0.62) and pale reuses golden** | Plan §3: golden first, other states only within budget. One bake set per dish keeps the viewer at 1.3 MB |
+| 2026-11-03 | **The app builds its cake and icing meshes from the exported profile (`profile.json`); the `mesh.usdz` files are kept only for the preview check** | The icing must share the app's grid; shipping the meshes would duplicate it |
+| 2026-11-03 | **Station vessels: one sprite per vessel plus resting and lifted shadows; "lifted" is the sprite at 1.06×, "empty" draws nothing over the panel's seat** | Same look as three renders at a third of the size |
+| 2026-11-03 | **The live viewer fills the screen under the station panel (the panel's cake window is transparent)** | The focus move's camera and the station's camera are then the same full-screen camera, so the hand-off has no jump |
+| 2026-11-03 | **Focus background frames are rendered at half resolution and shipped as HEIC** | A soft, depth-of-field background; 0.55 MB for 54 frames |
+| 2026-11-03 | **The studio is mounted (hidden) as soon as decorating starts and loads during the tongs move; vertex work runs off the main actor; topping USDZs are preloaded asynchronously** | Without this the studio took about 10 s and froze the tongs move |
+| 2026-11-03 | **The turntable starts and stops from a tap anywhere on the plate's rim band (r 110–175 mm) and from a Turn control** | The brass ring itself is a few millimetres wide; the control is the VoiceOver path |
+| 2026-11-03 | **Environment light comes from an 8-bit `env.png`** | RealityKit's equirectangular loader rejected the float HDR (it still logs a skybox warning on iOS 27) |
 | 2026-11-03 | **Live viewer: RealityKit** (RealityView, virtual camera, LowLevelMesh icing, PBR), chosen over a custom Metal renderer after the D1 spike | Equal frame time and update cost on the simulator; RealityKit gives PBR, IBL, shadows and USDZ toppings for free (`docs/viewer_decision.md`). RealityKit and Metal are Apple frameworks, beyond the CLAUDE.md list |
 | 2026-11-03 | **Decorating logic is a new pure-Swift package target `Decorating`** (ops, brushes, height fields, surface mapping, turntable, camera rig, viewer meshes), built -O even in Debug | Testable without UI; the stamping loops run on every finger move |
 | 2026-11-03 | **Brush maps are generated in code from the same formulas as `brushes.py`; the PNGs are the reference, not shipped** | Zero bytes, identical shapes, no loader. The pour blob's wobble phases differ slightly from numpy's RNG (same shape class) |

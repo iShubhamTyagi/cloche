@@ -12,6 +12,8 @@ struct DecorStudioView: View {
     let outcome: BakeOutcome
     let breakEndsAt: Date
     let isServing: Bool
+    /// False while the stage's tongs move plays on top: load, but don't start the focus move.
+    var isActive = true
     let onServe: () -> Void
 
     @State private var model: DecorStudioModel
@@ -19,11 +21,13 @@ struct DecorStudioView: View {
     @State private var hasPlayedFocus = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    init(recipe: Recipe, outcome: BakeOutcome, breakEndsAt: Date, isServing: Bool, onServe: @escaping () -> Void) {
+    init(recipe: Recipe, outcome: BakeOutcome, breakEndsAt: Date, isServing: Bool, isActive: Bool = true,
+         onServe: @escaping () -> Void) {
         self.recipe = recipe
         self.outcome = outcome
         self.breakEndsAt = breakEndsAt
         self.isServing = isServing
+        self.isActive = isActive
         self.onServe = onServe
         let key: ViewerAssets.DishKey = Dish(recipeID: recipe.id) == .cupcakes ? .cupcake : .cake
         let geometry = ViewerAssets.profile(key)?.geometry ?? (key == .cupcake ? .cupcake : .cake)
@@ -57,16 +61,18 @@ struct DecorStudioView: View {
                 header
                     .padding(.horizontal, Spacing.s4)
             }
-            .task(id: geo.size.width > 0) {
-                guard geo.size.width > 0, !hasPlayedFocus else { return }
+            .task(id: isActive && geo.size.width > 0) {
+                guard isActive, geo.size.width > 0, !hasPlayedFocus else { return }
                 hasPlayedFocus = true
                 await playFocus(shape: FocusPath.shape(for: geo.size))
             }
         }
         .accessibilityIdentifier("decorate.studio")
+        .accessibilityHidden(!isActive)
         #if DEBUG
         .task {
             let args = ProcessInfo.processInfo.arguments
+            while !isRevealed { try? await Task.sleep(for: .milliseconds(200)) }
             if args.contains("-decorDemo") || args.contains("-decorDemoServe") { model.applyDemo() }
             if args.contains("-decorDemoServe") {
                 try? await Task.sleep(for: .seconds(4))

@@ -306,7 +306,8 @@ def main():
     for shape, lay in lays.items():
         D.write_json(os.path.join(OUT, f"layout_{shape}.json"), lay)
         report[shape] = checks(lay)
-        D.setup(samples=args.samples)
+        # No shadow-catcher floor: the bench is the ground (at z = 0 the catcher would hide it).
+        D.setup(ground=False, samples=args.samples)
         guides(lay)
         if args.stage in ("all", "panels"):
             build_bench(lay)

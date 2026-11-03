@@ -33,7 +33,7 @@ def export(obj, path):
     bpy.context.view_layer.objects.active = obj
     bpy.ops.wm.usd_export(filepath=path, selected_objects_only=True, export_materials=True,
                           convert_orientation=True, export_global_forward_selection="NEGATIVE_Z",
-                          export_global_up_selection="Y", apply_subdiv=False, export_uvmaps=False)
+                          export_global_up_selection="Y", export_uvmaps=False)
 
 
 def main():

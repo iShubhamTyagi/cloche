@@ -29,12 +29,16 @@ struct DecorateScreen: View {
 
     var body: some View {
         ZStack {
+            // Mounted from the start (hidden) so the 3D scene loads during the tongs move; it
+            // plays the focus move and takes over once the dish has settled.
+            DecorStudioView(recipe: recipe, outcome: outcome, breakEndsAt: breakEndsAt,
+                            isServing: isServing, isActive: isSettled, onServe: serve)
+            // Back on the serve: the cloche lowers over the dish on the stand.
             stage
-            if isSettled {
-                DecorStudioView(recipe: recipe, outcome: outcome, breakEndsAt: breakEndsAt,
-                                isServing: isServing, onServe: serve)
-                    .transition(.opacity)
-            }
+                .opacity(isSettled && !isServing ? 0 : 1)
+                .allowsHitTesting(!isSettled || isServing)
+                .animation(.easeInOut(duration: 0.25), value: isSettled)
+                .animation(.easeInOut(duration: 0.25), value: isServing)
         }
     }
 

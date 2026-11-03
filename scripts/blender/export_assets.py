@@ -66,7 +66,7 @@ def main():
         copy(os.path.join(R, "viewer", "plate", f"{kind}.png"), f"plate_{kind}.png", "viewer", sizes, opaque=True)
     copy(os.path.join(R, "viewer", "plate", "plate.json"), "plate.json", "viewer", sizes)
     need(copy(os.path.join(R, "viewer", "marble_tile", "albedo.png"), "marble_albedo.png", "viewer", sizes, opaque=True), "marble tile")
-    need(copy(os.path.join(R, "viewer", "env.hdr"), "env.hdr", "viewer", sizes), "environment")
+    need(copy(os.path.join(R, "viewer", "env.png"), "env.png", "viewer", sizes), "environment")
     copy(os.path.join(R, "viewer", "viewer_scene.json"), "viewer_scene.json", "viewer", sizes)
     copy(os.path.join(R, "icing", "palette.json"), "palette.json", "viewer", sizes)
     for f in sorted(glob.glob(os.path.join(R, "viewer", "toppings", "*.usdz"))):

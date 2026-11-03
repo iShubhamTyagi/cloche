@@ -20,6 +20,29 @@ Read the **Current state** first; it says where the next session starts. Then ad
 
 ## Log
 
+### 2026-11-03: Decorating plan steps 1–9 and D1–D6 (first full pass)
+
+- **Blender (built and reviewed):**
+  - **Step 1, `icing.py`:** 8 icings and 4 ganaches, `palette.json`.
+  - **Step 2, `toppings.py` + `topping_models.py`:** 8 HUD heap icons, 0.55 MB.
+  - **Step 3, `tools.py` + `brushes.py`:** 5 tools × states × 4 rotations (5.6 MB); 16-bit brush maps; a ring check with a 0.007 mm mean error; reference patterns.
+  - **Step 4, `cake_maps.py`:** baked albedo, roughness, normal and AO for the turned-out cake and the hero cupcake; plate, seamless marble, `env.hdr`, `viewer_scene.json`, preview checks.
+  - **Step 5, `toppings3d.py`:** 12 toppings × 3 variants plus the sprinkle rod, as USDZ.
+  - **Step 6, `station.py`:** layouts, panels, vessels, guides, checks.
+  - **Step 8, `focus.py`:** camera path plus background frames for the iPhone, the Duo and the Duo 0.08 variant.
+  - **Step 9, `export_assets.py` + `scripts/build_assets.sh`:** export with a size report and the 150 MB budget gate.
+  - Step 7 (transition) skipped: the tongs move already exists.
+- **App:**
+  - `Decorating` target: ops, generated brushes, height fields, surface mapper, turntable, camera rig, viewer meshes, replay.
+  - RealityKit viewer (`Viewer3D/`): LowLevelMesh icing with colour and roughness textures, USDZ toppings with stand-ins, IBL, collar, marble.
+  - `StationView` from `decor_layout_<shape>.json`, with a coded fallback; focus move player; Top/Angle/Side snaps; two-finger tilt, pinch, tool cursor; collar tap and a Turn control; undo, clear, speed, plate, backdrop.
+  - Draft persistence (`DecorDraftStore`), `ServedScreen` (replay time-lapse, share image, stars), thermal fallback (half the grid at `.serious`).
+  - DEBUG `-viewerSpike`, `-decorDemo`, `-decorDemoServe`.
+- **Verified:**
+  - `DecoratingTests`: 16 passing (surface mapping, turntable ring, replay determinism, side seam, Codable round trip, bead merge, camera rig).
+  - App build green.
+  - Simulator screenshots in `docs/review/` (spike, studio, served).
+
 ### 2026-11-03: Decorating plan D0, audit and hook
 
 - **Built:** `docs/existing_state.md`, `scripts/verify_assets.py` → `docs/asset_status.md` (read-only `.blend` audit; plate origin at its exact centre, 0.000 mm), `scripts/blender/deco_common.py` (shared sprite camera, 2× render, materials, sheets). `DecorStudioView` (code-drawn placeholder studio: cake top-down on the plate, shelves, small break ring, Serve now) takes over `DecorateScreen` once the dish settles. DEBUG `-devBake` launch argument.

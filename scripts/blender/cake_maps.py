@@ -309,6 +309,10 @@ def env_map(args):
     scene.render.image_settings.color_mode = "RGB"
     scene.render.filepath = path
     bpy.ops.render.render(write_still=True)
+    # An 8-bit, tonemapped copy: RealityKit builds its environment resource from it.
+    scene.render.image_settings.file_format = "PNG"
+    scene.render.filepath = os.path.join(OUT, "env.png")
+    bpy.ops.render.render(write_still=True)
 
 
 def scene_json():

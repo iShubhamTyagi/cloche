@@ -16,21 +16,17 @@ enum ToppingFactory {
     static func entity(kind: String, variant: Int, cache: inout [String: Entity]) -> Entity {
         let key = kind == "sprinkle" ? "sprinkle_\(variant % sprinkleColours.count)" : "\(kind)_\(variant % 3)"
         if let cached = cache[key] { return cached.clone(recursive: true) }
-        let made = load(kind: kind, variant: variant) ?? standIn(kind: kind, variant: variant)
+        // Bundled models are preloaded by ViewerScene; anything missing gets the stand-in.
+        let made = standIn(kind: kind, variant: variant)
         cache[key] = made
         return made.clone(recursive: true)
     }
 
-    private static func load(kind: String, variant: Int) -> Entity? {
-        let name = kind == "sprinkle" ? "topping_sprinkle_0" : "topping_\(kind)_\(variant % 3)"
-        guard let url = Bundle.module.url(forResource: name, withExtension: "usdz"),
-              let entity = try? Entity.load(contentsOf: url) else { return nil }
-        if kind == "sprinkle" {
-            var m = PhysicallyBasedMaterial()
-            m.baseColor = .init(tint: sprinkleColours[variant % sprinkleColours.count])
-            m.roughness = 0.35
-            entity.visit { ($0 as? ModelEntity)?.model?.materials = [m] }
-        }
+    static func tinted(_ entity: Entity, colour: Int) -> Entity {
+        var m = PhysicallyBasedMaterial()
+        m.baseColor = .init(tint: sprinkleColours[colour % sprinkleColours.count])
+        m.roughness = 0.35
+        entity.visit { ($0 as? ModelEntity)?.model?.materials = [m] }
         return entity
     }
 

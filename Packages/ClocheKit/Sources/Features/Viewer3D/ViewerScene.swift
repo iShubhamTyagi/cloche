@@ -55,8 +55,14 @@ final class ViewerScene {
         let profile = ViewerAssets.profile(dish) ?? DishProfile.placeholder(surfaces.geometry)
         let geometry = surfaces.geometry
         let detail = Self.detail
-        guard let topMesh = try? lowLevelMesh(ViewerMesh.icingTop(profile, field: surfaces.top, detail: detail)) else { return nil }
-        let sideMesh = surfaces.side.flatMap { try? lowLevelMesh(ViewerMesh.icingSide(profile, field: $0, geometry: geometry, detail: detail)) }
+        // The heavy vertex work runs off the main actor, so the tongs move keeps playing.
+        let meshes = await Task.detached(priority: .userInitiated) {
+            (top: ViewerMesh.icingTop(profile, field: surfaces.top, detail: detail),
+             side: surfaces.side.map { ViewerMesh.icingSide(profile, field: $0, geometry: geometry, detail: detail) },
+             cakeTop: ViewerMesh.cakeTop(profile), cakeSide: ViewerMesh.cakeSide(profile))
+        }.value
+        guard let topMesh = try? lowLevelMesh(meshes.top) else { return nil }
+        let sideMesh = meshes.side.flatMap { try? lowLevelMesh($0) }
         let icingMaterial = icingMaterial()
         guard let topResource = try? await MeshResource(from: topMesh) else { return nil }
         let icingTop = ModelEntity(mesh: topResource, materials: [icingMaterial])
@@ -66,12 +72,33 @@ final class ViewerScene {
         }
         let scene = ViewerScene(profile: profile, icingTop: icingTop, icingSide: icingSide, topMesh: topMesh, sideMesh: sideMesh)
         scene.detail = detail
-        await scene.build(dish: dish, browning: browning)
+        await scene.build(dish: dish, browning: browning, cakeTop: meshes.cakeTop, cakeSide: meshes.cakeSide)
+        await scene.preloadToppings()
         scene.update(surfaces: surfaces)
         return scene
     }
 
-    private func build(dish: ViewerAssets.DishKey, browning: Float) async {
+    /// Loads every bundled topping model once, asynchronously; placing them later is instant.
+    private func preloadToppings() async {
+        for kind in ["raspberry", "blueberry", "strawberry_slice", "cherry", "mint_leaf", "chocolate_shard", "chocolate_curl",
+                     "gold_flake", "sugar_pearl", "pistachio_crumb", "almond_flake", "flower_petal"] {
+            for v in 0..<3 {
+                let name = "topping_\(kind)_\(v)"
+                if let url = Bundle.module.url(forResource: name, withExtension: "usdz"),
+                   let entity = try? await Entity(contentsOf: url) {
+                    toppingModels["\(kind)_\(v)"] = entity
+                }
+            }
+        }
+        if let url = Bundle.module.url(forResource: "topping_sprinkle_0", withExtension: "usdz"),
+           let rod = try? await Entity(contentsOf: url) {
+            for i in 0..<ToppingFactory.sprinkleColours.count {
+                toppingModels["sprinkle_\(i)"] = ToppingFactory.tinted(rod.clone(recursive: true), colour: i)
+            }
+        }
+    }
+
+    private func build(dish: ViewerAssets.DishKey, browning: Float, cakeTop: MeshData, cakeSide: MeshData) async {
         root.addChild(spinner)
         root.addChild(camera)
         camera.camera.fieldOfViewInDegrees = 30
@@ -90,10 +117,10 @@ final class ViewerScene {
         let shade = CGFloat(1 - 0.38 * browning)
         let top = await ViewerAssets.material("\(dish.rawValue)_top_", fallback: UIColor(red: 0.8, green: 0.55, blue: 0.27, alpha: 1), shade: shade)
         let side = await ViewerAssets.material("\(dish.rawValue)_side_", fallback: UIColor(red: 0.72, green: 0.45, blue: 0.2, alpha: 1), shade: shade)
-        if let mesh = try? Self.lowLevelMesh(ViewerMesh.cakeTop(profile)), let r = try? await MeshResource(from: mesh) {
+        if let mesh = try? Self.lowLevelMesh(cakeTop), let r = try? await MeshResource(from: mesh) {
             spinner.addChild(ModelEntity(mesh: r, materials: [top]))
         }
-        if let mesh = try? Self.lowLevelMesh(ViewerMesh.cakeSide(profile)), let r = try? await MeshResource(from: mesh) {
+        if let mesh = try? Self.lowLevelMesh(cakeSide), let r = try? await MeshResource(from: mesh) {
             spinner.addChild(ModelEntity(mesh: r, materials: [side]))
         }
         spinner.addChild(icingTop)
@@ -125,7 +152,7 @@ final class ViewerScene {
         key.shadow = DirectionalLightComponent.Shadow(maximumDistance: 1.2, depthBias: 2)
         key.look(at: .zero, from: SIMD3(-0.9, 1.2, 1.1), relativeTo: nil)
         root.addChild(key)
-        if let url = ViewerAssets.url("env", "hdr") ?? ViewerAssets.url("env", "exr"),
+        if let url = ViewerAssets.url("env", "png") ?? ViewerAssets.url("env", "hdr"),
            let source = CGImageSourceCreateWithURL(url as CFURL, nil),
            let image = CGImageSourceCreateImageAtIndex(source, 0, nil),
            let env = try? await EnvironmentResource(equirectangular: image, withName: "studio") {

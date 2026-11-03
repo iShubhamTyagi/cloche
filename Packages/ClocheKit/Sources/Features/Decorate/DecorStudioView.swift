@@ -1,3 +1,4 @@
+import Decorating
 import DesignSystem
 import Domain
 import SwiftUI
@@ -11,6 +12,21 @@ struct DecorStudioView: View {
     let breakEndsAt: Date
     let isServing: Bool
     let onServe: () -> Void
+    @State private var model: DecorStudioModel
+
+    init(recipe: Recipe, outcome: BakeOutcome, breakEndsAt: Date, isServing: Bool, onServe: @escaping () -> Void) {
+        self.recipe = recipe
+        self.outcome = outcome
+        self.breakEndsAt = breakEndsAt
+        self.isServing = isServing
+        self.onServe = onServe
+        let dish = Dish(recipeID: recipe.id)
+        let key: ViewerAssets.DishKey = dish == .cupcakes ? .cupcake : .cake
+        let geometry = ViewerAssets.profile(key)?.geometry ?? (dish == .cupcakes ? .cupcake : .cake)
+        _model = State(initialValue: DecorStudioModel(geometry: geometry, aspect: 0.6))
+    }
+
+    private var dishKey: ViewerAssets.DishKey { Dish(recipeID: recipe.id) == .cupcakes ? .cupcake : .cake }
 
     var body: some View {
         GeometryReader { geo in
@@ -20,10 +36,9 @@ struct DecorStudioView: View {
                 shelf(count: 12)
                     .frame(height: HitTarget.minimum + Spacing.s3)
                 Spacer(minLength: 0)
-                PlaceholderCake(dish: Dish(recipeID: recipe.id))
-                    .frame(width: side * 0.92, height: side * 0.92)
-                    .accessibilityElement()
-                    .accessibilityLabel(Text("Cake on the turntable, seen from above", bundle: .module))
+                CakeViewerView(model: model, dish: dishKey, browning: GradeCalculator.grade(outcome, served: true).browning == .dark ? 1 : 0)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: side * 1.25)
                 Spacer(minLength: 0)
                 shelf(count: 8)
                     .frame(height: HitTarget.minimum + Spacing.s3)
@@ -35,6 +50,11 @@ struct DecorStudioView: View {
         }
         .pocketScreenBackground()
         .accessibilityIdentifier("decorate.studio")
+        #if DEBUG
+        .task {
+            if ProcessInfo.processInfo.arguments.contains("-decorDemo") { model.applyDemo() }
+        }
+        #endif
     }
 
     private var header: some View {

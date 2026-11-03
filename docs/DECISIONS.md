@@ -4,6 +4,11 @@ Choices made during the build that the PRD or design handoff don't settle. Newes
 
 | Date | Decision | Why |
 | --- | --- | --- |
+| 2026-11-03 | **Live viewer: RealityKit** (RealityView, virtual camera, LowLevelMesh icing, PBR), chosen over a custom Metal renderer after the D1 spike | Equal frame time and update cost on the simulator; RealityKit gives PBR, IBL, shadows and USDZ toppings for free (`docs/viewer_decision.md`). RealityKit and Metal are Apple frameworks, beyond the CLAUDE.md list |
+| 2026-11-03 | **Decorating logic is a new pure-Swift package target `Decorating`** (ops, brushes, height fields, surface mapping, turntable, camera rig, viewer meshes), built -O even in Debug | Testable without UI; the stamping loops run on every finger move |
+| 2026-11-03 | **Brush maps are generated in code from the same formulas as `brushes.py`; the PNGs are the reference, not shipped** | Zero bytes, identical shapes, no loader. The pour blob's wobble phases differ slightly from numpy's RNG (same shape class) |
+| 2026-11-03 | **The top icing field is Cartesian (512², 0.38 mm texels) and the side an unrolled strip; ops still store plate-local polar points** | Stamping without polar distortion near the centre; replay stays defined by the polar ops |
+| 2026-11-03 | **Tool sprites: 4 rotations (0/90/180/270) at 512 px, not 8** | The plan's own fallback; in-between angles rotate in 2D. 5.6 MB against a 15 MB budget |
 | 2026-11-03 | **The decorating plan (`docs/BUILD_PLAN.md`) runs unattended**: self-review in `docs/review/`, a commit per step/phase, tests on for the new decorating code only | Owner, 2026-11-03: "complete auto mode, no approval until everything in the doc is complete". Supersedes the per-stage approval, no-commit and tests-off rules for this work only |
 | 2026-11-03 | **`transition.py` is skipped**: the tongs move (`StationMoveView`) already carries the dish from the oven to the stand | Plan §2/§5.6: build it only if missing |
 | 2026-11-03 | **Decorating takes over the break screen once the dish settles on the stand** (`DecorStudioView` over `DecorateScreen`'s stage) | The plan's D0 hook point; the stage view is where the focus move (D3) starts |

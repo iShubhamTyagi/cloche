@@ -12,4 +12,6 @@ Every image, sound and font that is not original to this project is listed here 
 
 The hero oven (`build/oven.blend` and its renders) is original, generated for this project by `scripts/blender/*.py` with procedural materials only; no external models, textures or HDRIs.
 
+The decorating assets (icing and ganache materials, topping models and icons, tools and their sprites, brush maps, viewer maps, environment map, 3D toppings, station panels and vessels, focus-move frames) are original, generated for this project on 2026-11-03 by `scripts/blender/{icing,toppings,topping_models,tools,brushes,cake_maps,toppings3d,station,focus}.py` from the project's own models, with procedural materials only; no external models, textures, HDRIs or brand marks.
+
 All other art is drawn in code for this project. All sound effects are original (synthesized or recorded for this project). No music.

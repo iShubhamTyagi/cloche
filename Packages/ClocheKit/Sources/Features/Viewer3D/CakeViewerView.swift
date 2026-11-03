@@ -33,6 +33,7 @@ struct CakeViewerView: View {
                 subscription = content.subscribe(to: SceneEvents.Update.self) { event in
                     MainActor.assumeIsolated {
                         made.setTurntable(angle: model.plateAngle(at: model.now))
+                        model.stepCamera(dt: Float(event.deltaTime))
                         if let focus = model.focusCamera {
                             made.setCamera(position: focus.position, target: focus.target, fov: focus.fov)
                             made.showsSurface(false)
@@ -123,12 +124,15 @@ struct ViewerGestures: UIViewRepresentable {
             switch g.state {
             case .began:
                 touch.location = p
+                model.cursor = p
                 model.touchBegan(x: p.x, y: p.y, aspect: touch.aspect)
             case .changed:
                 touch.location = p
+                model.cursor = p
                 model.touchMoved(x: p.x, y: p.y, aspect: touch.aspect)
             default:
                 touch.location = nil
+                model.cursor = nil
                 model.touchEnded()
             }
         }

@@ -50,6 +50,10 @@ struct DecorStudioView: View {
                 CakeViewerView(model: model, dish: dishKey, browning: browning)
                     .ignoresSafeArea()
                 StationView(model: model, layout: layout, isRevealed: isRevealed)
+                if isRevealed {
+                    ToolCursor(model: model, size: geo.size)
+                    snapButtons(layout: layout, size: geo.size)
+                }
                 header
                     .padding(.horizontal, Spacing.s4)
             }
@@ -79,6 +83,36 @@ struct DecorStudioView: View {
         model.focusCamera = nil
         withAnimation(.easeOut(duration: 0.3)) { model.focusBackground = nil }
         isRevealed = true
+    }
+
+    /// Top, Angle and Side, down the right edge of the cake window.
+    private func snapButtons(layout: StationLayout, size: CGSize) -> some View {
+        let (scale, origin) = layout.transform(for: size)
+        let window = layout.cakeWindowPx
+        return VStack(spacing: Spacing.s2) {
+            ForEach(CameraRig.Snap.allCases, id: \.self) { snap in
+                Button { model.snap(snap, animated: !reduceMotion) } label: {
+                    Text(snapLabel(snap), bundle: .module)
+                        .textStyle(.control)
+                        .foregroundStyle(Palette.text)
+                        .padding(.horizontal, Spacing.s3)
+                        .frame(minWidth: HitTarget.minimum, minHeight: HitTarget.minimum)
+                        .background(Capsule().fill(Palette.ground.opacity(0.7)))
+                        .overlay(Capsule().strokeBorder(Palette.line3, lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("decorate.view.\(snap.rawValue)")
+            }
+        }
+        .position(x: origin.x + window[2] * scale - HitTarget.minimum, y: origin.y + (window[1] + window[3]) / 2 * scale)
+    }
+
+    private func snapLabel(_ snap: CameraRig.Snap) -> LocalizedStringKey {
+        switch snap {
+        case .top: "Top"
+        case .angle: "Angle"
+        case .side: "Side"
+        }
     }
 
     private var header: some View {

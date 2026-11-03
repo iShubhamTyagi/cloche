@@ -28,6 +28,10 @@ final class DecorStudioModel {
     var topping = "berries"
     var plate = "carrara"
     var backdrop = "night"
+    /// Where the camera is heading after a snap (animated in `stepCamera`); nil when settled.
+    private(set) var snapTarget: Float?
+    /// The finger on the cake (0...1 from the top-left) for the tool cursor.
+    var cursor: SIMD2<Float>?
     /// During the focus move: the camera pose from the exported path, and the background frame.
     var focusCamera: FocusCamera?
     var focusBackground: UIImage?
@@ -81,6 +85,25 @@ final class DecorStudioModel {
             surfaces.apply(op)
         }
         surfaces = CakeSurfaces(document: document)
+    }
+
+    // MARK: Camera
+
+    /// Top, Angle or Side. Reduce Motion jumps straight there.
+    func snap(_ snap: CameraRig.Snap, animated: Bool) {
+        if animated { snapTarget = snap.elevation } else { rig.snap(snap); snapTarget = nil }
+    }
+
+    /// Called every frame: eases the camera toward a snap target.
+    func stepCamera(dt: Float) {
+        guard let target = snapTarget else { return }
+        let gap = target - rig.elevation
+        if abs(gap) < 0.3 {
+            rig.elevation = target
+            snapTarget = nil
+        } else {
+            rig.elevation += gap * min(dt * 7, 1)
+        }
     }
 
     // MARK: Turntable

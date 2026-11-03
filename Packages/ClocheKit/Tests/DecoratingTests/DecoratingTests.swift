@@ -125,3 +125,39 @@ struct ReplayTests {
         #expect(once > 2.5 && once < 3.5)
     }
 }
+
+struct CameraRigTests {
+    @Test func rayThroughAProjectedPointHitsIt() throws {
+        for elevation: Float in [90, 55, 10] {
+            var rig = CameraRig(target: SIMD3(0, 0, 40), cakeRadius: 98, aspect: 0.46)
+            rig.elevation = elevation
+            let point = SIMD3<Float>(30, -20, 40)
+            let screen = try #require(rig.project(point, aspect: 0.46))
+            let ray = rig.ray(x: screen.x, y: screen.y, aspect: 0.46)
+            let t = (point - ray.origin)
+            let along = t.x * ray.direction.x + t.y * ray.direction.y + t.z * ray.direction.z
+            let closest = ray.origin + ray.direction * along
+            let miss = ((closest - point) * (closest - point)).sum().squareRoot()
+            #expect(miss < 0.01)
+        }
+    }
+
+    @Test func topViewCentresTheCakeAndFillsMostOfTheWidth() throws {
+        let rig = CameraRig(target: SIMD3(0, 0, 40), cakeRadius: 98, aspect: 0.46)
+        let centre = try #require(rig.project(SIMD3(0, 0, 40), aspect: 0.46))
+        let rim = try #require(rig.project(SIMD3(98, 0, 40), aspect: 0.46))
+        #expect(abs(centre.x - 0.5) < 0.001 && abs(centre.y - 0.5) < 0.001)
+        let fill = (rim.x - centre.x) * 2
+        #expect(fill > 0.7 && fill < 0.8)
+    }
+
+    @Test func snapsAndClamps() {
+        var rig = CameraRig(target: .zero, cakeRadius: 98, aspect: 0.46)
+        rig.snap(.side)
+        #expect(rig.elevation == 10)
+        rig.tilt(by: -50)
+        #expect(rig.elevation == 10)
+        rig.pinch(scale: 100)
+        #expect(rig.zoom == CameraRig.zoomRange.lowerBound)
+    }
+}

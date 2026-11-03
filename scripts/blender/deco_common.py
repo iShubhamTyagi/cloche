@@ -22,6 +22,7 @@ import imaging as I
 import studio
 
 STATION = Vector((1.4, 0.15, 0.0))     # camera.json plate_topdown target
+EXPOSURE = -0.6
 OUT = os.path.join(C.BUILD, "renders")
 DOCS = os.path.join(C.REPO, "docs")
 
@@ -33,6 +34,9 @@ def setup(ground=True, samples=32):
     scene = bpy.context.scene
     scene.cycles.samples = samples
     scene.render.film_transparent = True
+    # The station lights are set for the stand seen from the front; seen from above, bright food
+    # clips. One stop less keeps icing colours and whites readable.
+    scene.view_settings.exposure = EXPOSURE
     return scene
 
 

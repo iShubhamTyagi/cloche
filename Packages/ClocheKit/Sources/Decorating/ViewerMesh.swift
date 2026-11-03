@@ -80,9 +80,10 @@ public enum ViewerMesh {
 
     /// The icing over the top: the bare height plus the field; where there is no icing (or
     /// powder) the vertex sinks just under the cake so it never shows. UVs address the field.
-    public static func icingTop(_ p: DishProfile, field: HeightField) -> MeshData {
+    /// `detail` 1 is full resolution; 0.5 halves the grid (the thermal fallback).
+    public static func icingTop(_ p: DishProfile, field: HeightField, detail: Float = 1) -> MeshData {
         let d = p.topRadius * 2
-        return polarGrid(p, rings: topRings, segments: topSegments) { r, a in
+        return polarGrid(p, rings: Int(Float(topRings) * detail), segments: Int(Float(topSegments) * detail)) { r, a in
             let x = (p.topRadius + r * cos(a)) * 1000, y = (p.topRadius + r * sin(a)) * 1000
             let h = field.height(atX: x, y: y)
             return p.topHeight(atRadius: r) + (h > 0.02 ? h / 1000 + 0.0002 : -0.0008)
@@ -91,9 +92,9 @@ public enum ViewerMesh {
         }
     }
 
-    public static func icingSide(_ p: DishProfile, field: HeightField, geometry: CakeGeometry) -> MeshData {
+    public static func icingSide(_ p: DishProfile, field: HeightField, geometry: CakeGeometry, detail: Float = 1) -> MeshData {
         let span = p.sideTop - p.sideBottom
-        return sideGrid(p, rows: sideRows, segments: topSegments) { z, a in
+        return sideGrid(p, rows: Int(Float(sideRows) * detail), segments: Int(Float(topSegments) * detail)) { z, a in
             let turn = 2 * Float.pi
             let wrapped = (a.truncatingRemainder(dividingBy: turn) + turn).truncatingRemainder(dividingBy: turn)
             let h = field.height(atX: wrapped * geometry.radius, y: (z - p.sideBottom) / max(span, 1e-6) * geometry.height)

@@ -17,6 +17,11 @@ struct ViewerSpikeScreen: View {
         Group {
             if mode == "metal" {
                 MetalSpikeView(surfaces: model.surfaces)
+            } else if mode == "transparent" {
+                ZStack {
+                    LinearGradient(colors: [.red, .blue], startPoint: .top, endPoint: .bottom)
+                    CakeViewerView(model: model, dish: .cake, browning: 0, showsSurface: false)
+                }
             } else {
                 CakeViewerView(model: model, dish: .cake, browning: 0)
             }

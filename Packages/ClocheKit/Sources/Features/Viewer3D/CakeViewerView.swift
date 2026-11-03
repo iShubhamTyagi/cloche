@@ -10,6 +10,7 @@ struct CakeViewerView: View {
     let model: DecorStudioModel
     let dish: ViewerAssets.DishKey
     let browning: Float
+    var showsSurface = true
 
     @State private var scene: ViewerScene?
     @State private var subscription: EventSubscription?
@@ -23,6 +24,7 @@ struct CakeViewerView: View {
                 guard let made = await ViewerScene.make(dish: dish, surfaces: model.surfaces, browning: browning) else { return }
                 content.add(made.root)
                 made.setCamera(model.rig)
+                made.showsSurface(showsSurface)
                 scene = made
                 let model = model, touch = touch
                 #if DEBUG
@@ -31,7 +33,13 @@ struct CakeViewerView: View {
                 subscription = content.subscribe(to: SceneEvents.Update.self) { event in
                     MainActor.assumeIsolated {
                         made.setTurntable(angle: model.plateAngle(at: model.now))
-                        made.setCamera(model.rig)
+                        if let focus = model.focusCamera {
+                            made.setCamera(position: focus.position, target: focus.target, fov: focus.fov)
+                            made.showsSurface(false)
+                        } else {
+                            made.setCamera(model.rig)
+                            made.showsSurface(showsSurface)
+                        }
                         if let p = touch.location { model.touchHeld(x: p.x, y: p.y, aspect: touch.aspect) }
                         #if DEBUG
                         if spike {

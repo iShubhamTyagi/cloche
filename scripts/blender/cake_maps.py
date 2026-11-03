@@ -75,8 +75,9 @@ def grid_top(name, centre, radius, heights):
                      for s in range(SEGS + 1)])            # duplicate seam column for clean UVs
     for i in range(RINGS):
         for s in range(SEGS):
-            f = bm.faces.new((rows[i][s], rows[i][s + 1], rows[i + 1][s + 1], rows[i + 1][s]))
-            for loop, (ii, ss) in zip(f.loops, ((i, s), (i, s + 1), (i + 1, s + 1), (i + 1, s))):
+            # Counter-clockwise seen from above: the face normal points up (+Z).
+            f = bm.faces.new((rows[i][s], rows[i + 1][s], rows[i + 1][s + 1], rows[i][s + 1]))
+            for loop, (ii, ss) in zip(f.loops, ((i, s), (i + 1, s), (i + 1, s + 1), (i, s + 1))):
                 loop[uv].uv = (ss / SEGS, ii / RINGS)
     bmesh.ops.remove_doubles(bm, verts=[v for row in rows[:1] for v in row], dist=1e-7)
     return D.bm_object(name, bm)
@@ -93,8 +94,9 @@ def grid_side(name, centre, z0, z1, radii):
                      for s in range(SEGS + 1)])
     for j in range(ROWS):
         for s in range(SEGS):
-            f = bm.faces.new((rows[j][s], rows[j + 1][s], rows[j + 1][s + 1], rows[j][s + 1]))
-            for loop, (jj, ss) in zip(f.loops, ((j, s), (j + 1, s), (j + 1, s + 1), (j, s + 1))):
+            # Counter-clockwise seen from outside: the face normal points outward.
+            f = bm.faces.new((rows[j][s], rows[j][s + 1], rows[j + 1][s + 1], rows[j + 1][s]))
+            for loop, (jj, ss) in zip(f.loops, ((j, s), (j, s + 1), (j + 1, s + 1), (j + 1, s))):
                 loop[uv].uv = (ss / SEGS, jj / ROWS)
     return D.bm_object(name, bm)
 
@@ -139,9 +141,14 @@ def do_dish(key, args):
     blend, names = DISHES[key]
     open_blend(blend)
     high = [bpy.data.objects[n] for n in names]
-    for o in bpy.data.objects:                      # bake from the dish alone
+    # The dish files carry no materials: dish_layers/stand renders assign them at render time.
+    import bake_materials as BM
+    BM.assign(high)
+    BM.set_browning(0.62)                           # golden
+    for o in bpy.data.objects:                      # bake and ray-cast against the dish alone
         if o.type == "MESH" and o not in high:
             o.hide_render = True
+            o.hide_viewport = True
     lo, hi = bounds(high)
     centre = Vector(((lo.x + hi.x) / 2, (lo.y + hi.y) / 2, lo.z))
     radius = max(hi.x - lo.x, hi.y - lo.y) / 2
@@ -278,7 +285,7 @@ def marble_tile(args):
     t = np.abs(np.linspace(-1, 1, n))
     m = np.clip((1 - np.maximum(t[None, :], t[:, None])) * 3, 0, 1)[..., None]
     shifted = np.roll(np.roll(arr, n // 2, axis=0), n // 2, axis=1)
-    out = arr * m + shifted * (1 - m)
+    out = (arr * m + shifted * (1 - m)).astype(np.float32)
     out[..., 3] = 1
     I.save(out, path)
 
@@ -349,6 +356,9 @@ def preview_check(key, profile):
         for o in objs:
             bpy.context.scene.collection.objects.link(o)
             o.hide_render = which == "preview" or o.name not in names
+        import bake_materials as BM
+        BM.assign([o for o in objs if o.name in names])
+        BM.set_browning(0.62)
         lo, hi = bounds([o for o in objs if o.name in names])
         centre = Vector(((lo.x + hi.x) / 2, (lo.y + hi.y) / 2, lo.z))
         if which == "preview":

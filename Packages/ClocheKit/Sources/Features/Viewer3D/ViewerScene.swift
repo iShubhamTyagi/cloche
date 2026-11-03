@@ -18,10 +18,24 @@ final class ViewerScene {
     private var icingSideMesh: LowLevelMesh?
     private var topTexture: TextureResource?
     private var sideTexture: TextureResource?
+    private var topRoughness: TextureResource?
+    private var sideRoughness: TextureResource?
     private var shownRevision = (-1, -1)
     private let toppings = Entity()
     private var shownPlacements = 0
     private var toppingModels: [String: Entity] = [:]
+    private var surface: Entity?
+    /// Fixed for the scene's life: the meshes' vertex counts depend on it.
+    private var detail: Float = 1
+
+    /// The marble under the stand: hidden while the focus move's background frames show through.
+    func showsSurface(_ shown: Bool) { surface?.isEnabled = shown }
+
+    /// Places the camera from the focus move's path (plate-local metres, Z up).
+    func setCamera(position p: SIMD3<Float>, target t: SIMD3<Float>, fov: Float) {
+        camera.camera.fieldOfViewInDegrees = fov
+        camera.look(at: SIMD3(t.x, t.z, -t.y), from: SIMD3(p.x, p.z, -p.y), relativeTo: root)
+    }
 
     private init(profile: DishProfile, icingTop: ModelEntity, icingSide: ModelEntity?,
                  topMesh: LowLevelMesh, sideMesh: LowLevelMesh?) {
@@ -32,11 +46,17 @@ final class ViewerScene {
         icingSideMesh = sideMesh
     }
 
+    /// Full icing detail, or half when the device is already hot (the lower-resolution fallback).
+    static var detail: Float {
+        ProcessInfo.processInfo.thermalState.rawValue >= ProcessInfo.ThermalState.serious.rawValue ? 0.5 : 1
+    }
+
     static func make(dish: ViewerAssets.DishKey, surfaces: CakeSurfaces, browning: Float) async -> ViewerScene? {
         let profile = ViewerAssets.profile(dish) ?? DishProfile.placeholder(surfaces.geometry)
         let geometry = surfaces.geometry
-        guard let topMesh = try? lowLevelMesh(ViewerMesh.icingTop(profile, field: surfaces.top)) else { return nil }
-        let sideMesh = surfaces.side.flatMap { try? lowLevelMesh(ViewerMesh.icingSide(profile, field: $0, geometry: geometry)) }
+        let detail = Self.detail
+        guard let topMesh = try? lowLevelMesh(ViewerMesh.icingTop(profile, field: surfaces.top, detail: detail)) else { return nil }
+        let sideMesh = surfaces.side.flatMap { try? lowLevelMesh(ViewerMesh.icingSide(profile, field: $0, geometry: geometry, detail: detail)) }
         let icingMaterial = icingMaterial()
         guard let topResource = try? await MeshResource(from: topMesh) else { return nil }
         let icingTop = ModelEntity(mesh: topResource, materials: [icingMaterial])
@@ -45,6 +65,7 @@ final class ViewerScene {
             icingSide = ModelEntity(mesh: resource, materials: [icingMaterial])
         }
         let scene = ViewerScene(profile: profile, icingTop: icingTop, icingSide: icingSide, topMesh: topMesh, sideMesh: sideMesh)
+        scene.detail = detail
         await scene.build(dish: dish, browning: browning)
         scene.update(surfaces: surfaces)
         return scene
@@ -66,11 +87,9 @@ final class ViewerScene {
         spinner.addChild(plate)
 
         // The cake: baked maps on the exported profile; half and dark states tint the golden maps.
-        let tint = UIColor(white: CGFloat(1 - 0.38 * browning), alpha: 1)
-        var top = await ViewerAssets.material("\(dish.rawValue)_top_", fallback: UIColor(red: 0.8, green: 0.55, blue: 0.27, alpha: 1))
-        var side = await ViewerAssets.material("\(dish.rawValue)_side_", fallback: UIColor(red: 0.72, green: 0.45, blue: 0.2, alpha: 1))
-        top.baseColor.tint = tint
-        side.baseColor.tint = tint
+        let shade = CGFloat(1 - 0.38 * browning)
+        let top = await ViewerAssets.material("\(dish.rawValue)_top_", fallback: UIColor(red: 0.8, green: 0.55, blue: 0.27, alpha: 1), shade: shade)
+        let side = await ViewerAssets.material("\(dish.rawValue)_side_", fallback: UIColor(red: 0.72, green: 0.45, blue: 0.2, alpha: 1), shade: shade)
         if let mesh = try? Self.lowLevelMesh(ViewerMesh.cakeTop(profile)), let r = try? await MeshResource(from: mesh) {
             spinner.addChild(ModelEntity(mesh: r, materials: [top]))
         }
@@ -95,8 +114,10 @@ final class ViewerScene {
         var marble = await ViewerAssets.material("marble_", fallback: UIColor(white: 0.85, alpha: 1), roughness: 0.32)
         marble.textureCoordinateTransform = .init(scale: SIMD2(4, 4))
         let surface = ModelEntity(mesh: .generatePlane(width: 2.4, depth: 2.4), materials: [marble])
-        surface.position.y = -0.2
+        surface.position.y = -0.2055
+        surface.name = "surface"
         root.addChild(surface)
+        self.surface = surface
 
         // Light: the station key from the front-left above, plus image-based light.
         let key = DirectionalLight()
@@ -137,12 +158,12 @@ final class ViewerScene {
         let revision = (surfaces.top.revision, surfaces.side?.revision ?? 0)
         if revision != shownRevision {
             if revision.0 != shownRevision.0 {
-                write(ViewerMesh.icingTop(profile, field: surfaces.top), into: icingTopMesh)
-                topTexture = upload(surfaces.top, into: topTexture, entity: icingTop)
+                write(ViewerMesh.icingTop(profile, field: surfaces.top, detail: detail), into: icingTopMesh)
+                (topTexture, topRoughness) = upload(surfaces.top, into: (topTexture, topRoughness), entity: icingTop)
             }
             if let side = surfaces.side, let mesh = icingSideMesh, let entity = icingSide, revision.1 != shownRevision.1 {
-                write(ViewerMesh.icingSide(profile, field: side, geometry: surfaces.geometry), into: mesh)
-                sideTexture = upload(side, into: sideTexture, entity: entity)
+                write(ViewerMesh.icingSide(profile, field: side, geometry: surfaces.geometry, detail: detail), into: mesh)
+                (sideTexture, sideRoughness) = upload(side, into: (sideTexture, sideRoughness), entity: entity)
             }
             shownRevision = revision
         }
@@ -152,7 +173,7 @@ final class ViewerScene {
     #if DEBUG
     /// The spike re-meshes every frame to measure the update path.
     func remeshForSpike(surfaces: CakeSurfaces) {
-        write(ViewerMesh.icingTop(profile, field: surfaces.top), into: icingTopMesh)
+        write(ViewerMesh.icingTop(profile, field: surfaces.top, detail: detail), into: icingTopMesh)
     }
     #endif
 
@@ -225,29 +246,36 @@ final class ViewerScene {
         return m
     }
 
-    private func upload(_ field: HeightField, into texture: TextureResource?, entity: ModelEntity) -> TextureResource? {
-        guard let image = IcingImage.make(field) else { return texture }
-        let options = TextureResource.CreateOptions(semantic: .color)
-        if let texture {
-            try? texture.replace(withImage: image, options: options)
-            return texture
+    private func upload(_ field: HeightField, into textures: (TextureResource?, TextureResource?),
+                        entity: ModelEntity) -> (TextureResource?, TextureResource?) {
+        guard let images = IcingImage.make(field) else { return textures }
+        let colourOptions = TextureResource.CreateOptions(semantic: .color)
+        let rawOptions = TextureResource.CreateOptions(semantic: .raw)
+        if let colour = textures.0, let rough = textures.1 {
+            try? colour.replace(withImage: images.colour, options: colourOptions)
+            try? rough.replace(withImage: images.roughness, options: rawOptions)
+            return textures
         }
-        guard let created = try? TextureResource(image: image, options: options) else { return nil }
+        guard let colour = try? TextureResource(image: images.colour, options: colourOptions),
+              let rough = try? TextureResource(image: images.roughness, options: rawOptions) else { return textures }
         if var m = entity.model?.materials.first as? PhysicallyBasedMaterial {
-            m.baseColor = .init(tint: .white, texture: .init(created))
+            m.baseColor = .init(tint: .white, texture: .init(colour))
+            m.roughness = .init(scale: 1, texture: .init(rough))
             entity.model?.materials = [m]
         }
-        return created
+        return (colour, rough)
     }
 }
 
 /// The icing texture: palette colour where there is icing, powder mixed over it, alpha =
 /// covered (the material cuts out the rest).
 enum IcingImage {
-    static func make(_ field: HeightField) -> CGImage? {
+    static func make(_ field: HeightField) -> (colour: CGImage, roughness: CGImage)? {
         let palette = ViewerAssets.palette.map(\.rgb)
+        let roughnessByColour = ViewerAssets.palette.map { UInt8(min(max($0.roughness, 0), 1) * 255) }
         let count = field.width * field.height
         var pixels = [UInt8](repeating: 0, count: count * 4)
+        var rough = [UInt8](repeating: 160, count: count * 4)
         for i in 0..<count {
             let colour = Int(field.colours[i])
             let dust = field.dust[i]
@@ -265,15 +293,23 @@ enum IcingImage {
             pixels[i * 4 + 1] = g
             pixels[i * 4 + 2] = b
             pixels[i * 4 + 3] = 255
+            // Powder is matte whatever it lies on.
+            let base = colour > 0 && colour <= roughnessByColour.count ? roughnessByColour[colour - 1] : 160
+            let value = dust > 0.3 ? 235 : base
+            rough[i * 4] = value
+            rough[i * 4 + 1] = value
+            rough[i * 4 + 2] = value
+            rough[i * 4 + 3] = 255
         }
-        // Row 0 of the field is y = 0 (mm); the mesh UVs put y = 0 at the image's bottom.
-        var flipped = [UInt8](repeating: 0, count: pixels.count)
+        guard let colourImage = image(pixels, field), let roughImage = image(rough, field) else { return nil }
+        return (colourImage, roughImage)
+    }
+
+    private static func image(_ pixels: [UInt8], _ field: HeightField) -> CGImage? {
+        // Row 0 of the field (y = 0 mm) is the image's first row; the mesh UVs match (v = 1 - y/D
+        // with RealityKit's bottom-left origin puts y = 0 at the top row).
         let row = field.width * 4
-        for y in 0..<field.height {
-            let src = (field.height - 1 - y) * row
-            flipped.replaceSubrange(y * row..<(y + 1) * row, with: pixels[src..<src + row])
-        }
-        guard let provider = CGDataProvider(data: Data(flipped) as CFData) else { return nil }
+        guard let provider = CGDataProvider(data: Data(pixels) as CFData) else { return nil }
         return CGImage(width: field.width, height: field.height, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: row,
                        space: CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB(),
                        bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue),

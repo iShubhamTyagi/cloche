@@ -37,7 +37,7 @@ SCALE = 3                                   # px per pt (iPhone and Duo are @3x)
 POTS = list(icing.ICING) + list(icing.GANACHE)
 BOWLS = list(TP.HEAPS)
 TOOLS = ["PipingCone", "OffsetSpatula", "PourPan", "DrizzleBottle", "Sieve"]
-CONTROLS = ["undo", "clear", "speed", "plate", "backdrop"]
+CONTROLS = ["undo", "clear", "turntable", "speed", "plate", "backdrop"]
 
 
 # ------------------------------------------------------------------ layout
@@ -60,7 +60,7 @@ def layout(shape):
             row(["NozzleRound", "NozzleStar", "NozzlePetal"], 660, 330, 750, 120, "seat_nozzle", "nozzles") + \
             row(BOWLS, 1840, 40, 40 + 190 * len(BOWLS), 170, "seat_bowl", "toppings") + \
             row(TOOLS, 2040, 40, 1040, 150, "cradle", "tools") + \
-            row(CONTROLS, 2210, 120, 960, HIT_PX, "control", "controls")
+            row(CONTROLS, 2210, 60, 1020, HIT_PX, "control", "controls")
         window = [0, 740, 1080, 1740]
         safe = {"status": [0, 0, 1080, 150], "header": [0, 150, 1080, 280], "home": [0, 2290, 1080, 2340],
                 "strip": [40, 720, 1040, 740]}
@@ -80,8 +80,8 @@ def layout(shape):
                               "size_px": [170, 170], "tap_radius_px": 85.0})
         items += row(TOOLS, 1960, 60, 1440, 160, "cradle", "tools")
         for i, n in enumerate(CONTROLS):
-            x = 160 if i < 2 else 1340
-            y = 1620 + (i if i < 2 else i - 2) * 150
+            x = 160 if i < 3 else 1340
+            y = 1560 + (i % 3) * 150
             items.append({"name": n, "kind": "control", "group": "controls", "centre_px": [x, y],
                           "size_px": [HIT_PX, HIT_PX], "tap_radius_px": HIT_PX / 2})
         window = [300, 640, 1200, 1900]

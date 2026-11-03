@@ -138,8 +138,9 @@ struct SessionRootView: View {
                     session.send(.serveNow)
                 }
                 .transition(.opacity)
-            default:
-                InterimPhaseView(phase: session.phase, send: session.send)
+            case let .served(outcome, grade):
+                ServedScreen(outcome: outcome, grade: grade) { session.send(.done) }
+                    .transition(.opacity)
                     .transition(.opacity)
             }
     }

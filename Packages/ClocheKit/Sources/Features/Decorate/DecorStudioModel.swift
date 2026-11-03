@@ -1,6 +1,7 @@
 import Decorating
 import Foundation
 import Observation
+import UIKit
 
 /// What the player holds.
 enum DecorTool: String, CaseIterable, Sendable {
@@ -24,9 +25,12 @@ final class DecorStudioModel {
     var beadSize: BeadSize = .medium
     /// Index into the palette (0–7 icing, 8–11 ganache).
     var colour = 1
-    var topping = "raspberry"
+    var topping = "berries"
     var plate = "carrara"
     var backdrop = "night"
+    /// During the focus move: the camera pose from the exported path, and the background frame.
+    var focusCamera: FocusCamera?
+    var focusBackground: UIImage?
 
     /// Seconds since the studio opened (turntable and op timing).
     let opened = Date()
@@ -34,10 +38,17 @@ final class DecorStudioModel {
     private var preStroke: CakeSurfaces?
     private var lastStrokeUpdate = Date.distantPast
 
-    init(geometry: CakeGeometry, aspect: Float) {
+    /// Where the cake is saved after every change (nil: not saved, e.g. the spike).
+    private let store: DecorDraftStore?
+    private let draftKey: String
+
+    init(geometry: CakeGeometry, aspect: Float, store: DecorDraftStore? = nil, draftKey: String = "") {
         self.geometry = geometry
-        document = DecorDocument(dish: geometry)
-        surfaces = CakeSurfaces(geometry: geometry)
+        self.store = store
+        self.draftKey = draftKey
+        let restored = store?.loadDraft(key: draftKey)
+        document = restored ?? DecorDocument(dish: geometry)
+        surfaces = restored.map { CakeSurfaces(document: $0) } ?? CakeSurfaces(geometry: geometry)
         rig = CameraRig(elevation: 90, target: SIMD3(0, 0, geometry.height), cakeRadius: geometry.radius, aspect: aspect)
     }
 
@@ -51,12 +62,34 @@ final class DecorStudioModel {
     }
     var canUndo: Bool { document.ops.contains { if case .turntable = $0 { false } else { true } } }
 
+    /// A served cake for display: replayed from its ops, seen at an angle, slowly turning.
+    convenience init(served document: DecorDocument, aspect: Float) {
+        self.init(geometry: document.dish, aspect: aspect)
+        self.document = document
+        surfaces = CakeSurfaces(document: document)
+        rig.snap(.angle)
+        turntable.toggle(at: 0, speed: Turntable.speeds[0])
+    }
+
+    /// Time-lapse: rebuilds the cake op by op (turntable ops skipped).
+    func replay(step: Duration = .milliseconds(160)) async {
+        let ops = document.ops.filter { if case .turntable = $0 { false } else { true } }
+        surfaces = CakeSurfaces(geometry: geometry)
+        for op in ops {
+            try? await Task.sleep(for: step)
+            if Task.isCancelled { break }
+            surfaces.apply(op)
+        }
+        surfaces = CakeSurfaces(document: document)
+    }
+
     // MARK: Turntable
 
     func toggleTurntable() {
         let speed = Turntable.speeds[speedIndex]
         turntable.toggle(at: now, speed: speed)
         document.ops.append(.turntable(spinning: turntable.isSpinning, speed: Float(speed), time: now))
+        save()
     }
 
     func cycleSpeed() {
@@ -78,7 +111,10 @@ final class DecorStudioModel {
     }
 
     func touchBegan(x: Float, y: Float, aspect: Float) {
-        guard let point = surfacePoint(x: x, y: y, aspect: aspect) else { return }
+        guard let point = surfacePoint(x: x, y: y, aspect: aspect) else {
+            if hitsCollar(x: x, y: y, aspect: aspect) { toggleTurntable() }
+            return
+        }
         switch tool {
         case .topping:
             place(at: point)
@@ -89,6 +125,18 @@ final class DecorStudioModel {
             stroke = [point]
             refreshStroke(force: true)
         }
+    }
+
+    /// The brass collar starts and stops the turntable: any tap on the plate's rim band, outside
+    /// the cake (the ring itself is a few millimetres wide; the band makes it a fair target).
+    func hitsCollar(x: Float, y: Float, aspect: Float) -> Bool {
+        let ray = rig.ray(x: x, y: y, aspect: aspect)
+        guard abs(ray.direction.z) > 1e-4 else { return false }
+        let t = -ray.origin.z / ray.direction.z
+        guard t > 0 else { return false }
+        let p = ray.origin + ray.direction * t
+        let r = (p.x * p.x + p.y * p.y).squareRoot()
+        return r > max(geometry.radius + 12, 120) && r < 175
     }
 
     func touchMoved(x: Float, y: Float, aspect: Float) {
@@ -147,15 +195,19 @@ final class DecorStudioModel {
         if topping == "sprinkles" {
             commit(.sprinkles(seed: UInt64(document.ops.count * 7919 + 17), at: point, radius: 14))
         } else {
-            let variant = document.ops.count % 3
-            commit(.topping(kind: topping, variant: variant, at: point, spin: Float(document.ops.count) * 2.39))
+            let kinds = DecorCatalog.models(for: topping)
+            let n = document.ops.count
+            commit(.topping(kind: kinds[n % kinds.count], variant: n % 3, at: point, spin: Float(n) * 2.39))
         }
     }
 
     private func commit(_ op: DecorOp) {
         document.ops.append(op)
         surfaces.apply(op)
+        save()
     }
+
+    private func save() { store?.saveDraft(document, key: draftKey) }
 
     // MARK: Undo, clear, plate, backdrop
 
@@ -163,11 +215,13 @@ final class DecorStudioModel {
         guard let index = document.ops.lastIndex(where: { if case .turntable = $0 { false } else { true } }) else { return }
         document.ops.remove(at: index)
         surfaces = CakeSurfaces(document: document)
+        save()
     }
 
     func clear() {
         document.ops.removeAll { if case .turntable = $0 { false } else { true } }
         surfaces = CakeSurfaces(geometry: geometry)
+        save()
     }
 
     func setPlate(_ name: String) {

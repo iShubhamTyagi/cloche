@@ -3,16 +3,21 @@ import DesignSystem
 import Domain
 import SwiftUI
 
-/// The decorating studio (decorating plan, Phase D0 placeholder): the cake seen from straight
-/// above on the turntable, the ingredient shelf above it, the toppings and tools below, the
-/// break clock and Serve. Code-drawn until the live viewer and the station panels land.
+/// The decorating studio. Once the dish has settled on the stand, the camera flies from the
+/// stage view to straight above the cake (the focus move: pre-rendered background, live cake),
+/// then the station slides into place around it. The live viewer fills the screen; the station's
+/// panel frames it. The break clock and Serve stay in the header throughout.
 struct DecorStudioView: View {
     let recipe: Recipe
     let outcome: BakeOutcome
     let breakEndsAt: Date
     let isServing: Bool
     let onServe: () -> Void
+
     @State private var model: DecorStudioModel
+    @State private var isRevealed = false
+    @State private var hasPlayedFocus = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(recipe: Recipe, outcome: BakeOutcome, breakEndsAt: Date, isServing: Bool, onServe: @escaping () -> Void) {
         self.recipe = recipe
@@ -20,46 +25,67 @@ struct DecorStudioView: View {
         self.breakEndsAt = breakEndsAt
         self.isServing = isServing
         self.onServe = onServe
-        let dish = Dish(recipeID: recipe.id)
-        let key: ViewerAssets.DishKey = dish == .cupcakes ? .cupcake : .cake
-        let geometry = ViewerAssets.profile(key)?.geometry ?? (dish == .cupcakes ? .cupcake : .cake)
-        _model = State(initialValue: DecorStudioModel(geometry: geometry, aspect: 0.6))
+        let key: ViewerAssets.DishKey = Dish(recipeID: recipe.id) == .cupcakes ? .cupcake : .cake
+        let geometry = ViewerAssets.profile(key)?.geometry ?? (key == .cupcake ? .cupcake : .cake)
+        _model = State(initialValue: DecorStudioModel(geometry: geometry, aspect: 0.46, store: .standard,
+                                                      draftKey: DecorDraftStore.key(for: outcome)))
     }
 
     private var dishKey: ViewerAssets.DishKey { Dish(recipeID: recipe.id) == .cupcakes ? .cupcake : .cake }
+    private var browning: Float { GradeCalculator.grade(outcome, served: true).browning == .dark ? 1 : 0 }
 
     var body: some View {
         GeometryReader { geo in
-            let side = min(geo.size.width, geo.size.height * 0.5)
-            VStack(spacing: Spacing.s3) {
+            let layout = StationLayout.load(for: geo.size) ?? StationLayout.fallback(for: geo.size)
+            ZStack(alignment: .top) {
+                Palette.ground.ignoresSafeArea()
+                if let background = model.focusBackground {
+                    Image(uiImage: background)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geo.size.width, height: geo.size.height + geo.safeAreaInsets.top + geo.safeAreaInsets.bottom)
+                        .ignoresSafeArea()
+                        .accessibilityHidden(true)
+                }
+                CakeViewerView(model: model, dish: dishKey, browning: browning)
+                    .ignoresSafeArea()
+                StationView(model: model, layout: layout, isRevealed: isRevealed)
                 header
-                shelf(count: 12)
-                    .frame(height: HitTarget.minimum + Spacing.s3)
-                Spacer(minLength: 0)
-                CakeViewerView(model: model, dish: dishKey, browning: GradeCalculator.grade(outcome, served: true).browning == .dark ? 1 : 0)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: side * 1.25)
-                Spacer(minLength: 0)
-                shelf(count: 8)
-                    .frame(height: HitTarget.minimum + Spacing.s3)
-                shelf(count: 5)
-                    .frame(height: HitTarget.minimum + Spacing.s3)
+                    .padding(.horizontal, Spacing.s4)
             }
-            .padding(.horizontal, Spacing.s4)
-            .padding(.vertical, Spacing.s2)
+            .task(id: geo.size.width > 0) {
+                guard geo.size.width > 0, !hasPlayedFocus else { return }
+                hasPlayedFocus = true
+                await playFocus(shape: FocusPath.shape(for: geo.size))
+            }
         }
-        .pocketScreenBackground()
         .accessibilityIdentifier("decorate.studio")
         #if DEBUG
         .task {
-            if ProcessInfo.processInfo.arguments.contains("-decorDemo") { model.applyDemo() }
+            let args = ProcessInfo.processInfo.arguments
+            if args.contains("-decorDemo") || args.contains("-decorDemoServe") { model.applyDemo() }
+            if args.contains("-decorDemoServe") {
+                try? await Task.sleep(for: .seconds(4))
+                onServe()
+            }
         }
         #endif
+    }
+
+    private func playFocus(shape: String) async {
+        if !reduceMotion, FocusPath.shared != nil {
+            await FocusMovePlayer.play(model: model, shape: shape) { _ in }
+        }
+        model.focusCamera = nil
+        withAnimation(.easeOut(duration: 0.3)) { model.focusBackground = nil }
+        isRevealed = true
     }
 
     private var header: some View {
         HStack {
             BreakClockBadge(breakEndsAt: breakEndsAt, total: outcome.bake.breakDuration)
+                .padding(Spacing.s1)
+                .background(Circle().fill(Palette.ground.opacity(0.75)))
             Spacer()
             Button(action: onServe) {
                 Text("Serve now", bundle: .module)
@@ -67,6 +93,7 @@ struct DecorStudioView: View {
                     .foregroundStyle(Palette.text)
                     .padding(.horizontal, Spacing.s4)
                     .frame(height: HitTarget.minimum)
+                    .background(Capsule().fill(Palette.ground.opacity(0.7)))
                     .overlay(Capsule().strokeBorder(Palette.line3, lineWidth: 1))
                     .contentShape(Capsule())
             }
@@ -74,17 +101,6 @@ struct DecorStudioView: View {
             .disabled(isServing)
             .accessibilityIdentifier("decorate.serveNow")
         }
-    }
-
-    private func shelf(count: Int) -> some View {
-        HStack(spacing: Spacing.s2) {
-            ForEach(0..<count, id: \.self) { _ in
-                RoundedRectangle(cornerRadius: Radius.chip)
-                    .fill(Palette.surface)
-                    .overlay(RoundedRectangle(cornerRadius: Radius.chip).strokeBorder(Palette.line1))
-            }
-        }
-        .accessibilityHidden(true)
     }
 }
 
@@ -105,21 +121,5 @@ struct BreakClockBadge: View {
             )
         }
         .accessibilityIdentifier("decorate.ring")
-    }
-}
-
-/// A flat top-down cake on a marble-grey plate: the stand-in until the live viewer.
-struct PlaceholderCake: View {
-    let dish: Dish
-
-    var body: some View {
-        let fraction: CGFloat = dish == .cupcakes ? 0.3 : 0.65
-        ZStack {
-            Circle().fill(Palette.muted.opacity(0.35))
-            Circle().strokeBorder(Palette.sand, lineWidth: 3)
-            Circle()
-                .fill(FoodPalette.bakeGolden)
-                .scaleEffect(fraction)
-        }
     }
 }

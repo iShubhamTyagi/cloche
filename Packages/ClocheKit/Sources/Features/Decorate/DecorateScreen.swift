@@ -91,6 +91,7 @@ struct DecorateScreen: View {
     private func serve() {
         guard !isServing else { return }
         isServing = true
+        DecorDraftStore.standard.serve(key: DecorDraftStore.key(for: outcome))
         if reduceMotion {
             onServeNow()
             return

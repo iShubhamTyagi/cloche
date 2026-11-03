@@ -33,12 +33,15 @@ enum ViewerAssets {
 
     /// PBR material from `<prefix>albedo/roughness/normal/ao`, or `fallback` colour.
     @MainActor
-    static func material(_ prefix: String, fallback: UIColor, roughness: Float = 0.7) async -> PhysicallyBasedMaterial {
+    /// `shade` darkens it (the dark bake state reuses the golden maps).
+    static func material(_ prefix: String, fallback: UIColor, roughness: Float = 0.7, shade: CGFloat = 1) async -> PhysicallyBasedMaterial {
         var m = PhysicallyBasedMaterial()
         if let albedo = await texture(prefix + "albedo", color: true) {
-            m.baseColor = .init(tint: .white, texture: .init(albedo))
+            m.baseColor = .init(tint: UIColor(white: shade, alpha: 1), texture: .init(albedo))
         } else {
-            m.baseColor = .init(tint: fallback)
+            var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+            fallback.getRed(&r, green: &g, blue: &b, alpha: &a)
+            m.baseColor = .init(tint: UIColor(red: r * shade, green: g * shade, blue: b * shade, alpha: 1))
         }
         if let rough = await texture(prefix + "roughness", color: false) {
             m.roughness = .init(scale: 1, texture: .init(rough))

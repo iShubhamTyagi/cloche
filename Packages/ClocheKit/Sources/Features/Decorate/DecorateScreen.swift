@@ -28,8 +28,20 @@ struct DecorateScreen: View {
     }
 
     var body: some View {
+        ZStack {
+            stage
+            if isSettled {
+                DecorStudioView(recipe: recipe, outcome: outcome, breakEndsAt: breakEndsAt,
+                                isServing: isServing, onServe: serve)
+                    .transition(.opacity)
+            }
+        }
+    }
+
+    /// The stage: the oven-to-stand move, then the dish settled on the stand.
+    private var stage: some View {
         let grade = GradeCalculator.grade(outcome, served: true)
-        OvenStage(isContentOnDoor: false) {
+        return OvenStage(isContentOnDoor: false) {
             header
         } oven: {
             StationMoveView(

@@ -60,6 +60,16 @@ struct SessionRootView: View {
             #endif
         }
         .onChange(of: dependencies.settings.keepsScreenAwake) { updateKeepAwake() }
+        #if DEBUG
+        // `-devBake` (optionally with `-devBakeCake`): run the dev bake on launch, for screenshots.
+        .task {
+            let args = ProcessInfo.processInfo.arguments
+            guard args.contains("-devBake"), case .idle = session.phase else { return }
+            if args.contains("-devBakeCake") { length = .medium }
+            try? await Task.sleep(for: .seconds(1))
+            devBakeAction?()
+        }
+        #endif
         .sheet(isPresented: $showsSettings) {
             SettingsScreen(settings: dependencies.settings, hingePresent: dependencies.doorSensor.hingePresent, onDemoBake: {
                 showsSettings = false

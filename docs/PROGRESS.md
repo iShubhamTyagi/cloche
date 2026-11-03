@@ -4,7 +4,7 @@ Read the **Current state** first; it says where the next session starts. Then ad
 
 ## Current state
 
-- **Phase:** Phase 2 on branch `phase-2-gate1`. The Live Activity (Phase 3.2, Watch Layer A) was brought forward on 2026-11-01. Owner-requested Prep rework done (see the 2026-11-01 entry). Next is Phase 2.1 (Recipes.json, recipe picker with locked state). The temperature hint is gone, and the picker must fit "each length bakes its own dish"
+- **Phase:** Decorating plan (`docs/BUILD_PLAN.md`) on branch `decorating`, running unattended (owner, 2026-11-03). Order: D0 → Blender steps 0–9 (icing, toppings, tools, cake_maps, toppings3d, station, focus, export; transition skipped) → app D1–D6. Write ALL PHASES DONE here when finished. Phase 2.1 (recipes) waits until after decorating.
 - **Tests:** switched off until a stable dev build (owner's call). Verify by running in the simulator and checking screenshots
 - **Last green commit:** see the newest log entry; `main` is pushed to github.com/iShubhamTyagi/cloche
 - **Blockers:** Apple Developer Program not enrolled (needed by the end of Phase 2 for TestFlight)
@@ -19,6 +19,11 @@ Read the **Current state** first; it says where the next session starts. Then ad
 - **Known for Phase 1:** the Duo simulator boots folded, showing the cover display (1398 × 2034 px). The system reserves a strip down the cover's right edge, so centred content sits left of centre; cover screens need the reserved-region APIs. `simctl io screenshot` needs `--display=1` on the Duo.
 
 ## Log
+
+### 2026-11-03: Decorating plan D0, audit and hook
+
+- **Built:** `docs/existing_state.md`, `scripts/verify_assets.py` → `docs/asset_status.md` (read-only `.blend` audit; plate origin at its exact centre, 0.000 mm), `scripts/blender/deco_common.py` (shared sprite camera, 2× render, materials, sheets). `DecorStudioView` (code-drawn placeholder studio: cake top-down on the plate, shelves, small break ring, Serve now) takes over `DecorateScreen` once the dish settles. DEBUG `-devBake` launch argument.
+- **Verified:** build green; dev bake on iPhone 17 ends on the placeholder studio (`docs/review/d0_studio_placeholder.png`).
 
 ### 2026-11-02: Rendered plating station and cloche in the app
 

@@ -1,0 +1,6 @@
+{
+  "mean_error_mm": 0.007,
+  "max_error_mm": 0.357,
+  "p99_error_mm": 0.155,
+  "bead_height_mm": 3.2
+}

@@ -96,7 +96,7 @@ def build(kind, variant=0, hero=False, materials=None):
             z = 0.0022 + i * 0.0026
             for k in range(count):
                 a = 2 * math.pi * (k + 0.5 * (i % 2)) / count + rng.uniform(-.1, .1)
-                _ico(bm, (r * math.cos(a), r * math.sin(a), z), 0.0026 * rng.uniform(.9, 1.1), subdiv=1, scale=(1, 1, 1.15))
+                _ico(bm, (r * math.cos(a), r * math.sin(a), z), 0.0026 * rng.uniform(.9, 1.1), subdiv=1 if hero else 0, scale=(1, 1, 1.15))
         return _obj(name, bm, M["raspberry"], hero)
     if kind == "blueberry":
         s = rng.uniform(.9, 1.1)

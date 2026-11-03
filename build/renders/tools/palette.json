@@ -1,0 +1,185 @@
+{
+  "units": "linear RGB, Principled BSDF values",
+  "colours": [
+    {
+      "name": "ivory",
+      "kind": "icing",
+      "srgb": "#EADBB8",
+      "linear": [
+        0.82279,
+        0.70838,
+        0.47932
+      ],
+      "roughness": 0.62,
+      "specular": 0.35,
+      "subsurface": 0.12,
+      "sheen": 0.08,
+      "clearcoat": 0.0
+    },
+    {
+      "name": "rose",
+      "kind": "icing",
+      "srgb": "#E8908E",
+      "linear": [
+        0.80695,
+        0.27889,
+        0.2705
+      ],
+      "roughness": 0.6,
+      "specular": 0.35,
+      "subsurface": 0.12,
+      "sheen": 0.08,
+      "clearcoat": 0.0
+    },
+    {
+      "name": "pistachio",
+      "kind": "icing",
+      "srgb": "#A6C47E",
+      "linear": [
+        0.38133,
+        0.55201,
+        0.20864
+      ],
+      "roughness": 0.6,
+      "specular": 0.35,
+      "subsurface": 0.1,
+      "sheen": 0.08,
+      "clearcoat": 0.0
+    },
+    {
+      "name": "chocolate",
+      "kind": "icing",
+      "srgb": "#3F2318",
+      "linear": [
+        0.04971,
+        0.01681,
+        0.00913
+      ],
+      "roughness": 0.55,
+      "specular": 0.4,
+      "subsurface": 0.06,
+      "sheen": 0.08,
+      "clearcoat": 0.0
+    },
+    {
+      "name": "caramel",
+      "kind": "icing",
+      "srgb": "#B06A2A",
+      "linear": [
+        0.43415,
+        0.14413,
+        0.02315
+      ],
+      "roughness": 0.55,
+      "specular": 0.4,
+      "subsurface": 0.08,
+      "sheen": 0.08,
+      "clearcoat": 0.0
+    },
+    {
+      "name": "white",
+      "kind": "icing",
+      "srgb": "#F4F1EA",
+      "linear": [
+        0.90466,
+        0.87962,
+        0.82279
+      ],
+      "roughness": 0.64,
+      "specular": 0.35,
+      "subsurface": 0.15,
+      "sheen": 0.08,
+      "clearcoat": 0.0
+    },
+    {
+      "name": "raspberry",
+      "kind": "icing",
+      "srgb": "#A8203E",
+      "linear": [
+        0.39157,
+        0.01444,
+        0.04817
+      ],
+      "roughness": 0.58,
+      "specular": 0.35,
+      "subsurface": 0.08,
+      "sheen": 0.08,
+      "clearcoat": 0.0
+    },
+    {
+      "name": "bluegrey",
+      "kind": "icing",
+      "srgb": "#7F93A6",
+      "linear": [
+        0.21223,
+        0.29177,
+        0.38133
+      ],
+      "roughness": 0.6,
+      "specular": 0.35,
+      "subsurface": 0.1,
+      "sheen": 0.08,
+      "clearcoat": 0.0
+    },
+    {
+      "name": "ganache_dark",
+      "kind": "ganache",
+      "srgb": "#2E1A12",
+      "linear": [
+        0.02732,
+        0.01033,
+        0.00605
+      ],
+      "roughness": 0.14,
+      "specular": 0.6,
+      "subsurface": 0.05,
+      "sheen": 0.0,
+      "clearcoat": 0.7
+    },
+    {
+      "name": "ganache_milk",
+      "kind": "ganache",
+      "srgb": "#6A3F26",
+      "linear": [
+        0.14413,
+        0.04971,
+        0.01938
+      ],
+      "roughness": 0.16,
+      "specular": 0.6,
+      "subsurface": 0.1,
+      "sheen": 0.0,
+      "clearcoat": 0.6
+    },
+    {
+      "name": "ganache_white",
+      "kind": "ganache",
+      "srgb": "#EFE3C8",
+      "linear": [
+        0.86316,
+        0.76815,
+        0.57758
+      ],
+      "roughness": 0.2,
+      "specular": 0.55,
+      "subsurface": 0.3,
+      "sheen": 0.0,
+      "clearcoat": 0.5
+    },
+    {
+      "name": "ganache_caramel",
+      "kind": "ganache",
+      "srgb": "#A8652C",
+      "linear": [
+        0.39157,
+        0.13014,
+        0.02519
+      ],
+      "roughness": 0.15,
+      "specular": 0.6,
+      "subsurface": 0.15,
+      "sheen": 0.0,
+      "clearcoat": 0.6
+    }
+  ]
+}

@@ -56,7 +56,8 @@ struct CakeViewerView: View {
             .overlay {
                 ViewerGestures(touch: touch, aspect: aspect, model: model)
             }
-            .onChange(of: aspect, initial: true) { model.setAspect(aspect) }
+            .onChange(of: aspect, initial: true) { model.setAspect(aspect, windowShare: model.windowShare) }
+            .onChange(of: model.windowShare) { model.setAspect(aspect, windowShare: model.windowShare) }
             .accessibilityElement()
             .accessibilityLabel(Text("Cake on the turntable", bundle: .module))
             .accessibilityHint(Text("Drag to decorate with the tool in hand. Two fingers tilt the view.", bundle: .module))

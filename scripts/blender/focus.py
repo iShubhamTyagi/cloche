@@ -39,6 +39,8 @@ CAKE_H = 0.040
 CAKE_R = 0.098
 FPS = 20
 SHAPES = {"iphone": (540, 1170), "duo": (750, 1065)}
+# The cake window's share of the screen width (station.py layouts): the cake fills 78 % of it.
+WINDOW_SHARE = {"iphone": 1.0, "duo": 900 / 1500}
 
 
 def ease(t):
@@ -59,7 +61,7 @@ def path(shape, frames, offset_y=0.0):
     t0 = Vector(st["target"]) - PLATE_TOP
     fov0 = math.degrees(2 * math.atan(18 / st["lens"]))          # station render: sensor fit vertical
     target_end = Vector((0, 0, CAKE_H))
-    dist = end_distance(aspect)
+    dist = end_distance(aspect, 0.78 * WINDOW_SHARE[shape])
     vis_h = 2 * dist * math.tan(math.radians(15))
     # Screen up at the end is +Y (away from the viewer): moving the target to -Y raises the cake.
     target_end_off = target_end + Vector((0, -offset_y * vis_h, 0))
@@ -203,7 +205,7 @@ def main():
     final = {}
     for key, (shape, off) in variants.items():
         w, h = SHAPES[shape]
-        dist = end_distance(w / h)
+        dist = end_distance(w / h, 0.78 * WINDOW_SHARE[shape])
         vis_h = 2 * dist * math.tan(math.radians(15))
         final[key] = {"cake_centre_px": [w / 2, round(h / 2 - off * h, 1)],
                       "cake_radius_px": round(CAKE_R / (vis_h * w / h) * w, 1), "center_offset_y": off}

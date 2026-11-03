@@ -25,6 +25,8 @@ final class ViewerScene {
     private var shownPlacements = 0
     private var toppingModels: [String: Entity] = [:]
     private var surface: Entity?
+    private var plate: ModelEntity?
+    private var shownLook: (plate: String?, backdrop: String?) = (nil, nil)
     /// Fixed for the scene's life: the meshes' vertex counts depend on it.
     private var detail: Float = 1
 
@@ -110,6 +112,7 @@ final class ViewerScene {
         var plateMaterial = await ViewerAssets.material("plate_", fallback: UIColor(white: 0.9, alpha: 1), roughness: 0.15)
         plateMaterial.clearcoat = .init(floatLiteral: 0.6)
         let plate = ModelEntity(mesh: .generateCylinder(height: 0.02, radius: plateRadius), materials: [plateMaterial])
+        self.plate = plate
         plate.position.y = -0.01
         spinner.addChild(plate)
 
@@ -155,7 +158,7 @@ final class ViewerScene {
         if let url = ViewerAssets.url("env", "png") ?? ViewerAssets.url("env", "hdr"),
            let source = CGImageSourceCreateWithURL(url as CFURL, nil),
            let image = CGImageSourceCreateImageAtIndex(source, 0, nil),
-           let env = try? await EnvironmentResource(equirectangular: image, withName: "studio") {
+           let env = await Self.environment(image) {
             let ibl = Entity()
             ibl.components.set(ImageBasedLightComponent(source: .single(env), intensityExponent: 0.5))
             root.addChild(ibl)
@@ -164,6 +167,14 @@ final class ViewerScene {
                 child.components.set(ImageBasedLightReceiverComponent(imageBasedLight: ibl))
             }
         }
+    }
+
+    /// The studio's light as an environment: iOS 27's options initializer, else the iOS 18 one.
+    private static func environment(_ image: CGImage) async -> EnvironmentResource? {
+        if #available(iOS 27.0, *) {
+            return try? await EnvironmentResource(equirectangular: image, options: .init(samplingQuality: .normal))
+        }
+        return try? await EnvironmentResource(equirectangular: image, withName: "studio")
     }
 
     /// The cake's top in RealityKit's frame (the camera target).
@@ -195,6 +206,22 @@ final class ViewerScene {
             shownRevision = revision
         }
         syncToppings(surfaces)
+        syncLook(plate: surfaces.plate, backdrop: surfaces.backdrop)
+    }
+
+    /// Plate: Carrara (as rendered) or Emperador (the same marble, tinted deep brown).
+    /// Backdrop: the night marble, or a warm linen tone.
+    private func syncLook(plate name: String?, backdrop: String?) {
+        guard shownLook.plate != name || shownLook.backdrop != backdrop else { return }
+        shownLook = (name, backdrop)
+        if let plate, var m = plate.model?.materials.first as? PhysicallyBasedMaterial {
+            m.baseColor.tint = name == "emperador" ? UIColor(red: 0.45, green: 0.3, blue: 0.22, alpha: 1) : .white
+            plate.model?.materials = [m]
+        }
+        if let surface = surface as? ModelEntity, var m = surface.model?.materials.first as? PhysicallyBasedMaterial {
+            m.baseColor.tint = backdrop == "linen" ? UIColor(red: 0.93, green: 0.88, blue: 0.78, alpha: 1) : .white
+            surface.model?.materials = [m]
+        }
     }
 
     #if DEBUG

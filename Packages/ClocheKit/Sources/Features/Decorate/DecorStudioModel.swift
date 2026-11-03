@@ -34,6 +34,8 @@ final class DecorStudioModel {
     var cursor: SIMD2<Float>?
     /// During the focus move: the camera pose from the exported path, and the background frame.
     var focusCamera: FocusCamera?
+    /// Set by the studio from the station layout; the viewer refits with it.
+    var windowShare: Float = 1
     var focusBackground: UIImage?
 
     /// Seconds since the studio opened (turntable and op timing).
@@ -59,9 +61,11 @@ final class DecorStudioModel {
     var now: Double { Date().timeIntervalSince(opened) }
 
     /// Refit the framing distance when the viewer's shape is known.
-    func setAspect(_ aspect: Float) {
+    /// `windowShare`: the cake window's share of the screen width (the Duo's is narrower).
+    func setAspect(_ aspect: Float, windowShare: Float = 1) {
         guard aspect > 0 else { return }
-        let fitted = CameraRig(elevation: rig.elevation, target: rig.target, cakeRadius: geometry.radius, aspect: aspect)
+        let fitted = CameraRig(elevation: rig.elevation, target: rig.target, cakeRadius: geometry.radius, aspect: aspect,
+                               fill: 0.78 * windowShare)
         rig.baseDistance = fitted.baseDistance
     }
     var canUndo: Bool { document.ops.contains { if case .turntable = $0 { false } else { true } } }

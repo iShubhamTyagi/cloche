@@ -4,7 +4,17 @@ Read the **Current state** first; it says where the next session starts. Then ad
 
 ## Current state
 
-- **Phase:** Decorating plan (`docs/BUILD_PLAN.md`) on branch `decorating`, running unattended (owner, 2026-11-03). Order: D0 → Blender steps 0–9 (icing, toppings, tools, cake_maps, toppings3d, station, focus, export; transition skipped) → app D1–D6. Write ALL PHASES DONE here when finished. Phase 2.1 (recipes) waits until after decorating.
+- **Phase:** Decorating plan (`docs/BUILD_PLAN.md`) **ALL PHASES DONE** (first full pass, 2026-11-03) on branch `decorating` (not pushed). All Blender steps (transition.py skipped: the tongs move exists) and app Phases D0–D6. Next: the owner's look and feel review, then Phase 2.1 (recipes).
+- **Decorating, needs the human:**
+  - Real-iPhone frame rate, the 10-minute thermal check, and touch feel (`-viewerSpike realitykit` for numbers).
+  - Look approval against real photographs (the icing shader vs `docs/review/tools_reference.png`; the station panels).
+  - The Duo's centre offset: 0, or the rendered 0.08 variant (`focus_duo_offset_*`).
+  - Confirming RealityKit on a real device (`docs/viewer_decision.md`).
+  - Unfolding the Duo by hand to check the station on the inner screen while folding.
+- **Decorating, known issues:**
+  - RealityKit logs "EnvironmentResource with no skybox" on iOS 27; the scene is lit by the key light either way.
+  - About 3 s of extra load on the Duo simulator before the focus move.
+  - 3 pre-existing `SessionEngineTests` fail (stale since tests were switched off on 2026-11-01; `Domain` is untouched on this branch).
 - **Tests:** switched off until a stable dev build (owner's call). Verify by running in the simulator and checking screenshots
 - **Last green commit:** see the newest log entry; `main` is pushed to github.com/iShubhamTyagi/cloche
 - **Blockers:** Apple Developer Program not enrolled (needed by the end of Phase 2 for TestFlight)
@@ -19,6 +29,24 @@ Read the **Current state** first; it says where the next session starts. Then ad
 - **Known for Phase 1:** the Duo simulator boots folded, showing the cover display (1398 × 2034 px). The system reserves a strip down the cover's right edge, so centred content sits left of centre; cover screens need the reserved-region APIs. `simctl io screenshot` needs `--display=1` on the Duo.
 
 ## Log
+
+### 2026-11-03: Decorating plan, finishing pass: ALL PHASES DONE
+
+- **Built:**
+  - **Assets:** exported into the app (`Resources/DecorRender`, generated and gitignored).
+    - 111.4 MB of resources against the 150 MB budget.
+    - Decorating groups: viewer 1.3, tools 1.4, topping icons 0.55, station 9.5, focus 0.55 MB.
+  - **Studio loading:** the studio now loads under the tongs move (mesh work off the main actor, topping models preloaded asynchronously).
+  - **Duo:** the camera fits the cake to its narrower cake window, and the focus path was re-rendered to match.
+  - **Viewer:** shows the plate and backdrop choices; uses an 8-bit environment map.
+  - **Docs:** reviews for steps 3–8 in `docs/review/`.
+- **Verified:**
+  - App build green.
+  - `DecoratingTests` 16/16. Whole package: 96 passing, 3 failing pre-existing `SessionEngineTests` (`Domain` untouched).
+  - iPhone 17: dev bake → tongs → focus → station → demo cake → serve → served screen (replay, share).
+  - Duo inner screen: station in the Duo layout, cake inside its window (`docs/review/d3_station_duo.png`).
+  - Focus path vs Blender projection: 0.02 px. Viewer preview vs original: 0.3 % mean error.
+- **Left over:** see "Needs the human" in Current state.
 
 ### 2026-11-03: Decorating plan steps 1–9 and D1–D6 (first full pass)
 

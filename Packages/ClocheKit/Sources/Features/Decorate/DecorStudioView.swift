@@ -61,6 +61,10 @@ struct DecorStudioView: View {
                 header
                     .padding(.horizontal, Spacing.s4)
             }
+            .onAppear {
+                let w = layout.cakeWindowPx
+                model.windowShare = Float((w[2] - w[0]) / layout.size.width)
+            }
             .task(id: isActive && geo.size.width > 0) {
                 guard isActive, geo.size.width > 0, !hasPlayedFocus else { return }
                 hasPlayedFocus = true

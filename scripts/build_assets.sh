@@ -22,4 +22,7 @@ run station.py        # 6
 # 7: transition.py is skipped: the app's tongs move (StationMoveView) already does it.
 run focus.py          # 8
 python3 scripts/blender/export_assets.py --budget-mb 150   # 9
+"$B" -b --python-exit-code 1 -P scripts/blender/realism_maps.py > build/renders/realism_maps.py.log 2>&1   # after the export: replaces the sponge and liner maps
+"$B" -b --python-exit-code 1 -P scripts/blender/stand_export.py > build/renders/stand_export.py.log 2>&1   # the live stand and cloche
+"$B" -b --python-exit-code 1 -P scripts/blender/tableware.py > build/renders/tableware.py.log 2>&1   # bowls, spatula, bag, tongs
 echo "✅ Decorating assets built and exported"

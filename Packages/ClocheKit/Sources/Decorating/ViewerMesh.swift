@@ -63,6 +63,8 @@ public enum ViewerMesh {
     public static let topRings = 120
     public static let topSegments = 384
     public static let sideRows = 48
+    /// Folds in a cupcake case (scripts/blender/realism_maps.py draws the same number).
+    public static let linerPleats = 44
 
     /// The bare cake's top (polar UVs: u = angle / 2π, v = radius / R).
     public static func cakeTop(_ p: DishProfile) -> MeshData {
@@ -73,7 +75,14 @@ public enum ViewerMesh {
 
     /// The bare side (UVs: u = angle / 2π, v = height share).
     public static func cakeSide(_ p: DishProfile) -> MeshData {
-        sideGrid(p, rows: 32, segments: 256) { z, _ in p.sideRadius(atHeight: z) } uv: { z, a in
+        // A cupcake's side is its paper case: real folds, so the edge isn't a smooth circle.
+        let pleated = !p.decoratableSide
+        return sideGrid(p, rows: 32, segments: pleated ? linerPleats * 8 : 256) { z, a in
+            let radius = p.sideRadius(atHeight: z)
+            guard pleated else { return radius }
+            let phase = (a / (2 * .pi) * Float(linerPleats)).truncatingRemainder(dividingBy: 1)
+            return radius + (abs(phase * 2 - 1) - 0.5) * 0.0011
+        } uv: { z, a in
             SIMD2(a / (2 * .pi), (z - p.sideBottom) / max(p.sideTop - p.sideBottom, 1e-6))
         }
     }

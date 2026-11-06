@@ -64,7 +64,12 @@ struct SessionRootView: View {
         // `-devBake` (optionally with `-devBakeCake`): run the dev bake on launch, for screenshots.
         .task {
             let args = ProcessInfo.processInfo.arguments
-            guard args.contains("-devBake"), case .idle = session.phase else { return }
+            // A relaunch can land on the grade card; review launches go straight past it.
+            if args.contains(where: { $0.hasPrefix("-decor") || $0 == "-devBake" }), case .graded = session.phase { session.send(.decorate) }
+            guard args.contains("-devBake") else { return }
+            // A cake left on the served screen would otherwise stop the bake from starting.
+            if case .served = session.phase { session.send(.done) }
+            guard case .idle = session.phase else { return }
             if args.contains("-devBakeCake") { length = .medium }
             try? await Task.sleep(for: .seconds(1))
             devBakeAction?()
@@ -92,6 +97,19 @@ struct SessionRootView: View {
     /// The open screen (iPhone, or the Duo unfolded) for each phase.
     @ViewBuilder
     private func phaseScreen(copy: DoorCopy) -> some View {
+        // Decorating and served are one screen, so the cake stays put between them.
+        if let flow = decorateFlow {
+            DecorateScreen(
+                recipe: StarterRecipes.recipe(id: flow.outcome.bake.recipeID),
+                outcome: flow.outcome,
+                breakEndsAt: flow.breakEndsAt,
+                served: flow.served,
+                playsIntro: decorateFromGrade,
+                onServeNow: { session.send(.serveNow) },
+                onDone: { session.send(.done) }
+            )
+            .transition(.opacity)
+        } else {
         switch session.phase {
             case .idle:
                 PrepScreen(doorCopy: copy, onSettings: { showsSettings = true }, length: $length, onBake: { length in
@@ -128,21 +146,18 @@ struct SessionRootView: View {
                     send: sendFromGrade
                 )
                 .transition(.opacity)
-            case let .decorating(outcome, breakEndsAt):
-                DecorateScreen(
-                    recipe: StarterRecipes.recipe(id: outcome.bake.recipeID),
-                    outcome: outcome,
-                    breakEndsAt: breakEndsAt,
-                    playsIntro: decorateFromGrade
-                ) {
-                    session.send(.serveNow)
-                }
-                .transition(.opacity)
-            case let .served(outcome, grade):
-                ServedScreen(outcome: outcome, grade: grade) { session.send(.done) }
-                    .transition(.opacity)
-                    .transition(.opacity)
+            case .decorating, .served:
+                EmptyView()
             }
+        }
+    }
+
+    private var decorateFlow: (outcome: BakeOutcome, breakEndsAt: Date, served: Grade?)? {
+        switch session.phase {
+        case let .decorating(outcome, breakEndsAt): (outcome, breakEndsAt, nil)
+        case let .served(outcome, grade): (outcome, .now, grade)
+        default: nil
+        }
     }
 
     private func sendFromGrade(_ event: SessionEvent) {

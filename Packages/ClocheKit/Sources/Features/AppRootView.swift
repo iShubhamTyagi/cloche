@@ -36,16 +36,7 @@ public struct AppRootView: View {
     }
 
     public var body: some View {
-        #if DEBUG
-        if let i = ProcessInfo.processInfo.arguments.firstIndex(of: "-viewerSpike") {
-            let args = ProcessInfo.processInfo.arguments
-            ViewerSpikeScreen(mode: i + 1 < args.count ? args[i + 1] : "realitykit")
-        } else {
-            root
-        }
-        #else
         root
-        #endif
     }
 
     private var root: some View {

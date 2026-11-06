@@ -66,6 +66,11 @@ public enum DecorOp: Codable, Equatable, Sendable {
     case topping(kind: String, variant: Int, at: SurfacePoint, spin: Float)
     /// A pinch of sprinkles: instanced rods scattered from `seed`.
     case sprinkles(seed: UInt64, at: SurfacePoint, radius: Float)
+    /// One spatula stroke of cream, anywhere on the dish. `seed` shapes the blade's streaks, so a
+    /// replay lays exactly the same marks.
+    case cream(colour: Int, seed: UInt64, points: [CreamPoint])
+    /// Piped star beads on the even slots of a ring (one drag is one op).
+    case beads(colour: Int, ring: PipeRing, slots: [Int])
     /// The turntable started or stopped (kept for the time-lapse).
     case turntable(spinning: Bool, speed: Float, time: Double)
     case plate(String)

@@ -85,14 +85,14 @@ struct IcingColour: Sendable, Equatable {
 
     /// Same values as scripts/blender/icing.py, used when no palette is bundled.
     static let defaults: [IcingColour] = [
-        .init(name: "ivory", isGanache: false, hex: "#EADBB8", roughness: 0.62),
-        .init(name: "rose", isGanache: false, hex: "#E8908E", roughness: 0.6),
-        .init(name: "pistachio", isGanache: false, hex: "#A6C47E", roughness: 0.6),
-        .init(name: "chocolate", isGanache: false, hex: "#3F2318", roughness: 0.55),
-        .init(name: "caramel", isGanache: false, hex: "#B06A2A", roughness: 0.55),
-        .init(name: "white", isGanache: false, hex: "#F4F1EA", roughness: 0.64),
-        .init(name: "raspberry", isGanache: false, hex: "#A8203E", roughness: 0.58),
-        .init(name: "bluegrey", isGanache: false, hex: "#7F93A6", roughness: 0.6),
+        .init(name: "ivory", isGanache: false, hex: "#F1E8D4", roughness: 0.62),
+        .init(name: "rose", isGanache: false, hex: "#E2B4AC", roughness: 0.6),
+        .init(name: "pistachio", isGanache: false, hex: "#C4D0A6", roughness: 0.6),
+        .init(name: "chocolate", isGanache: false, hex: "#6E4C3B", roughness: 0.55),
+        .init(name: "caramel", isGanache: false, hex: "#CDA377", roughness: 0.55),
+        .init(name: "white", isGanache: false, hex: "#F6F2E9", roughness: 0.64),
+        .init(name: "raspberry", isGanache: false, hex: "#C6838C", roughness: 0.58),
+        .init(name: "bluegrey", isGanache: false, hex: "#AEBBC5", roughness: 0.6),
         .init(name: "ganache_dark", isGanache: true, hex: "#2E1A12", roughness: 0.14),
         .init(name: "ganache_milk", isGanache: true, hex: "#6A3F26", roughness: 0.16),
         .init(name: "ganache_white", isGanache: true, hex: "#EFE3C8", roughness: 0.2),

@@ -2,38 +2,21 @@ import DesignSystem
 import Domain
 import SwiftUI
 
-/// The move from the baking station to the plating station. The oven and the plating station
-/// sit side by side; tongs reach into the open oven, lift the serving out, and the view pans
-/// across to the station while the tongs carry it over and set it on the cake stand.
-///
-/// Without `playsIntro` (back in the app mid-break) it starts at the station with the dish on the
-/// stand. Reduce Motion: a cross-fade straight to that.
+/// The move from the oven to the turntable, drawn over the live scene. Both stand on one marble
+/// slab: the live camera starts at the oven with the render's own lens, so the render sits exactly
+/// on the live slab. Tongs lift the dish out, the camera slides along the slab (the oven slides
+/// away with it), the real stand comes into view with its cloche lifting off, the dish is set
+/// down and becomes the live cake, and the same camera climbs to the decorating view.
 struct StationMoveView: View {
+    let model: DecorStudioModel
     let dish: Dish
     let progress: Double
     let browning: Browning
-    /// Serving: the cloche lowers back over the dish.
-    var isServing = false
-    /// Called once the dish is on the stand.
+    /// Called once the camera has reached the decorating view.
     var onSettled: () -> Void = {}
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.hingeDoorAngle) private var hingeDoorAngle
-    @State private var step: Step
-    /// 0 the cloche seated on the plate, 1 lifted out of frame. It waits seated over the empty
-    /// stand, lifts away while the dish is carried over, and lowers again on the serve.
-    @State private var clocheLift: Double
-
-    init(dish: Dish, progress: Double, browning: Browning, playsIntro: Bool, isServing: Bool = false,
-         onSettled: @escaping () -> Void = {}) {
-        self.isServing = isServing
-        self.dish = dish
-        self.progress = progress
-        self.browning = browning
-        self.onSettled = onSettled
-        _step = State(initialValue: playsIntro ? .atOven : .done)
-        _clocheLift = State(initialValue: playsIntro ? 0 : 1)
-    }
+    @State private var step = Step.atOven
 
     enum Step: Int, Comparable {
         case atOven, reach, grip, lift, carry, setDown, release, done
@@ -42,11 +25,16 @@ struct StationMoveView: View {
     }
 
     var body: some View {
-        GeometryReader { slot in
-            let size = slot.size
-            let pan: CGFloat = step >= .carry ? 1 : 0
+        GeometryReader { screen in
+            let full = CGSize(width: screen.size.width, height: screen.size.height + screen.safeAreaInsets.top + screen.safeAreaInsets.bottom)
+            let slot = CGSize(width: full.width, height: full.height / 2)
+            let serving = servingFrame(slot: slot, viewerWidth: full.width)
             ZStack(alignment: .topLeading) {
-                HStack(spacing: 0) {
+                // Until the live slab exists, the render's own slab stands in on the app's ground.
+                Palette.ground
+                    .opacity(model.isSceneReady ? 0 : 1)
+                    .animation(.easeOut(duration: 0.3), value: model.isSceneReady)
+                SlidingOven(model: model, travel: travel(in: slot)) {
                     OvenFrame(
                         plate: Text("Prêt.", bundle: .module),
                         isPlateItalic: true,
@@ -57,54 +45,52 @@ struct StationMoveView: View {
                         doorOpen: 1,
                         isServingTaken: step >= .grip
                     )
-                    .frame(width: size.width, height: size.height)
-                    station
-                        .frame(width: size.width, height: size.height)
+                    .frame(width: slot.width, height: slot.height)
                 }
-
-                let serving = servingFrame(in: size)
-                if step >= .grip {
-                    servingArt(frame: serving, slotWidth: size.width)
+                if step >= .grip, step < .release {
+                    servingArt(frame: serving, width: full.width)
                         .accessibilityHidden(true)
                 }
-
-                let tongsHeight = size.height * 0.75
-                // The tips close around the dish a little above its middle.
-                let tipsY = serving.minY + serving.height * 0.5
-                TongsView(span: serving.width * 0.78, grip: (step >= .grip && step < .release) ? 1 : 0)
-                    .frame(width: serving.width * 1.6, height: tongsHeight)
-                    .position(x: serving.midX, y: tipsY - tongsHeight / 2 - (tongsAreAway ? size.height : 0))
+                let side = TongsView.side(span: serving.width)
+                let tipsY = serving.minY + serving.height * 0.55
+                TongsView(span: serving.width, grip: (step >= .grip && step < .release) ? 1 : 0)
+                    .frame(width: side, height: side)
+                    .position(x: serving.midX, y: tipsY - side * (TongsView.tipShare - 0.5) - (tongsAreAway ? full.height : 0))
             }
-            .frame(width: size.width * 2, height: size.height, alignment: .topLeading)
-            .offset(x: -pan * size.width)
-            .frame(width: size.width, height: size.height, alignment: .leading)
-            .clipped()
+            .frame(width: full.width, height: full.height, alignment: .topLeading)
+            .environment(\.showsOvenSlab, !model.isSceneReady)
+            .ignoresSafeArea()
+            .allowsHitTesting(false)
+            .task { await play(slot: slot, full: full) }
         }
-        .task { await play() }
-        .onChange(of: isServing) { _, serving in
-            guard serving else { return }
-            withAnimation(reduceMotion ? nil : .easeIn(duration: Self.lowerDuration)) { clocheLift = 0 }
-        }
+        .accessibilityIdentifier("decorate.station")
     }
 
     private var tongsAreAway: Bool { step == .atOven || step == .done }
 
-    /// The rendered marble stand, cloche lifted away (decorating happens with it off).
-    @ViewBuilder
-    private var station: some View {
-        if let layout = StationRenderLayout.shared {
-            RenderedStation(layout: layout, clocheLift: clocheLift, alignsHingeToFold: hingeDoorAngle != nil)
-        } else {
-            Color.clear
-        }
+    private var aligns: Bool { hingeDoorAngle != nil }
+
+    /// How the oven render sits in its slot: its scale, and where the counter line falls.
+    private func ovenPlacement(in slot: CGSize) -> (scale: CGFloat, counterY: CGFloat)? {
+        guard let layout = OvenRenderLayout.shared else { return nil }
+        let (scale, origin) = RenderedOven.placement(layout: layout, in: slot, alignsHingeToFold: aligns)
+        // The slab's front edge in the render: row 673 of the oven camera's picture, a little below
+        // the layout's `counterY`, which is the line through the oven's footprint.
+        return (scale, origin.y + 673 * scale)
     }
 
-    /// The rendered serving when bundled (servings.py), else the drawn one.
+    /// How far the oven moves on screen as the camera slides the length of the slab between them.
+    private func travel(in slot: CGSize) -> CGFloat {
+        guard let placement = ovenPlacement(in: slot) else { return slot.width * 2.3 }
+        // 3667 pixels of focal length, 2300 mm from the camera to the oven's front.
+        return placement.scale * 3667 / 2300 * CGFloat(DecorStudioModel.ovenDistance)
+    }
+
     @ViewBuilder
-    private func servingArt(frame: CGRect, slotWidth: CGFloat) -> some View {
+    private func servingArt(frame: CGRect, width: CGFloat) -> some View {
         if let serving = OvenDishesLayout.shared?.serving(for: dish) {
             ServingSprite(serving: serving, progress: progress, browning: browning, frame: frame)
-                .frame(width: slotWidth * 2, alignment: .topLeading)
+                .frame(width: width, alignment: .topLeading)
         } else {
             DishView(dish: dish, progress: progress, browning: browning)
                 .frame(width: frame.width, height: frame.height)
@@ -112,99 +98,71 @@ struct StationMoveView: View {
         }
     }
 
-    /// The rendered serving's frame on the plate: its real size, centred, its base on the plate.
-    private func renderedStandFrame(in size: CGSize, oven: CGRect) -> CGRect? {
-        guard let layout = StationRenderLayout.shared else { return nil }
-        let (scale, origin) = RenderedStation.placement(layout: layout, in: size, alignsHingeToFold: hingeDoorAngle != nil)
-        let centreX = origin.x + layout.plateTop.centre[0] * scale
-        let topY = origin.y + layout.plateTop.centre[1] * scale
-        return CGRect(x: centreX - oven.width / 2, y: topY - oven.height * 0.97, width: oven.width, height: oven.height)
-    }
-
-    /// Where the serving stands on the plate (a cupcake, or a cake nearly the plate's width).
-    private func standServingFrame(in size: CGSize) -> CGRect {
-        guard let layout = StationRenderLayout.shared else { return .zero }
-        let fraction: CGFloat = switch dish {
-        case .cupcakes: 0.32
-        case .smallCake: 0.6
-        case .largeCake: 0.72
-        }
-        return RenderedStation.servingFrame(layout: layout, fraction: fraction, in: size, alignsHingeToFold: hingeDoorAngle != nil)
-    }
-
-    /// The serving's frame in the two-station strip (the station starts one width to the right).
-    private func servingFrame(in size: CGSize) -> CGRect {
-        let rendered = RenderedOven.servingFrame(dish: dish, in: size, alignsHingeToFold: hingeDoorAngle != nil)
-        let inOven = rendered ?? OvenFrame.servingFrame(dish: dish, in: size, alignsHingeToFold: hingeDoorAngle != nil)
-        let onStand = (rendered.flatMap { renderedStandFrame(in: size, oven: $0) } ?? standServingFrame(in: size))
-            .offsetBy(dx: size.width, dy: 0)
-        // Lifted clear of the oven and carried at its own size (the rendered serving is to scale
-        // in both views; the drawn one grows toward the stand size).
-        let liftedSize = rendered != nil ? inOven.size
-            : CGSize(width: (inOven.width + onStand.width) / 2, height: (inOven.width + onStand.width) / 2)
-        let liftedTop = size.height * 0.1
+    /// Where the dish is, in screen points, at the current step.
+    private func servingFrame(slot: CGSize, viewerWidth: CGFloat) -> CGRect {
+        let rendered = RenderedOven.servingFrame(dish: dish, in: slot, alignsHingeToFold: aligns)
+        let inOven = rendered ?? OvenFrame.servingFrame(dish: dish, in: slot, alignsHingeToFold: aligns)
+        // Farther from the camera on the stand than in the oven's doorway, so slightly smaller.
+        let size = CGSize(width: inOven.width * 0.94, height: inOven.height * 0.94)
+        let stand = model.standPoint(viewerWidth: Float(viewerWidth))
+        let centreX = CGFloat(stand?.x ?? Float(viewerWidth / 2))
+        let plateY = CGFloat(stand?.y ?? Float(slot.height * 0.6))
+        let onStand = CGRect(x: centreX - size.width / 2, y: plateY - size.height * 0.97, width: size.width, height: size.height)
+        let liftedTop = slot.height * 0.1
         switch step {
         case .atOven, .reach, .grip:
             return inOven
         case .lift:
-            return CGRect(origin: CGPoint(x: inOven.midX - liftedSize.width / 2, y: liftedTop), size: liftedSize)
+            return CGRect(origin: CGPoint(x: inOven.midX - inOven.width / 2, y: liftedTop), size: inOven.size)
         case .carry:
-            return CGRect(origin: CGPoint(x: onStand.midX - onStand.width / 2, y: liftedTop), size: onStand.size)
+            return CGRect(origin: CGPoint(x: onStand.minX, y: liftedTop), size: size)
         case .setDown, .release, .done:
             return onStand
         }
     }
 
-    private func play() async {
+    private func play(slot: CGSize, full: CGSize) async {
         guard step == .atOven else { return }
-        if reduceMotion {
-            clocheLift = 1
-            withAnimation(.easeInOut(duration: 0.35)) { step = .done }
-            onSettled()
-            return
-        }
-        // Each move: the step, how long it animates, and its curve.
-        let moves: [(Step, Double, Curve)] = [
-            (.reach, 0.7, .easeOut),
-            (.grip, 0.25, .easeInOut),
-            (.lift, 0.6, .easeInOut),
-            (.carry, 1.3, .easeInOut),
-            (.setDown, 0.5, .easeOut),
-            (.release, 0.25, .easeInOut),
-            (.done, 0.5, .easeIn),
-        ]
+        let placement = ovenPlacement(in: slot)
+        model.beginIntro(pointsPerPixel: Float(placement?.scale ?? 0.42), counterY: Float(placement?.counterY ?? slot.height * 0.7),
+                         viewerHeight: Float(DecorStudioView.stageHeight(screen: full)))
         // A beat on the open oven before the tongs come in.
         try? await Task.sleep(for: .seconds(0.25))
-        for (next, duration, curve) in moves {
-            guard !Task.isCancelled else { return }
-            withAnimation(curve.animation(duration)) { step = next }
-            if next == .carry {
-                // The cloche lifts away as the dish comes across, clear before it is set down.
-                withAnimation(.easeOut(duration: duration * 0.8)) { clocheLift = 1 }
-            }
-            try? await Task.sleep(for: .seconds(duration))
-        }
+        await move(.reach, 0.7, .easeOut(duration: 0.7))
+        await move(.grip, 0.25, .easeInOut(duration: 0.25))
+        await move(.lift, 0.6, .easeInOut(duration: 0.6))
+        // The live scene must be there before the camera can leave.
+        while !model.isSceneReady, !Task.isCancelled { try? await Task.sleep(for: .milliseconds(50)) }
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-introHold") { try? await Task.sleep(for: .seconds(30)) }
+        #endif
+        model.startSlide()
+        await move(.carry, Double(DecorStudioModel.slideDuration), .easeInOut(duration: Double(DecorStudioModel.slideDuration)))
+        await move(.setDown, 0.5, .easeOut(duration: 0.5))
+        model.placeDish()
+        await move(.release, 0.25, .easeInOut(duration: 0.25))
+        await move(.done, 0.45, .easeIn(duration: 0.45))
         guard !Task.isCancelled else { return }
+        model.startRise()
+        try? await Task.sleep(for: .seconds(Double(DecorStudioModel.riseDuration) * 0.55))
         onSettled()
     }
 
-    /// How long the cloche takes to lower on the serve.
-    static let lowerDuration = 0.8
-
-    private enum Curve {
-        case easeIn, easeOut, easeInOut
-
-        func animation(_ duration: Double) -> Animation {
-            switch self {
-            case .easeIn: .easeIn(duration: duration)
-            case .easeOut: .easeOut(duration: duration)
-            case .easeInOut: .easeInOut(duration: duration)
-            }
-        }
+    private func move(_ next: Step, _ seconds: Double, _ animation: Animation) async {
+        guard !Task.isCancelled else { return }
+        withAnimation(animation) { step = next }
+        try? await Task.sleep(for: .seconds(seconds))
     }
 }
 
-#Preview("Intro") {
-    StationMoveView(dish: .cupcakes, progress: 1, browning: .golden, playsIntro: true)
-        .frame(width: 402, height: 437)
+/// Moves the oven with the camera. Its own view, so only this redraws on each frame of the slide.
+private struct SlidingOven<Content: View>: View {
+    let model: DecorStudioModel
+    let travel: CGFloat
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        let s = CGFloat(model.slide)
+        content.offset(x: -s * s * (3 - 2 * s) * travel)
+    }
 }

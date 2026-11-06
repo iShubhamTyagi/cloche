@@ -4,11 +4,11 @@
     {
       "name": "ivory",
       "kind": "icing",
-      "srgb": "#EADBB8",
+      "srgb": "#F1E8D4",
       "linear": [
-        0.82279,
-        0.70838,
-        0.47932
+        0.87962,
+        0.80695,
+        0.65837
       ],
       "roughness": 0.62,
       "specular": 0.35,
@@ -19,11 +19,11 @@
     {
       "name": "rose",
       "kind": "icing",
-      "srgb": "#E8908E",
+      "srgb": "#E2B4AC",
       "linear": [
-        0.80695,
-        0.27889,
-        0.2705
+        0.76052,
+        0.45641,
+        0.41254
       ],
       "roughness": 0.6,
       "specular": 0.35,
@@ -34,11 +34,11 @@
     {
       "name": "pistachio",
       "kind": "icing",
-      "srgb": "#A6C47E",
+      "srgb": "#C4D0A6",
       "linear": [
-        0.38133,
         0.55201,
-        0.20864
+        0.63076,
+        0.38133
       ],
       "roughness": 0.6,
       "specular": 0.35,
@@ -49,11 +49,11 @@
     {
       "name": "chocolate",
       "kind": "icing",
-      "srgb": "#3F2318",
+      "srgb": "#6E4C3B",
       "linear": [
-        0.04971,
-        0.01681,
-        0.00913
+        0.15593,
+        0.07227,
+        0.04374
       ],
       "roughness": 0.55,
       "specular": 0.4,
@@ -64,11 +64,11 @@
     {
       "name": "caramel",
       "kind": "icing",
-      "srgb": "#B06A2A",
+      "srgb": "#CDA377",
       "linear": [
-        0.43415,
-        0.14413,
-        0.02315
+        0.6105,
+        0.36625,
+        0.18447
       ],
       "roughness": 0.55,
       "specular": 0.4,
@@ -79,11 +79,11 @@
     {
       "name": "white",
       "kind": "icing",
-      "srgb": "#F4F1EA",
+      "srgb": "#F6F2E9",
       "linear": [
-        0.90466,
-        0.87962,
-        0.82279
+        0.92158,
+        0.88792,
+        0.81485
       ],
       "roughness": 0.64,
       "specular": 0.35,
@@ -94,11 +94,11 @@
     {
       "name": "raspberry",
       "kind": "icing",
-      "srgb": "#A8203E",
+      "srgb": "#C6838C",
       "linear": [
-        0.39157,
-        0.01444,
-        0.04817
+        0.56471,
+        0.22697,
+        0.26225
       ],
       "roughness": 0.58,
       "specular": 0.35,
@@ -109,11 +109,11 @@
     {
       "name": "bluegrey",
       "kind": "icing",
-      "srgb": "#7F93A6",
+      "srgb": "#AEBBC5",
       "linear": [
-        0.21223,
-        0.29177,
-        0.38133
+        0.42327,
+        0.49693,
+        0.55834
       ],
       "roughness": 0.6,
       "specular": 0.35,

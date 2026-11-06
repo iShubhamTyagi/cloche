@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Colour tokens from the design handoff. The interface has no hue: ivory on near-black.
 /// Food colours are the only saturated colours, plus `honey` for the last 30 seconds.
+/// The decorating screens are the exception: warm espresso panels with brass accents.
 public enum Palette {
     public static let ground = Color(hex: 0x0E0E0D)
     public static let surface = Color(hex: 0x1A1917)
@@ -13,6 +14,11 @@ public enum Palette {
     public static let honey = Color(hex: 0xE3C07D)
     /// Pure black for the face-down bake screen (OLED off).
     public static let black = Color(hex: 0x000000)
+
+    /// Decorating panels (owner's realism brief, 2026-11-06).
+    public static let espresso = Color(hex: 0x21160F)
+    public static let brass = Color(hex: 0xBE9A5F)
+    public static let brassLine = Color(hex: 0xBE9A5F).opacity(0.4)
 
     public static let line1 = Color(hex: 0xF6F1E7).opacity(0.12)
     public static let line2 = Color(hex: 0xF6F1E7).opacity(0.16)

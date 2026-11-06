@@ -125,7 +125,7 @@ public struct CakeSurfaces: Equatable, Sendable {
                 }
                 placements.append(Placement(kind: "sprinkle", variant: Int(rng.next() % 5), at: p, spin: Float(rng.unit()) * 2 * .pi))
             }
-        case .turntable:
+        case .turntable, .cream, .beads:
             break
         case let .plate(name):
             plate = name

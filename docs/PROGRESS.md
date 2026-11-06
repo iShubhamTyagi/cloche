@@ -4,7 +4,18 @@ Read the **Current state** first; it says where the next session starts. Then ad
 
 ## Current state
 
-- **Phase:** Decorating plan (`docs/BUILD_PLAN.md`) **ALL PHASES DONE** (first full pass, 2026-11-03) on branch `decorating` (not pushed). All Blender steps (transition.py skipped: the tongs move exists) and app Phases D0–D6. Next: the owner's look and feel review, then Phase 2.1 (recipes).
+- **Phase:** Decorating **rebuilt after the owner's review (2026-11-06)**, uncommitted on branch `decorating`: three steps (Cream, Pipe, Top), turntable, freehand spatula, cake in the top half and tray in the bottom half. Next: the owner tries it by hand, then Phase 2.1 (recipes).
+- **Realism pass, needs the human:**
+  - Add `docs/reference_photos/`: it doesn't exist, so the brief's photo comparison has not been done. Screenshots are in `docs/review/realism/` (`final_*`).
+  - Send the sculpted or scanned topping models: the brief's human-task list was missing from what was pasted. Closest stand-ins: `final_iphone_angle.png` (raspberry, mint leaf).
+  - Confirm "Maison Creme": it isn't defined in the repo; read as warm cream, espresso and brass.
+  - Look and frame rate on a real iPhone, with the effects on.
+- **Realism pass, still looks fake:** bare sponge shows dark jagged cracks along the shoulder where its normal map stretches; the cupcake's crown is a wide mushroom shape from the exported model; the mint leaf is flat.
+- **Realism pass, not reached:** true subsurface scattering (approximated), a real reflection on the marble (none yet), ambient occlusion (contact shadows and hollow shading only), cut-edge crumb (no cut edges exist), ganache and dusting looks (material only; no tool offers them).
+- **Turntable and serve (2026-11-06):** the real stand and cloche are live in the scene; decorating and served are one screen. Serve tested with scripted input; the rim drag through the real input path.
+- **One slab (2026-11-06):** from the oven to the bowls is one live scene on the real stage slab; see the log.
+- **After a fresh clone:** the generated assets are gitignored; run `scripts/build_assets.sh`, which needs the `.blend` files in `build/`.
+- **Decorating, cleanup after the owner approves:** remove the height-field code the app no longer uses (`CakeSurfaces`, `HeightField`, `Brush`, `ViewerMesh.icing*`), its tests, and the unused bundled assets (station panels, vessels, focus frames, and the files with " 2" in their names).
 - **Decorating, needs the human:**
   - Real-iPhone frame rate, the 10-minute thermal check, and touch feel (`-viewerSpike realitykit` for numbers).
   - Look approval against real photographs (the icing shader vs `docs/review/tools_reference.png`; the station panels).
@@ -29,6 +40,64 @@ Read the **Current state** first; it says where the next session starts. Then ad
 - **Known for Phase 1:** the Duo simulator boots folded, showing the cover display (1398 × 2034 px). The system reserves a strip down the cover's right edge, so centred content sits left of centre; cover screens need the reserved-region APIs. `simctl io screenshot` needs `--display=1` on the Duo.
 
 ## Log
+
+### 2026-11-06: One slab: oven to turntable to bowls, and new tools
+
+- **Built:**
+  - The live scene is the stage slab itself. The camera starts at the oven with the render's lens and position, so the render sits on the live slab; it slides 1.4 m along the slab to the true-size stand, the cloche lifts off, tongs set the dish down and it becomes the live cake, and the same camera rises to the decorating view while the room warms. `StationMoveView` drives this over `DecorStudioModel`'s intro.
+  - The stand is true size (1:1), replacing the 0.87 and 0.5 scales. A cupcake is framed close in.
+  - `tableware.py`: gilded china bowls (guilloche band, gilt lip and foot), stainless offset spatula with brass ferrule and walnut handle, piping bag and star tip, Cycles-rendered tongs. Live slab 0.42 m longer past the stand for the bowls.
+  - Bowls stand on the slab, heaped with the real toppings. Top moves the camera to them; tapping a bowl picks it and returns to the cake.
+  - Spatula and bag are 3D tools at the contact point. The blade lies across its travel, and along the radius when the cake is turning.
+- **Lessons (cost hours here, don't repeat):** never set `ARView.environment` per frame (about 1 s a frame); never change a material's emissive per frame; draw everything once under cover before a shot (a first-use material compile stalled the move for 1.1 s). `-decorProbe` can't see these: judge the move by the `move:` line in the Probe log.
+- **Verified:** app build green. Move: 0 frames over 50 ms on iPhone 17 (two runs) and the Duo, about 60 fps. Probe, iPhone 17 / Duo: rubbing 59.9 / 59.9, spin 60.0 / 60.0, piping 58.4 / 59.4, worst 50 ms, undo 15 ms. Scripted taps: rim turns the plate and adds nothing; bowl reached, gold picked, back at the cake, one placed. Serve sequence on the final build. Reduce Motion through the new move not run.
+- **Not verified:** real device; real fingers on the bowls and tools; the spatula while the hand moves (checked at rest on a spinning cake). Asset size not re-measured.
+- **Left over:** the live slab is a shade greyer than the render at the oven; the bag is a smooth shape without real cloth folds; a relaunch into a break shows an empty backdrop for 2 to 3 s; the tongs aren't used to place toppings.
+
+### 2026-11-06: Live turntable and cloche serve
+
+- **Built:**
+  - `stand_export.py`: the marble stand from `cakestand.blend` and the cloche's finial, as small USDZ parts. The glass is generated in the app (`ViewerMesh.clocheGlass`), because thinning the model broke up its surface.
+  - The plate and its brass marker turn with the cake; the base, bearing and switch stay still. The stand replaces the thin plate from the realism pass.
+  - Drag the plate's rim to turn it by hand; a flick coasts to a stop. Spin stays. A resting tool keeps working while the cake moves.
+  - Decorating and served are one `DecorateScreen`, so the scene never reloads. Serve: tools fade, camera eases down, the cloche seats over the real cake, then lifts to the reveal, with the cake turning slowly. If the break runs out the cloche still comes down first. `ServedScreen` became `ServedPanel`; the pre-rendered serve in `StationMoveView` is gone.
+- **Verified:** app build green. Serve sequence captured on iPhone 17 and the Duo (`docs/review/realism/serve_sequence.png`, `serve_duo_*.png`). Probe, fresh bake, iPhone 17 / Duo: rubbing 59.9 / 60.0 fps, blade on spinning cake 60.1 / 60.1, piping 58.4 / 58.0, worst frame 50 ms. Real rim drag: 0.90 rad turned, nothing added to the cake, coasted on.
+- **Not verified:** the break running out mid-decorating, and Reduce Motion through the serve (both coded, neither run). Real device.
+- **Left over:** the rim drag isn't hinted on screen; a relaunch into a break shows an empty backdrop for about 2.4 s while the scene loads.
+
+### 2026-11-06: Decorating realism pass
+
+- **Built:**
+  - Muted palette (`icing.py`, `palette.json`, `IcingColour.defaults`). Cream lets the sponge show through where thin, shades its hollows, and gets sleeker where thick.
+  - `scripts/blender/realism_maps.py`: sponge and pleated liner maps from one 3D noise field, so top and side match. Originals kept in `build/renders/realism_backup`. Runs after the export in `build_assets.sh`.
+  - Viewer moved from `RealityView` to a non-AR `ARView`, for its post-processing pass.
+  - Marble slab on a warm gradient, thin-rimmed plate sized to the dish, contact shadows, key, fill and rim lights.
+  - Six bead shapes; each slot gets its own size, rotation, lean and spacing, repeatably. Fine ridges and soft shade in the gaps.
+  - Side icing settles to an even coat with fine vertical marks and a lip at the plate.
+  - `ViewerPost`/`ViewerLook`: depth of field, bloom, filmic curve, vignette, grain; shader compiled at runtime; off for Reduce Motion and Low Power Mode.
+  - Espresso and brass UI; cake in the upper two thirds on iPhone, split at the fold on the Duo.
+  - Sprinkles 2x, soft highlight on the fruit.
+- **Verified:** app build green. `-decorProbe` on the final build, all effects on, simulator, two runs, iPhone 17 / Duo: rubbing 58.6 to 58.9 / 59.6 fps (the Duo's first run logged no rubbing line), blade on a spinning cake 59.7 to 59.8 / 59.1 to 59.8, piping 56.5 to 58.8 / 57.1 to 59.1; worst frame 71 ms; undo 18 ms. Contact sheets per step and the final screenshots are in `docs/review/realism/`. Reduce Motion checked on iPhone 17: effects off. Low Power Mode path not exercised.
+- **Measurement note:** readings of 31 to 36 fps were the probe starting before the scene had loaded (no frames count until it exists), not lag. The probe now waits. Scene load is 2.2 s on a relaunch into a break, and hidden under the tongs move otherwise.
+- **Left over:** see "Realism pass" in Current state.
+
+### 2026-11-06: Decorating rebuilt after the owner's review
+
+- **Why:** the owner called it horrible: clutter, feel, 3D layout, a cake that looked empty from the side, and lag.
+- **Measured cause of the lag:** each icing update cost about 136 ms on the main thread (image 92, upload about 40, mesh 4), on the Debug simulator build.
+- **Built:**
+  - 39 on-screen items cut to a tray of three steps, four choices each, plus Spin, Undo, Serve now and the clock.
+  - The app's usual stage: cake in the top half, tray in the bottom half, one view for both devices, the split on the Duo's fold.
+  - `CreamField` and `CreamLayer`: freehand spatula cream on one surface over the top, shoulder and side, with streaks, lips, torn edges, smoothing on repeat passes and colour marbling; only touched rows are updated.
+  - Turntable back: Spin, and a resting tool keeps working as the cake turns.
+  - Piped star beads on even ring slots; toppings settle into tidy positions; four colours, four toppings.
+  - Fixed camera at 52°; dark counter; plate sized to the dish; the served screen turns at 34° to show the side.
+  - Fixed the see-through gap between the cupcake's crown and liner.
+  - VoiceOver routes for cream, piping and toppings (no dragging needed).
+- **Removed:** `StationView`, `StationLayout`, `FocusMove`, the viewer spike, camera tilt and zoom, plate and backdrop choices, nozzle choice, Clear.
+- **Verified:** app build green. `-decorProbe` (scripted input through the real path, fresh bake), iPhone 17 / Duo: rubbing 58.4 / 58.8 fps, blade held on a spinning cake 59.4 / 59.0, piping 57.9 / 57.4; worst frame 67 ms; a cream update about 2.8 ms; undo 17 ms; scene load 0.9 to 1.4 s, under the tongs move. Screenshots on both devices.
+- **Not verified:** real-device frame rate and touch feel; scripted input stands in for a finger. Tests not run (switched off); `DecoratingTests` not rebuilt against the new op cases.
+- **Left over:** faint fine lines in a second colour laid over a first; the share image is still a flat top-down picture; the cupcake's liner texture is streaky.
 
 ### 2026-11-03: Decorating plan, finishing pass: ALL PHASES DONE
 

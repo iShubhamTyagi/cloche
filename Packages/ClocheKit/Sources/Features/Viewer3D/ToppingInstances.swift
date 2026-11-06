@@ -30,6 +30,39 @@ enum ToppingFactory {
         return entity
     }
 
+    /// One material over a whole model.
+    static func paint(_ entity: Entity, with material: PhysicallyBasedMaterial) {
+        entity.visit { ($0 as? ModelEntity)?.model?.materials = [material] }
+    }
+
+    /// Fruit needs a soft, wet highlight the exported models don't carry.
+    static func polished(_ entity: Entity, kind: String) -> Entity {
+        entity.visit { node in
+            guard let model = node as? ModelEntity, let materials = model.model?.materials else { return }
+            model.model?.materials = materials.map { material in
+                guard var m = material as? PhysicallyBasedMaterial else { return material }
+                switch kind {
+                case "raspberry":
+                    m.roughness = .init(floatLiteral: 0.34)
+                    m.clearcoat = .init(floatLiteral: 0.35)
+                    m.clearcoatRoughness = .init(floatLiteral: 0.3)
+                    m.sheen = .init(tint: UIColor(red: 0.9, green: 0.45, blue: 0.5, alpha: 1))
+                case "gold_flake":
+                    m.baseColor.tint = UIColor(red: 1, green: 0.82, blue: 0.46, alpha: 1)
+                    m.metallic = .init(floatLiteral: 0.45)
+                    m.roughness = .init(floatLiteral: 0.32)
+                case "blueberry":
+                    m.roughness = .init(floatLiteral: 0.5)
+                    m.sheen = .init(tint: UIColor(red: 0.55, green: 0.6, blue: 0.75, alpha: 1))
+                default:
+                    break
+                }
+                return m
+            }
+        }
+        return entity
+    }
+
     /// Simple shapes at the real size, so the app works before the models are exported.
     private static func standIn(kind: String, variant: Int) -> Entity {
         var m = PhysicallyBasedMaterial()

@@ -78,6 +78,10 @@ struct OvenRenderLayout: Decodable, Sendable {
 /// The rendered oven in the oven slot: the frame for the door's angle, scaled so the oven body
 /// fills the slot between the header band and the bottom band, with the plate text drawn in the
 /// display window. The door may hang past the slot when open, as the drawn door did.
+extension EnvironmentValues {
+    @Entry var showsOvenSlab = true
+}
+
 struct RenderedOven: View, Animatable {
     let layout: OvenRenderLayout
     /// Door angle in degrees: 0 shut, 88 flat toward the viewer, 180 hanging straight down.
@@ -89,6 +93,8 @@ struct RenderedOven: View, Animatable {
     /// 0 the dish is off-screen left, 1 placed on the racks (it flies in on Prep).
     var dishArrival: Double = 1
     var isServingTaken = false
+    /// Off once the live slab is underneath, in the move from the oven to the stand.
+    @Environment(\.showsOvenSlab) private var showsOvenSlab
 
     /// Animating steps through the rendered door frames (springing open or shut) and flies the
     /// dish in.
@@ -116,7 +122,7 @@ struct RenderedOven: View, Animatable {
             let display = layout.displayRect
             ZStack(alignment: .topLeading) {
                 // The stage slab the oven stands on, from the same camera (slab_export.py).
-                if let slab = OvenFrameCache.shared.image(named: "slab_oven") {
+                if showsOvenSlab, let slab = OvenFrameCache.shared.image(named: "slab_oven") {
                     Image(uiImage: slab)
                         .resizable()
                         .interpolation(.high)

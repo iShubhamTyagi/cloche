@@ -20,14 +20,14 @@ import deco_common as D
 
 # name: (sRGB hex, roughness, specular, subsurface, sheen, coat)
 ICING = {
-    "ivory": (0xEADBB8, 0.62, 0.35, 0.12, 0.08, 0.0),
-    "rose": (0xE8908E, 0.6, 0.35, 0.12, 0.08, 0.0),
-    "pistachio": (0xA6C47E, 0.6, 0.35, 0.1, 0.08, 0.0),
-    "chocolate": (0x3F2318, 0.55, 0.4, 0.06, 0.08, 0.0),
-    "caramel": (0xB06A2A, 0.55, 0.4, 0.08, 0.08, 0.0),
-    "white": (0xF4F1EA, 0.64, 0.35, 0.15, 0.08, 0.0),
-    "raspberry": (0xA8203E, 0.58, 0.35, 0.08, 0.08, 0.0),
-    "bluegrey": (0x7F93A6, 0.6, 0.35, 0.1, 0.08, 0.0),
+    "ivory": (0xF1E8D4, 0.62, 0.35, 0.12, 0.08, 0.0),
+    "rose": (0xE2B4AC, 0.6, 0.35, 0.12, 0.08, 0.0),
+    "pistachio": (0xC4D0A6, 0.6, 0.35, 0.1, 0.08, 0.0),
+    "chocolate": (0x6E4C3B, 0.55, 0.4, 0.06, 0.08, 0.0),
+    "caramel": (0xCDA377, 0.55, 0.4, 0.08, 0.08, 0.0),
+    "white": (0xF6F2E9, 0.64, 0.35, 0.15, 0.08, 0.0),
+    "raspberry": (0xC6838C, 0.58, 0.35, 0.08, 0.08, 0.0),
+    "bluegrey": (0xAEBBC5, 0.6, 0.35, 0.1, 0.08, 0.0),
 }
 GANACHE = {
     "ganache_dark": (0x2E1A12, 0.14, 0.6, 0.05, 0.0, 0.7),

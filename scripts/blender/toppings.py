@@ -24,6 +24,8 @@ OUT = os.path.join(D.OUT, "toppings")
 # HUD topping: [(model, count)], heap radius (m)
 HEAPS = {
     "berries": ([("raspberry", 5), ("blueberry", 8)], 0.017),
+    "raspberries": ([("raspberry", 8)], 0.018),
+    "blueberries": ([("blueberry", 14)], 0.018),
     "mint": ([("mint_leaf", 9)], 0.024),
     "chocolate_shavings": ([("chocolate_curl", 9), ("chocolate_shard", 4)], 0.025),
     "gold_flakes": ([("gold_flake", 40)], 0.02),

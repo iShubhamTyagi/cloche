@@ -1,5 +1,6 @@
 import DesignSystem
 import DoorSensing
+import Domain
 import SwiftUI
 
 /// Settings, Gate 0 subset: door mode, keep-awake, sounds and the demo bake. The rest
@@ -7,7 +8,8 @@ import SwiftUI
 struct SettingsScreen: View {
     @Bindable var settings: AppSettings
     let hingePresent: Bool
-    let onDemoBake: () -> Void
+    /// A demo bake of the dish that length bakes (Quick: cupcakes, Medium: a cake).
+    let onDemoBake: (BakeLength) -> Void
     let onClose: () -> Void
 
     var body: some View {
@@ -39,21 +41,8 @@ struct SettingsScreen: View {
                 }
 
                 section(Text("Try it", bundle: .module)) {
-                    Button(action: onDemoBake) {
-                        VStack(alignment: .leading, spacing: Spacing.s1) {
-                            Text("Demo bake · 5 seconds", bundle: .module)
-                                .textStyle(.body.sized(16))
-                                .fontWeight(.medium)
-                                .foregroundStyle(Palette.text)
-                            Text("A short bake to see the whole loop. It earns no stars.", bundle: .module)
-                                .textStyle(.note)
-                                .foregroundStyle(Palette.muted)
-                        }
-                        .frame(maxWidth: .infinity, minHeight: HitTarget.minimum, alignment: .leading)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("settings.demoBake")
+                    demoBake(.quick, title: Text("Demo bake · Cupcakes", bundle: .module), id: "settings.demoBake")
+                    demoBake(.medium, title: Text("Demo bake · Cake", bundle: .module), id: "settings.demoBakeCake")
                 }
 
                 Text("Everything stays on this phone. No account, no tracking.", bundle: .module)
@@ -63,6 +52,24 @@ struct SettingsScreen: View {
             .padding(Spacing.margin)
         }
         .pocketScreenBackground()
+    }
+
+    private func demoBake(_ length: BakeLength, title: Text, id: String) -> some View {
+        Button { onDemoBake(length) } label: {
+            VStack(alignment: .leading, spacing: Spacing.s1) {
+                title
+                    .textStyle(.body.sized(16))
+                    .fontWeight(.medium)
+                    .foregroundStyle(Palette.text)
+                Text("Five seconds, to see the whole loop. It earns no stars.", bundle: .module)
+                    .textStyle(.note)
+                    .foregroundStyle(Palette.muted)
+            }
+            .frame(maxWidth: .infinity, minHeight: HitTarget.minimum, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(id)
     }
 
     private func section(_ title: Text, @ViewBuilder content: () -> some View) -> some View {

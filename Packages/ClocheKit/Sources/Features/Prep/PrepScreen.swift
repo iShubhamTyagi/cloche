@@ -13,7 +13,7 @@ struct PrepScreen: View {
     @Binding var length: BakeLength
     let onBake: (BakeLength) -> Void
     /// Development builds only: a 5 s bake that runs itself into decorating. Nil hides the button.
-    var onDevBake: (() -> Void)?
+    var onDevBake: ((BakeLength) -> Void)?
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// On the open Duo the options lie on the oven door's glass (`OvenStage`): tighter spacing.
@@ -98,7 +98,10 @@ struct PrepScreen: View {
             #if DEBUG
             if let onDevBake {
                 // Debug-only, never shipped, so not localized.
-                Button(action: onDevBake) {
+                Menu {
+                    Button { onDevBake(.quick) } label: { Text(verbatim: "Cupcakes") }
+                    Button { onDevBake(.medium) } label: { Text(verbatim: "Cake") }
+                } label: {
                     Text(verbatim: "5s")
                         .textStyle(.control)
                         .frame(width: HitTarget.minimum, height: HitTarget.minimum)

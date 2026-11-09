@@ -15,7 +15,7 @@ Read the **Current state** first; it says where the next session starts. Then ad
 - **Turntable and serve (2026-11-06):** the real stand and cloche are live in the scene; decorating and served are one screen. Serve tested with scripted input; the rim drag through the real input path.
 - **One slab (2026-11-06):** from the oven to the bowls is one live scene on the real stage slab; see the log.
 - **After a fresh clone:** the generated assets are gitignored; run `scripts/build_assets.sh`, which needs the `.blend` files in `build/`.
-- **Decorating, cleanup after the owner approves:** remove the height-field code the app no longer uses (`CakeSurfaces`, `HeightField`, `Brush`, `ViewerMesh.icing*`), its tests, and the unused bundled assets (station panels, vessels, focus frames, and the files with " 2" in their names).
+- **Decorating, cleanup after the owner approves:** remove the height-field code the app no longer uses (`CakeSurfaces`, `HeightField`, `Brush`, `ViewerMesh.icing*`), its tests, and the unused bundled assets (topping icons other than raspberries, blueberries and sprinkles; station panels, vessels, focus frames, and the files with " 2" in their names).
 - **Decorating, needs the human:**
   - Real-iPhone frame rate, the 10-minute thermal check, and touch feel (`-viewerSpike realitykit` for numbers).
   - Look approval against real photographs (the icing shader vs `docs/review/tools_reference.png`; the station panels).
@@ -40,6 +40,30 @@ Read the **Current state** first; it says where the next session starts. Then ad
 - **Known for Phase 1:** the Duo simulator boots folded, showing the cover display (1398 × 2034 px). The system reserves a strip down the cover's right edge, so centred content sits left of centre; cover screens need the reserved-region APIs. `simctl io screenshot` needs `--display=1` on the Duo.
 
 ## Log
+
+### 2026-11-09: Berries go anywhere on the top; demo bake picks the dish
+
+- **Why:** the owner wants berries placed freely anywhere on the top, with at most a light snap.
+- **Built:**
+  - A berry lands where the finger taps. Within about half a berry of a free tidy position it snaps onto it. It never sits inside another piece: it is nudged straight away until the two just touch, and kept on the top. Supersedes "nearest free tidy position" from this morning.
+  - Settings › Try it: "Demo bake · Cupcakes" and "Demo bake · Cake". The DEBUG "5s" button on Prep is a menu with Cupcakes and Cake. `-devBakeCake` still works.
+- **Verified:** app build green. Probe on cupcakes (iPhone 17) and the cake (Duo): 6 of 6 taps placed, repeated taps on one spot lined up touching, bowls reached and picked, rim drag 0.90 rad with nothing added. Probe 56 to 59 fps on both. Screenshots of both.
+- **Not verified:** the new Settings buttons and the "5s" menu by tap (the simulator can't be tapped from scripts here; the build compiles them and the cake path ran through `-devBakeCake`). Undo was 83 ms on the cupcake run (18 ms on the cake); not looked into.
+
+### 2026-11-09: Toppings land every time; three bowls
+
+- **Why:** the owner found toppings sometimes didn't go on the cake.
+- **Causes found:**
+  - A tap whose nearest tidy position was already taken did nothing (a cupcake has only 7 positions).
+  - A tap on the far half of a tall cake's top was read as the plate's rim, because the rim check projected onto the plate's plane, behind the cake. It turned the cake instead of placing.
+  - The top was hit as a flat plane at its highest point, so taps on a domed top's shoulder landed past the edge and were dropped.
+  - Taps while the camera was still travelling back from the bowls used the decorating camera, not the one on screen.
+- **Built:**
+  - A tap goes to the nearest free tidy position. The real surface is hit (the same ray as the spatula). A touch on the cake is never the rim. Taps wait out the camera's return.
+  - Bowls cut to three: raspberries, blueberries and sprinkles. The mint and gold bowls are removed, and the mixed-berries bowl is now two separate bowls. Icons are rendered by `toppings.py` (`raspberries`, `blueberries`).
+  - DEBUG `-decorBowls` opens on the bowls. `-decorProbe` now taps the same spot four times, then the far half of the top.
+- **Verified:** app build green. Probe, iPhone 17 / Duo: 6 of 6 taps placed, the right bowl picked, rim drag turns 0.90 rad and adds nothing. Both probes ran at once, so the fps (50 to 56) and undo (85 ms) readings are lower than the earlier single-device runs; not re-measured alone. Bowls screenshotted on both devices.
+- **Not verified:** real fingers; the old icons (`berries`, `mint`, `gold_flakes`) are still bundled and unused (add to the cleanup list).
 
 ### 2026-11-06: One slab: oven to turntable to bowls, and new tools
 

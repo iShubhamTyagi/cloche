@@ -12,9 +12,9 @@ enum DecorStep: String, CaseIterable, Sendable {
 /// Names shared by the tray, the model and the scene.
 enum DecorCatalog {
     static let colours = ["ivory", "rose", "pistachio", "chocolate"]
-    static let toppings = ["berries", "mint", "sprinkles", "gold_flakes"]
+    static let toppings = ["raspberries", "blueberries", "sprinkles"]
     /// Where each bowl stands on the slab, beyond the turntable (mm from the plate's centre).
-    static let bowlSpots: [SIMD2<Float>] = [SIMD2(335, 150), SIMD2(475, 150), SIMD2(335, 5), SIMD2(475, 5)]
+    static let bowlSpots: [SIMD2<Float>] = [SIMD2(335, 150), SIMD2(475, 150), SIMD2(405, 10)]
 
     static func paletteIndex(_ name: String) -> Int {
         ViewerAssets.palette.firstIndex { $0.name == name } ?? 0
@@ -23,9 +23,8 @@ enum DecorCatalog {
     /// The 3D model(s) a tray topping places.
     static func models(for topping: String) -> [String] {
         switch topping {
-        case "berries": ["raspberry", "blueberry"]
-        case "mint": ["mint_leaf"]
-        case "gold_flakes": ["gold_flake"]
+        case "raspberries": ["raspberry"]
+        case "blueberries": ["blueberry"]
         default: ["sprinkle"]
         }
     }
@@ -72,7 +71,7 @@ final class DecorStudioModel {
     }
     var creamColour = DecorCatalog.paletteIndex("ivory")
     var pipeColour = DecorCatalog.paletteIndex("rose")
-    var topping = "berries"
+    var topping = "raspberries"
     private(set) var isSpinning = false
     /// The tool in the hand this moment (nil: nothing).
     private(set) var tool: ToolPose?
@@ -571,8 +570,14 @@ final class DecorStudioModel {
             if let name = bowl(atX: x, y: y) { pick(topping: name) }
             return
         }
-        // The rim belongs to the turntable: drag it round by hand, flick it and it coasts.
-        if let angle = rimAngle(x: x, y: y, anywhere: false) {
+        // The camera is still travelling back from the bowls: the cake isn't where the rig says.
+        guard bowlPose == nil else { return }
+        // The rim belongs to the turntable: drag it round by hand, flick it and it coasts. A touch
+        // on the cake itself never counts, even where the plate's plane lies behind it (the far
+        // half of a tall cake's top projects onto the plane well past the rim).
+        let ray = plateRay(x: x, y: y)
+        let onCake = cream.line.hit(origin: ray.origin, direction: ray.direction)
+        if onCake == nil, let angle = rimAngle(x: x, y: y, anywhere: false) {
             lastRimAngle = angle
             handSpeed = 0
             return
@@ -602,14 +607,16 @@ final class DecorStudioModel {
             strokeSlots = []
             touchMoved(x: x, y: y)
         case .top:
-            guard r <= geometry.radius else { return }
+            // Where the finger meets the real surface (a domed top or the side), not a flat plane
+            // at the highest point, which misses the shoulder and lands past the edge.
+            guard let touch = onCake else { return }
+            let tr = min(cream.line.at(touch.s).point.x, geometry.radius * 0.97)
             if topping == "sprinkles" {
                 let seed = UInt64(document.ops.count * 7919 + 17)
-                commit(.sprinkles(seed: seed, at: .top(radius: r, angle: atan2(p.y, p.x)), radius: geometry.radius * 0.16))
+                commit(.sprinkles(seed: seed, at: .top(radius: tr, angle: touch.a), radius: geometry.radius * 0.16))
                 tick += 1
             } else {
-                let point = geometry.snappedTopping(radius: r, angle: atan2(p.y, p.x))
-                if !isTaken(point) { place(at: point) }
+                place(at: freePlacement(radius: tr, angle: touch.a))
             }
         }
     }
@@ -709,6 +716,58 @@ final class DecorStudioModel {
         save()
     }
 
+    /// Where a topping tapped at a point on the top goes: exactly there, anywhere on the top.
+    /// Close to a free tidy position it snaps onto it, a little, so a careful ring still comes out
+    /// even. It never sits inside another piece: it is nudged out until the two just touch.
+    private func freePlacement(radius r: Float, angle a: Float) -> SurfacePoint {
+        let kind = DecorCatalog.models(for: topping)[0]
+        let mine = Self.pieceSize(kind) * pieceScale
+        let limit = geometry.radius * 0.95 - mine / 2
+        var p = SIMD2(r * cos(a), r * sin(a))
+        var snapped = false
+        for ring in geometry.toppingRings {
+            for k in 0..<ring.count {
+                let angle = ring.radius > 0 ? Float(k) * 2 * .pi / Float(ring.count) : 0
+                guard !isTaken(.top(radius: ring.radius, angle: angle)) else { continue }
+                let spot = SIMD2(ring.radius * cos(angle), ring.radius * sin(angle))
+                if !snapped, simd_length(spot - p) < mine * 0.6 {
+                    p = spot
+                    snapped = true
+                }
+            }
+        }
+        let others = dressing.placements.filter { $0.kind != "sprinkle" }
+        for _ in 0..<4 {
+            var moved = false
+            for other in others {
+                let q = SIMD2(other.at.a * cos(other.at.b), other.at.a * sin(other.at.b))
+                let gap = (mine + Self.pieceSize(other.kind) * pieceScale) / 2 * 0.9
+                let d = simd_length(p - q)
+                guard d < gap else { continue }
+                // Straight away from it; a tap dead on its centre goes outward.
+                let away = d > 0.01 ? (p - q) / d : (simd_length(q) > 0.01 ? simd_normalize(q) : SIMD2(1, 0))
+                p = q + away * gap
+                moved = true
+            }
+            let length = simd_length(p)
+            if length > limit { p *= limit / length }
+            if !moved { break }
+        }
+        return .top(radius: simd_length(p), angle: atan2(p.y, p.x))
+    }
+
+    /// A piece's width on the cake, in millimetres at full size.
+    private static func pieceSize(_ kind: String) -> Float {
+        switch kind {
+        case "raspberry": 18
+        case "blueberry": 11
+        default: 12
+        }
+    }
+
+    /// Toppings are drawn smaller on a cupcake (ViewerScene's scale).
+    private var pieceScale: Float { geometry.hasSide ? 1 : 0.62 }
+
     private func isTaken(_ point: SurfacePoint) -> Bool {
         dressing.placements.contains { $0.at == point }
     }
@@ -751,9 +810,9 @@ final class DecorStudioModel {
         creamWholeCake()
         pipeColour = DecorCatalog.paletteIndex("rose")
         for ring in geometry.pipeRings where ring != .middle { pipeWholeRing(ring) }
-        topping = "berries"
+        topping = "raspberries"
         for _ in 0..<(geometry.hasSide ? 12 : 6) { placeNextTopping() }
-        topping = "mint"
+        topping = "blueberries"
         placeNextTopping()
         step = .top
         leaveBowls()
@@ -851,7 +910,7 @@ final class DecorStudioModel {
         try? await Task.sleep(for: .seconds(1.3))
         let atBowls = isAtBowls && bowlPose != nil
         if let pose = bowlPose {
-            let spot = DecorCatalog.bowlSpots[3]
+            let spot = DecorCatalog.bowlSpots[1]
             let forward = simd_normalize(pose.target - pose.position)
             let right = simd_normalize(SIMD3(forward.y, -forward.x, 0))
             let up = simd_cross(right, forward)
@@ -867,10 +926,14 @@ final class DecorStudioModel {
         try? await Task.sleep(for: .seconds(1.3))
         let backAtCake = bowlPose == nil
         let placedBefore = dressing.placements.count
-        let top = profile.height * 1000
-        if let p = rig.project(SIMD3(geometry.radius * 0.5, 0, top), aspect: viewAspect) {
-            touchBegan(x: p.x, y: p.y)
-            touchEnded()
+        // The same spot four times (each lands in the nearest gap), then the far half of the top,
+        // which used to read as the plate's rim and turn the cake instead.
+        for angle: Float in [0, 0, 0, 0, 1.57, 1.2] {
+            let z = profile.topHeight(atRadius: geometry.radius * 0.5 / 1000) * 1000
+            if let p = rig.project(SIMD3(geometry.radius * 0.5 * cos(angle - plateAngle(at: now)), geometry.radius * 0.5 * sin(angle - plateAngle(at: now)), z), aspect: viewAspect) {
+                touchBegan(x: p.x, y: p.y)
+                touchEnded()
+            }
         }
         FrameProbe.note("bowls: reached \(atBowls), picked \(picked), back at cake \(backAtCake), placed \(dressing.placements.count - placedBefore)")
         let start = Date()

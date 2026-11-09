@@ -8,10 +8,9 @@ enum DecorCopy {
         case "rose": "Rose"
         case "pistachio": "Pistachio"
         case "chocolate": "Chocolate"
-        case "berries": "Berries"
-        case "mint": "Mint"
-        case "sprinkles": "Sprinkles"
-        default: "Gold"
+        case "raspberries": "Raspberries"
+        case "blueberries": "Blueberries"
+        default: "Sprinkles"
         }
     }
 

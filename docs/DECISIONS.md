@@ -4,6 +4,11 @@ Choices made during the build that the PRD or design handoff don't settle. Newes
 
 | Date | Decision | Why |
 | --- | --- | --- |
+| 2026-11-09 | **Berries go where they're tapped, anywhere on the top; a light snap (half a berry) to a free tidy position; pieces are nudged apart rather than overlapping** | Owner's call. Supersedes the same day's "nearest free tidy position" |
+| 2026-11-09 | **The demo bake offers cupcakes or a cake** | Owner's call; both dishes decorate differently, so both need a quick path. Cake uses the Medium dish (Long has the same decorating model) |
+| 2026-11-09 | **Three topping bowls: raspberries, blueberries, sprinkles** | Owner's call. Mint and gold are gone; the mixed-berries bowl is split so each bowl places one fruit |
+| 2026-11-09 | **A topping tap goes to the nearest free tidy position, never nowhere** | A tap beside an existing topping did nothing and read as broken. Toppings stay tidy and never stack |
+| 2026-11-09 | **A touch that meets the cake is never a rim drag** | The rim test projects onto the plate's plane, which lies behind the far half of a tall cake, so taps there turned the plate |
 | 2026-11-03 | **Viewer maps for the golden state only; the dark state darkens them (×0.62) and pale reuses golden** | Plan §3: golden first, other states only within budget. One bake set per dish keeps the viewer at 1.3 MB |
 | 2026-11-03 | **The app builds its cake and icing meshes from the exported profile (`profile.json`); the `mesh.usdz` files are kept only for the preview check** | The icing must share the app's grid; shipping the meshes would duplicate it |
 | 2026-11-03 | **Station vessels: one sprite per vessel plus resting and lifted shadows; "lifted" is the sprite at 1.06×, "empty" draws nothing over the panel's seat** | Same look as three renders at a third of the size |

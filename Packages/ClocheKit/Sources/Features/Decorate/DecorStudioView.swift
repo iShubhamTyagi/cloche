@@ -113,6 +113,11 @@ struct DecorStudioView: View {
                 await model.runDragProbe()
             }
             if args.contains("-decorRub") { model.applyRub() }
+            // `-decorBowls`: the topping step, with the camera on the bowls.
+            if args.contains("-decorBowls") {
+                try? await Task.sleep(for: .seconds(4))
+                model.step = .top
+            }
             if args.contains("-decorHandSpin") { model.applyHandSpin() }
             if let i = args.firstIndex(of: "-decorHold"), i + 1 < args.count {
                 try? await Task.sleep(for: .seconds(4))

@@ -8,6 +8,20 @@
       ],
       "extent_mm": 68.0
     },
+    "raspberries": {
+      "icon": "icons/raspberries.png",
+      "models": [
+        "raspberry"
+      ],
+      "extent_mm": 68.0
+    },
+    "blueberries": {
+      "icon": "icons/blueberries.png",
+      "models": [
+        "blueberry"
+      ],
+      "extent_mm": 68.0
+    },
     "mint": {
       "icon": "icons/mint.png",
       "models": [
@@ -59,6 +73,6 @@
       "extent_mm": 68.0
     }
   },
-  "size_mb": 0.55,
+  "size_mb": 0.7,
   "budget_mb": 5
 }

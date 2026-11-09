@@ -70,15 +70,14 @@ struct SessionRootView: View {
             // A cake left on the served screen would otherwise stop the bake from starting.
             if case .served = session.phase { session.send(.done) }
             guard case .idle = session.phase else { return }
-            if args.contains("-devBakeCake") { length = .medium }
             try? await Task.sleep(for: .seconds(1))
-            devBakeAction?()
+            devBakeAction?(args.contains("-devBakeCake") ? .medium : length)
         }
         #endif
         .sheet(isPresented: $showsSettings) {
-            SettingsScreen(settings: dependencies.settings, hingePresent: dependencies.doorSensor.hingePresent, onDemoBake: {
+            SettingsScreen(settings: dependencies.settings, hingePresent: dependencies.doorSensor.hingePresent, onDemoBake: { length in
                 showsSettings = false
-                preheat(PendingPreheat(length: .quick, isDemo: true))
+                preheat(PendingPreheat(length: length, isDemo: true))
             }, onClose: { showsSettings = false })
         }
         .sheet(item: $pendingPreheat) { pending in
@@ -210,9 +209,10 @@ struct SessionRootView: View {
 
     // MARK: Dev bake (development builds only)
 
-    private var devBakeAction: (() -> Void)? {
+    private var devBakeAction: ((BakeLength) -> Void)? {
         #if DEBUG
-        return {
+        return { length in
+            self.length = length
             isDevBake = true
             setManualDoor(.closed)
             // Skips the notification pre-prompt; a dev shortcut, not a first bake.

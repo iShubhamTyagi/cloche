@@ -39,10 +39,9 @@ final class ViewerTableware {
     private func heap(_ name: String, in holder: Entity, index: Int, models: inout [String: Entity]) {
         let kinds = DecorCatalog.models(for: name)
         let (count, size, under): (Int, Float, UIColor) = switch name {
-        case "berries": (34, 1, UIColor(red: 0.36, green: 0.05, blue: 0.1, alpha: 1))
-        case "mint": (60, 0.72, UIColor(red: 0.12, green: 0.3, blue: 0.12, alpha: 1))
-        case "sprinkles": (170, 2, UIColor(red: 0.75, green: 0.55, blue: 0.5, alpha: 1))
-        default: (150, 1.25, UIColor(red: 0.72, green: 0.54, blue: 0.24, alpha: 1))
+        case "raspberries": (30, 1, UIColor(red: 0.36, green: 0.05, blue: 0.1, alpha: 1))
+        case "blueberries": (52, 1, UIColor(red: 0.1, green: 0.11, blue: 0.22, alpha: 1))
+        default: (170, 2, UIColor(red: 0.75, green: 0.55, blue: 0.5, alpha: 1))
         }
         // A full bowl: a mound the pieces sit on, so no bare china shows between them.
         var mass = PhysicallyBasedMaterial()
